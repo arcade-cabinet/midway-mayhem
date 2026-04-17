@@ -21,8 +21,9 @@ import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
 import { Cockpit } from '@/render/cockpit/Cockpit';
-import { BigTopEnvironment } from '@/render/Environment';
+import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
 import { PostFX } from '@/render/PostFX';
+import { BoostRush } from '@/render/BoostRush';
 import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
@@ -93,12 +94,13 @@ export function App() {
           <ambientLight intensity={0.45} color="#ffd6a8" />
           <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
           <Suspense fallback={null}>
-            <BigTopEnvironment />
+            <BigTopEnvironment night={isNightFromUrl()} />
           </Suspense>
           <Track />
           <TrackContent />
           <Cockpit />
           <SpeedLines />
+          <BoostRush />
           <PostFX />
           <GameLoop
             active={playing}
