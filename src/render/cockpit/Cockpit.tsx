@@ -87,111 +87,118 @@ export function Cockpit({ tier }: CockpitProps) {
           A-pillars       frame the windshield at x=±1.3, y=1.0..1.9
           bench seat      behind driver at z=+0.6
       */}
-      {/* Angle down ~10° so we see the road ahead, hood in bottom third,
-          windshield arch framing the top of the view — classic arcade
-          driver framing. */}
+      {/* Camera lives at driver's eye, BEHIND cockpit origin (+z). Everything
+          else — hood, arch, wheel — positioned at negative z. Coordinates
+          anchored to the POC's tuned values so track + hood read correctly. */}
       <PerspectiveCamera
         makeDefault
-        position={[0, 1.5, 0]}
-        rotation={[-0.18, 0, 0]}
+        position={[0, 1.72, 1.55]}
+        rotation={[0, 0, 0]}
         fov={vFov}
         near={0.1}
         far={2000}
       />
 
-      {/* Cabin shell — individual walls, NOT a sealed box. Leaving the
-          FRONT open so we see through the windshield at the track beyond.
-          Purple interior so peripheral glances read as inside-the-car. */}
-      {/* Ceiling */}
-      <mesh position={[0, 2.3, 0]} rotation={[Math.PI / 2, 0, 0]} name="cabin-ceiling">
-        <planeGeometry args={[3.2, 3.4]} />
+      {/*
+        COORDINATE ANCHORS (from POC-tuned values, camera at [0, 1.72, 1.55]):
+          hood          [0, -0.1, -1.9]   just past windshield, below eye
+          dashboard     [0, 0.75, -0.65]  cylinder rotated π/2 on Z for cowl
+          steering wheel[0, 0.82, 0.2]    close to camera, reachable
+          arch          [0, 2.3, -0.3]    frames windshield top
+          A-pillars     [±1.1, 1.55, -0.2]
+          ornament      [0, 0.5, -2.65]   on hood tip
+      */}
+
+      {/* Cabin shell — purple back wall + side walls + ceiling. Open front
+          so we see the track through the windshield. */}
+      <mesh position={[0, 1.2, 2.2]} rotation={[0, Math.PI, 0]} name="cabin-back">
+        <planeGeometry args={[3.2, 2.8]} />
         <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
       </mesh>
-      {/* Floor */}
-      <mesh position={[0, -0.3, 0]} rotation={[-Math.PI / 2, 0, 0]} name="cabin-floor">
-        <planeGeometry args={[3.2, 3.4]} />
-        <meshStandardMaterial color="#2b0440" roughness={0.85} side={THREE.DoubleSide} />
+      <mesh position={[0, 2.6, 0]} rotation={[Math.PI / 2, 0, 0]} name="cabin-ceiling">
+        <planeGeometry args={[3.2, 4.0]} />
+        <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
       </mesh>
-      {/* Left + right side walls */}
       {([-1, 1] as const).map((side) => (
         <mesh
           key={side}
-          position={[side * 1.6, 1.0, 0]}
+          position={[side * 1.6, 1.2, 0]}
           rotation={[0, side * -Math.PI / 2, 0]}
           name={`cabin-wall-${side > 0 ? 'right' : 'left'}`}
         >
-          <planeGeometry args={[3.4, 2.6]} />
+          <planeGeometry args={[4.0, 2.8]} />
           <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
         </mesh>
       ))}
-      {/* Back wall (behind driver) */}
-      <mesh position={[0, 1.0, 1.7]} rotation={[0, Math.PI, 0]} name="cabin-back">
-        <planeGeometry args={[3.2, 2.6]} />
-        <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
-      </mesh>
 
-      {/* A-pillars — left + right windshield frames (visible through
-          peripheral vision on the sides). */}
+      {/* A-pillars — flank the windshield */}
       {([-1, 1] as const).map((side) => (
         <mesh
           key={side}
-          position={[side * 1.3, 1.35, -1.1]}
-          rotation={[0.18, 0, side * -0.05]}
+          position={[side * 1.1, 1.55, -0.2]}
+          rotation={[0.25, 0, side * -0.12]}
           name={`a-pillar-${side > 0 ? 'right' : 'left'}`}
         >
-          <boxGeometry args={[0.18, 1.5, 0.18]} />
+          <cylinderGeometry args={[0.05, 0.05, 1.8, 10]} />
           <meshStandardMaterial color={PURPLE} roughness={0.4} metalness={0.3} />
         </mesh>
       ))}
 
-      {/* Windshield arch — yellow half-torus crowning the view */}
-      <mesh position={[0, 1.95, -1.3]} rotation={[0, 0, 0]} name="windshield-arch">
-        <torusGeometry args={[1.35, 0.07, 12, 28, Math.PI]} />
+      {/* Windshield arch — standard "arch" shape: the half-torus ends
+          point DOWN and midpoint crests UP at ~y = 2.7. Positioned high
+          enough that it crowns the windshield without obscuring the road. */}
+      <mesh
+        position={[0, 1.75, -0.8]}
+        rotation={[0.1, 0, 0]}
+        name="windshield-arch"
+      >
+        <torusGeometry args={[0.95, 0.05, 10, 28, Math.PI]} />
         <meshStandardMaterial color={YELLOW} roughness={0.3} metalness={0.4} />
       </mesh>
 
-      {/* Dashboard cowl — the polka-dot slab in front of driver. Top edge
-          below camera horizon, back edge well in front of camera near plane
-          so the cowl doesn't eclipse the whole view. */}
-      <mesh position={[0, 0.95, -0.95]} rotation={[-0.15, 0, 0]} name="dashboard-cowl">
-        <boxGeometry args={[2.5, 0.35, 0.8]} />
-        <meshStandardMaterial map={cowlTexture} roughness={0.75} metalness={0.02} />
+      {/* Dashboard cowl — cylinder rotated 90° on Z so it presents a flat
+          top face to the camera. Polka dots facing up. */}
+      <mesh
+        position={[0, 0.75, -0.65]}
+        rotation={[-Math.PI / 2.4, 0, Math.PI / 2]}
+        name="dashboard-cowl"
+      >
+        <cylinderGeometry args={[0.32, 0.32, 2.0, 24, 1, true]} />
+        <meshStandardMaterial map={cowlTexture} roughness={0.75} metalness={0.02} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Chrome strip along the top edge of the cowl (dividing polka-dots
-          from the windshield opening). */}
-      <mesh position={[0, 1.14, -0.6]} rotation={[-0.15, 0, 0]} name="dash-chrome">
-        <boxGeometry args={[2.5, 0.05, 0.05]} />
+      {/* Chrome accent along the top rear edge of the cowl */}
+      <mesh position={[0, 1.08, -0.5]} rotation={[-0.2, 0, 0]} name="dash-chrome">
+        <boxGeometry args={[2.0, 0.05, 0.04]} />
         <meshStandardMaterial color={CHROME} roughness={0.1} metalness={0.95} />
       </mesh>
 
-      {/* Bench seat behind driver (barely peripheral). */}
-      <mesh position={[0, 0.45, 1.1]} name="bench-base">
-        <boxGeometry args={[2.4, 0.22, 0.9]} />
+      {/* Bench seat behind driver */}
+      <mesh position={[0, 0.35, 1.4]} name="bench-base">
+        <boxGeometry args={[2.2, 0.22, 0.85]} />
         <meshStandardMaterial color={BENCH_RED} roughness={0.85} />
       </mesh>
-      <mesh position={[0, 1.0, 1.5]} name="bench-back">
-        <boxGeometry args={[2.4, 1.1, 0.18]} />
+      <mesh position={[0, 0.95, 1.85]} name="bench-back">
+        <boxGeometry args={[2.2, 1.1, 0.18]} />
         <meshStandardMaterial color={BENCH_RED} roughness={0.85} />
       </mesh>
-      <mesh position={[0, 0.57, 1.1]} name="bench-piping">
-        <boxGeometry args={[2.45, 0.03, 0.95]} />
+      <mesh position={[0, 0.47, 1.4]} name="bench-piping">
+        <boxGeometry args={[2.25, 0.03, 0.9]} />
         <meshStandardMaterial color={YELLOW} roughness={0.6} metalness={0.1} />
       </mesh>
 
-      {/* Hood sits just past the windshield, high enough that the camera's
-          downward tilt puts it visible in the bottom third of the frame. */}
-      <group position={[0, 0.9, -2.6 + hoodZOffset]}>
+      {/* Hood sits just past the windshield at the POC-tuned position. */}
+      <group position={[0, -0.1, -1.9 + hoodZOffset]}>
         <CockpitHood />
       </group>
 
-      {/* Steering wheel — driver's hands, in front of the cowl's back edge
-          so the rim sticks up above the polka dots. */}
-      <group position={[0, 1.0, -1.3]} rotation={[-0.4, 0, 0]} scale={0.9}>
+      {/* Steering wheel in driver's hands. Positioned high enough that the
+          rim crests above the dashboard top and into the windshield view. */}
+      <group position={[0, 1.05, -0.2]} rotation={[-Math.PI / 5, 0, 0]} scale={0.9}>
         <CockpitSteeringWheel />
       </group>
 
-      {/* Fuzzy dice dangling off the (implied) mirror above the dash. */}
+      {/* Fuzzy dice dangling off the (implied) mirror above the dash */}
       <FuzzyDice />
     </group>
   );
@@ -199,7 +206,7 @@ export function Cockpit({ tier }: CockpitProps) {
 
 function FuzzyDice() {
   return (
-    <group position={[0.9, 2.1, -1.1]} name="fuzzy-dice">
+    <group position={[0.8, 2.1, -0.5]} name="fuzzy-dice">
       <mesh position={[-0.15, -0.45, 0]} rotation={[0.2, 0.3, 0.1]}>
         <boxGeometry args={[0.18, 0.18, 0.18]} />
         <meshStandardMaterial color="#e53935" roughness={0.9} />
