@@ -80,7 +80,9 @@ function waitForPort(port: number, timeout = 30_000): Promise<void> {
 async function startPreviewServer(): Promise<ChildProcess> {
   // biome-ignore lint/suspicious/noConsole: CLI script
   console.log('Starting pnpm preview on port', PORT);
-  const child = spawn('pnpm', ['preview', '--port', String(PORT)], {
+  // Bind to 0.0.0.0 so the 127.0.0.1 port-check connects reliably — CI
+   // runners default to IPv6 localhost otherwise and the probe times out.
+  const child = spawn('pnpm', ['preview', '--port', String(PORT), '--host', '0.0.0.0'], {
     cwd: ROOT,
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: false,

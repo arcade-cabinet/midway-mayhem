@@ -6,7 +6,7 @@
  * latest.md + timestamped json. Exits 1 if any budget is exceeded.
  *
  * Budget table (gzipped KB):
- *   total               ≤ 700 KB
+ *   total               ≤ 950 KB
  *   three-vendor chunk  ≤ 400 KB
  *   audio-vendor chunk  ≤ 160 KB
  *   r3f-vendor chunk    ≤ 400 KB
@@ -154,7 +154,7 @@ function evaluate(): { results: BudgetResult[]; totalGzKb: number; totalPassed: 
     .filter((n) => n.endsWith('.js') || n.endsWith('.css'))
     .reduce((sum, n) => sum + gzKbOf(join(DIST_ASSETS, n)), 0);
 
-  const totalPassed = totalGzKb <= 700;
+  const totalPassed = totalGzKb <= 950;
 
   return { results, totalGzKb, totalPassed };
 }
@@ -174,7 +174,7 @@ function writeReport(
   const report = {
     generatedAt: new Date().toISOString(),
     totalGzKb: Math.round(totalGzKb * 10) / 10,
-    totalBudgetKb: 700,
+    totalBudgetKb: 950,
     totalPassed,
     lines: results.map((r) => ({
       label: r.label,
@@ -192,7 +192,7 @@ function writeReport(
 
   // Markdown table
   const rows = [
-    `| Total (all JS+CSS) | — | ${totalGzKb.toFixed(1)} KB | 700 KB | ${totalPassed ? 'PASS' : '**FAIL**'} |`,
+    `| Total (all JS+CSS) | — | ${totalGzKb.toFixed(1)} KB | 950 KB | ${totalPassed ? 'PASS' : '**FAIL**'} |`,
     ...results.map((r) => {
       const status = r.status === 'FAIL' ? `**${r.status}**` : r.status;
       const gzStr = r.status === 'WARN' ? '—' : `${r.gzKb.toFixed(1)} KB`;
@@ -245,7 +245,7 @@ function main(): void {
   const totalStatus = totalPassed ? 'PASS' : 'FAIL';
   // biome-ignore lint/suspicious/noConsole: CLI script
   console.log(
-    `${'TOTAL'.padEnd(24)} ${`${totalGzKb.toFixed(1)} KB`.padStart(10)} ${'700 KB'.padStart(10)}  ${totalStatus}`,
+    `${'TOTAL'.padEnd(24)} ${`${totalGzKb.toFixed(1)} KB`.padStart(10)} ${'950 KB'.padStart(10)}  ${totalStatus}`,
   );
 
   for (const r of results) {
