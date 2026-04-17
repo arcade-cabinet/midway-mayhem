@@ -16,7 +16,7 @@ Cockpit-perspective arcade driver where you race a polka-dot clown car down a Ho
 1. **Hard-fail, no fallbacks.** Every error surfaces in `<ErrorModal>` via `errorBus.reportError`. No `try { ... } catch { /* ignore */ }`, no perf-tier branches, no "if asset loaded use it else procedural". See `src/systems/errorBus.ts`.
 2. **TypeScript everywhere.** Source, tests, build scripts, configs. Only exemption: `bpy` Blender scripts (Python-required) and harness hooks (bash).
 3. **Grailguard + marmalade-drops are references.** For any Vite/R3F/drei/Capacitor/test/build problem check `../grailguard/` and `../marmalade-drops/` BEFORE inventing.
-4. **Retexture at BAKE time, not RUNTIME.** Model palette is baked via `scripts/bake-kit.py` into `public/models/`. Zero runtime retex code.
+4. **Retexture at BAKE time, not RUNTIME.** Model palette is baked via `scripts/bake-kit.py` into `public/models/`. Zero runtime retexturing code.
 5. **Camera lives inside the cockpit group.** No world-space camera following a separate car — eliminates the "sail glitch" and "hood-swallows-camera" classes entirely.
 6. **HDRI is the world.** The circus_arena HDRI from PolyHaven is the BIG-TOP — full 360° × 180° immersion, not a skybox half-shell.
 

@@ -30,7 +30,7 @@ Cross-cutting concern: **there is no single load-time validation step** for the 
 
 One `package.json`, one `pnpm install`. Each feature directory gains a public `src/<feature>/index.ts` barrel. `tsconfig.json` already has `@/*` → `./src/*`; we add explicit paths for each feature alias.
 
-```
+```text
 src/
   config/          # tunables loader + zod schema
     index.ts       # barrel: export { loadConfig, tunables, TunablesSchema }

@@ -26,7 +26,7 @@ domain: technical
   <Canvas>                    — r3f root
     <ReactErrorBoundary context="canvas-root">
       <Suspense>
-        <Environment files=circus_arena.hdr background />
+        <Environment files="circus_arena.hdr" background />
         <ambientLight />
         <GameLoop />          — drives store tick
         <WorldScroller>       — translates world past fixed cockpit
