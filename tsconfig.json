@@ -19,7 +19,25 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/audio": ["./src/audio/index.ts"],
+      "@/audio/*": ["./src/audio/*"],
+      "@/obstacles": ["./src/obstacles/index.ts"],
+      "@/obstacles/*": ["./src/obstacles/*"],
+      "@/cockpit": ["./src/cockpit/index.ts"],
+      "@/cockpit/*": ["./src/cockpit/*"],
+      "@/hud": ["./src/hud/index.ts"],
+      "@/hud/*": ["./src/hud/*"],
+      "@/track": ["./src/track/index.ts"],
+      "@/track/*": ["./src/track/*"],
+      "@/systems": ["./src/systems/index.ts"],
+      "@/systems/*": ["./src/systems/*"],
+      "@/config": ["./src/config/index.ts"],
+      "@/config/*": ["./src/config/*"],
+      "@/persistence": ["./src/persistence/index.ts"],
+      "@/persistence/*": ["./src/persistence/*"],
+      "@/design": ["./src/design/index.ts"],
+      "@/design/*": ["./src/design/*"]
     },
     "types": ["vite/client", "node"]
   },

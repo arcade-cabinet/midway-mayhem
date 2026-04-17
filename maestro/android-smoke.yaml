@@ -1,0 +1,39 @@
+appId: com.midwaymayhem.app
+---
+# Midway Mayhem Android Smoke Test
+# Preconditions:
+#   - Android emulator running (adb devices shows a connected device)
+#   - App installed via: adb install android/app/build/outputs/apk/debug/app-debug.apk
+#   - Maestro CLI installed: brew install mobile-dev-inc/tap/maestro
+
+- launchApp:
+    appId: com.midwaymayhem.app
+    clearState: false
+
+# Wait for title screen
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    id: "start-button"
+
+# Tap START button
+- tapOn:
+    id: "start-button"
+
+# Wait for HUD to appear (game is running)
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    id: "hud"
+- assertVisible:
+    id: "hud-hype"
+
+# Take screenshot for verification
+- takeScreenshot: "android-smoke-gameplay"
+
+# Wait a moment then exit
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- stopApp:
+    appId: com.midwaymayhem.app

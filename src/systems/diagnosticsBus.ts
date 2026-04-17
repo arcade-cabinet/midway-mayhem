@@ -1,3 +1,5 @@
+import { useLoadoutStore } from '../hooks/useLoadout';
+import type { UnlockKind } from '../persistence/schema';
 import { useGameStore } from './gameState';
 
 export interface DiagnosticsDump {
@@ -79,6 +81,12 @@ export function installDiagnosticsBus() {
     },
     end() {
       useGameStore.getState().endRun();
+    },
+    async equip(kind: UnlockKind, slug: string): Promise<void> {
+      await useLoadoutStore.getState().equip(kind, slug);
+    },
+    getLoadout() {
+      return useLoadoutStore.getState().loadout;
     },
   };
 }

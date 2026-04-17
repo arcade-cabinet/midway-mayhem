@@ -1,5 +1,6 @@
 import * as Tone from 'tone';
 import type { ZoneId } from '../../utils/constants';
+import { tunables } from '../../config/index';
 import { getBuses } from './buses';
 
 /**
@@ -45,12 +46,19 @@ const PHRASES: Phrase[] = [
   },
 ];
 
-const ZONE_KEYS: Record<ZoneId, { root: string; tempo: number }> = {
-  'midway-strip': { root: 'C4', tempo: 132 },
-  'balloon-alley': { root: 'D4', tempo: 128 },
-  'ring-of-fire': { root: 'A3', tempo: 140 },
-  'funhouse-frenzy': { root: 'F4', tempo: 148 },
-};
+/** Get zone key config from tunables, with inline fallback for early-init safety. */
+function getZoneKey(zone: ZoneId): { root: string; tempo: number } {
+  const z = tunables().zones[zone];
+  if (z) return { root: z.root, tempo: z.tempo };
+  // Inline fallback matching defaults
+  const fallback: Record<ZoneId, { root: string; tempo: number }> = {
+    'midway-strip': { root: 'C4', tempo: 132 },
+    'balloon-alley': { root: 'D4', tempo: 128 },
+    'ring-of-fire': { root: 'A3', tempo: 140 },
+    'funhouse-frenzy': { root: 'F4', tempo: 148 },
+  };
+  return fallback[zone];
+}
 
 const MAJOR_SCALE_STEPS = [0, 2, 4, 5, 7, 9, 11, 12, 14];
 
@@ -107,7 +115,7 @@ class CircusConductor {
   setZone(zone: ZoneId): void {
     if (this.currentZone === zone) return;
     this.currentZone = zone;
-    const cfg = ZONE_KEYS[zone];
+    const cfg = getZoneKey(zone);
     Tone.Transport.bpm.value = cfg.tempo;
     this.buildSequence(cfg.root);
   }

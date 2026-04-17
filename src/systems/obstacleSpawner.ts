@@ -1,5 +1,6 @@
 import type { CritterKind, ObstacleType, PickupType, ZoneId } from '../utils/constants';
 import { CRITTER_KINDS, HONK, TRACK } from '../utils/constants';
+import { tunables } from '../config/index';
 import type { Rng } from '../utils/rng';
 import { laneCenterAt } from './trackGenerator';
 
@@ -33,12 +34,19 @@ export interface Pickup {
   radius: number;
 }
 
-const ZONE_WEIGHTS: Record<ZoneId, Record<ObstacleType, number>> = {
-  'midway-strip': { barrier: 1, cones: 2, gate: 1, oil: 1, hammer: 0, critter: 2 },
-  'balloon-alley': { barrier: 1, cones: 2, gate: 2, oil: 2, hammer: 1, critter: 2 },
-  'ring-of-fire': { barrier: 2, cones: 1, gate: 1, oil: 3, hammer: 2, critter: 1 },
-  'funhouse-frenzy': { barrier: 2, cones: 2, gate: 2, oil: 2, hammer: 3, critter: 3 },
-};
+/** Get zone weights from tunables, falling back to static defaults if unavailable. */
+function getZoneWeights(zone: ZoneId): Record<ObstacleType, number> {
+  const weights = tunables().obstacles.zoneWeights[zone];
+  if (weights) return weights as Record<ObstacleType, number>;
+  // Fallback static defaults (matches tunables.json defaults)
+  const fallback: Record<ZoneId, Record<ObstacleType, number>> = {
+    'midway-strip': { barrier: 1, cones: 2, gate: 1, oil: 1, hammer: 0, critter: 2 },
+    'balloon-alley': { barrier: 1, cones: 2, gate: 2, oil: 2, hammer: 1, critter: 2 },
+    'ring-of-fire': { barrier: 2, cones: 1, gate: 1, oil: 3, hammer: 2, critter: 1 },
+    'funhouse-frenzy': { barrier: 2, cones: 2, gate: 2, oil: 2, hammer: 3, critter: 3 },
+  };
+  return fallback[zone];
+}
 
 function weightedPick(weights: Record<ObstacleType, number>, rng: Rng): ObstacleType {
   const entries = Object.entries(weights) as [ObstacleType, number][];
@@ -61,13 +69,14 @@ export class ObstacleSpawner {
   constructor(private rng: Rng) {}
 
   update(playerD: number, zone: ZoneId, lookAheadD = 500) {
+    const spawn = tunables().obstacles.spawn;
     while (this.nextObstacleD < playerD + lookAheadD) {
       this.spawnObstacle(this.nextObstacleD, zone);
-      this.nextObstacleD += 18 + this.rng.range(0, 22);
+      this.nextObstacleD += spawn.minGap + this.rng.range(0, spawn.jitter);
     }
     while (this.nextPickupD < playerD + lookAheadD) {
       this.spawnPickup(this.nextPickupD);
-      this.nextPickupD += 14 + this.rng.range(0, 20);
+      this.nextPickupD += spawn.pickupMinGap + this.rng.range(0, spawn.pickupJitter);
     }
 
     // recycle past-camera
@@ -77,7 +86,7 @@ export class ObstacleSpawner {
   }
 
   private spawnObstacle(d: number, zone: ZoneId) {
-    const type = weightedPick(ZONE_WEIGHTS[zone], this.rng);
+    const type = weightedPick(getZoneWeights(zone), this.rng);
     const lane = this.rng.int(0, TRACK.LANE_COUNT);
     const pos = laneCenterAt(d, lane);
     const critter: CritterKind | undefined =
@@ -118,7 +127,8 @@ export class ObstacleSpawner {
 
   private spawnPickup(d: number) {
     const roll = this.rng.next();
-    const type: PickupType = roll > 0.97 ? 'mega' : roll > 0.55 ? 'boost' : 'ticket';
+    const cr = tunables().critters;
+    const type: PickupType = roll > cr.pickupMegaThreshold ? 'mega' : roll > cr.pickupBoostThreshold ? 'boost' : 'ticket';
     const lane = this.rng.int(0, TRACK.LANE_COUNT);
     const pos = laneCenterAt(d, lane);
     this.pickups.push({

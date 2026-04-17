@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { assetUrl } from '../assets/manifest';
 import { composeTrack, DEFAULT_TRACK, type PiecePlacement } from '../game/trackComposer';
 import { audioBus } from '../systems/audioBus';
+import { combo } from '../systems/comboSystem';
 import { reportCounts } from '../systems/diagnosticsBus';
 import { useGameStore } from '../systems/gameState';
 import { onHonk } from '../systems/honkBus';
@@ -61,6 +62,9 @@ export function ObstacleSystem() {
   const oilGroupRef = useRef<THREE.Group>(null);
   const critterGroupRef = useRef<THREE.Group>(null);
 
+  /** Obstacle ids already counted as near-miss — prevents double-counting. */
+  const nearMissFiredIds = useRef<Set<number>>(new Set());
+
   // Pool of clone-refs per type
   const barrierSlots = useRef<THREE.Object3D[]>([]);
   const conesSlots = useRef<THREE.Object3D[]>([]);
@@ -93,8 +97,13 @@ export function ObstacleSystem() {
       if (!s.running) return;
       const scared = spawner.scareCritters(s.distance, performance.now());
       if (scared > 0) {
-        // Bonus crowd reaction per scared critter — rewards skillful honking
-        useGameStore.setState((prev) => ({ crowdReaction: prev.crowdReaction + scared * 10 }));
+        // Register each scared critter as a combo event
+        for (let i = 0; i < scared; i++) combo.registerEvent('scare');
+        // Bonus crowd reaction per scared critter — multiplied by current combo
+        const mult = combo.getMultiplier();
+        useGameStore.setState((prev) => ({
+          crowdReaction: prev.crowdReaction + scared * 10 * mult,
+        }));
       }
     });
   }, [spawner]);
@@ -275,16 +284,32 @@ export function ObstacleSystem() {
     // pass through harmlessly — that's the whole point of honking.
     const playerLat = s.lateral;
     const laneHalfWidth = TRACK.LANE_WIDTH / 2;
+    /** 0.7m near-miss lateral window outside the hit zone. */
+    const NEAR_MISS_LATERAL = 0.7;
+    /** Obstacle must have just passed through within 3m longitudinally. */
+    const NEAR_MISS_DIST = 3;
     const toRecycle: { o: (typeof list)[number]; heavy: boolean; oil: boolean }[] = [];
     for (const o of list) {
-      if (Math.abs(o.d - s.distance) > 3) continue;
+      if (Math.abs(o.d - s.distance) > NEAR_MISS_DIST) continue;
       if (o.type === 'critter' && o.fleeStartedAt) continue;
       const obsLat = laneCenterX(o.lane);
-      if (Math.abs(obsLat - playerLat) > laneHalfWidth) continue;
-      const heavy = o.type === 'barrier' || o.type === 'hammer';
-      toRecycle.push({ o, heavy, oil: o.type === 'oil' });
+      const latDist = Math.abs(obsLat - playerLat);
+      if (latDist <= laneHalfWidth) {
+        const heavy = o.type === 'barrier' || o.type === 'hammer';
+        toRecycle.push({ o, heavy, oil: o.type === 'oil' });
+      } else if (
+        latDist <= laneHalfWidth + NEAR_MISS_LATERAL &&
+        o.d < s.distance && // obstacle is behind/at player
+        !nearMissFiredIds.current.has(o.id)
+      ) {
+        // Close shave — reward with a near-miss combo event
+        nearMissFiredIds.current.add(o.id);
+        combo.registerEvent('near-miss');
+      }
     }
     for (const { o, heavy, oil } of toRecycle) {
+      combo.registerHit();
+      nearMissFiredIds.current.delete(o.id);
       useGameStore.getState().applyCrash(heavy);
       audioBus.playCrash();
       if (oil) {
@@ -298,7 +323,15 @@ export function ObstacleSystem() {
       const plat = laneCenterX(p.lane);
       if (Math.abs(plat - playerLat) > laneHalfWidth) continue;
       spawner.consumePickup(p.id);
-      useGameStore.getState().applyPickup(p.type);
+      combo.registerEvent('pickup');
+      const mult = combo.getMultiplier();
+      // Base crowd bonus multiplied by current combo chain
+      if (p.type === 'ticket') {
+        useGameStore.setState((prev) => ({ crowdReaction: prev.crowdReaction + 50 * mult }));
+        useGameStore.getState().applyPickup(p.type);
+      } else {
+        useGameStore.getState().applyPickup(p.type);
+      }
       audioBus.playPickup(p.type);
     }
 

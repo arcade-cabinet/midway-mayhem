@@ -4,11 +4,24 @@ import { defineConfig } from 'vite';
 
 const isCapacitor = process.env.CAPACITOR === 'true';
 
+const src = (sub: string) => path.resolve(__dirname, `src/${sub}`);
+
 export default defineConfig({
   base: isCapacitor ? './' : '/midway-mayhem/',
   plugins: [react()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'src') },
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      '@/audio': src('audio/index.ts'),
+      '@/obstacles': src('obstacles/index.ts'),
+      '@/cockpit': src('cockpit/index.ts'),
+      '@/hud': src('hud/index.ts'),
+      '@/track': src('track/index.ts'),
+      '@/systems': src('systems/index.ts'),
+      '@/config': src('config/index.ts'),
+      '@/persistence': src('persistence/index.ts'),
+      '@/design': src('design/index.ts'),
+    },
   },
   build: {
     target: 'es2022',

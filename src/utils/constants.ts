@@ -1,20 +1,22 @@
+/**
+ * TRACK, SPEED, STEER, HONK expose tunables() values at call time.
+ * They retain the original shape so all existing call sites keep working.
+ * The function-based approach avoids circular deps (config → constants → config).
+ */
+
+import { tunables } from '../config/index';
+
 export const TRACK = {
-  LANE_COUNT: 3,
-  LANE_WIDTH: 3.3, // 3 lanes × 3.3m = ~10m track width (matches Kenney scale=10 pieces)
-  get WIDTH() {
-    return this.LANE_COUNT * this.LANE_WIDTH;
-  },
-  get HALF_WIDTH() {
-    return this.WIDTH / 2;
-  },
+  get LANE_COUNT() { return tunables().track.laneCount; },
+  get LANE_WIDTH() { return tunables().track.laneWidth; },
+  get WIDTH() { return this.LANE_COUNT * this.LANE_WIDTH; },
+  get HALF_WIDTH() { return this.WIDTH / 2; },
   /** World-space lateral clamp on player position. */
-  get LATERAL_CLAMP() {
-    return this.WIDTH / 2 - 0.5;
-  },
-  CHUNK_LENGTH: 40,
-  LOOKAHEAD_CHUNKS: 20,
+  get LATERAL_CLAMP() { return this.WIDTH / 2 - 0.5; },
+  get CHUNK_LENGTH() { return tunables().track.chunkLength; },
+  get LOOKAHEAD_CHUNKS() { return tunables().track.lookaheadChunks; },
   BEHIND_CHUNKS: 3,
-} as const;
+};
 
 /** Index of each lane's center X, in the order [-halfWidth → +halfWidth]. */
 export function laneCenterX(laneIndex: number): number {
@@ -23,21 +25,21 @@ export function laneCenterX(laneIndex: number): number {
 }
 
 export const SPEED = {
-  BASE_MPS: 30,
-  CRUISE_MPS: 70,
-  BOOST_MPS: 90,
-  MEGA_BOOST_MPS: 120,
-  CRASH_DAMPING: 0.55,
-  BOOST_DURATION_S: 2.2,
-  MEGA_DURATION_S: 3.5,
-} as const;
+  get BASE_MPS() { return tunables().speed.base; },
+  get CRUISE_MPS() { return tunables().speed.cruise; },
+  get BOOST_MPS() { return tunables().speed.boost; },
+  get MEGA_BOOST_MPS() { return tunables().speed.mega; },
+  get CRASH_DAMPING() { return tunables().speed.crashDamping; },
+  get BOOST_DURATION_S() { return tunables().speed.boostDuration; },
+  get MEGA_DURATION_S() { return tunables().speed.megaDuration; },
+};
 
 export const STEER = {
-  MAX_LATERAL_MPS: 18,
-  RETURN_TAU_S: 0.25,
-  WHEEL_MAX_DEG: 35,
-  SENSITIVITY: 1.0,
-} as const;
+  get MAX_LATERAL_MPS() { return tunables().steer.maxLateralMps; },
+  get RETURN_TAU_S() { return tunables().steer.returnTau; },
+  get WHEEL_MAX_DEG() { return tunables().steer.wheelMaxDeg; },
+  get SENSITIVITY() { return tunables().steer.sensitivity; },
+};
 
 export const ZONES = [
   { id: 'midway-strip', name: 'The Midway Strip', start: 0, length: 450 },
@@ -67,19 +69,21 @@ export const OBSTACLE_TYPES = [
 ] as const;
 export type ObstacleType = (typeof OBSTACLE_TYPES)[number];
 
+/** Static tuple — used for the CritterKind type. Runtime list comes from tunables().critters.kinds. */
 export const CRITTER_KINDS = ['cow', 'horse', 'llama', 'pig'] as const;
 export type CritterKind = (typeof CRITTER_KINDS)[number];
 
+/** Runtime critter kinds list (may be overridden by tunables). */
+export function critterKinds(): readonly string[] {
+  return tunables().critters.kinds;
+}
+
 export const HONK = {
-  /** Critters flee if honked within this many meters ahead. */
-  SCARE_RADIUS_M: 22,
-  /** Lateral flee distance (meters to hop aside) when honked. */
-  FLEE_LATERAL_M: 6,
-  /** Flee animation duration (seconds). */
-  FLEE_DURATION_S: 0.7,
-  /** Minimum seconds between honks (debounce). */
-  COOLDOWN_S: 0.35,
-} as const;
+  get SCARE_RADIUS_M() { return tunables().honk.scareRadius; },
+  get FLEE_LATERAL_M() { return tunables().honk.fleeLateral; },
+  get FLEE_DURATION_S() { return tunables().honk.fleeDuration; },
+  get COOLDOWN_S() { return tunables().honk.cooldown; },
+};
 
 export const PICKUP_TYPES = ['boost', 'ticket', 'mega'] as const;
 export type PickupType = (typeof PICKUP_TYPES)[number];

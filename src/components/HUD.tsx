@@ -1,13 +1,19 @@
+import { useEffect, useRef, useState } from 'react';
 import { Banner } from '../design/components/Banner';
 import { BrandButton } from '../design/components/BrandButton';
 import { HUDFrame } from '../design/components/HUDFrame';
 import { Panel } from '../design/components/Panel';
 import { Stat } from '../design/components/Stat';
-import { color, safeArea, space } from '../design/tokens';
+import { color, motion, safeArea, space } from '../design/tokens';
 import { display, typeStyle, ui } from '../design/typography';
 import { useFormFactor } from '../hooks/useFormFactor';
+import { markShown, shouldShow } from '../persistence/tutorial';
+import { combo } from '../systems/comboSystem';
 import { useGameStore } from '../systems/gameState';
-import { honk } from '../systems/honkBus';
+import { honk } from '@/audio';
+import { onHonk } from '../systems/honkBus';
+import type { RaidKind } from '../systems/raidDirector';
+import type { TrickInput, TrickKind } from '../systems/trickSystem';
 
 export function HUD() {
   const hype = useGameStore((s) => s.hype);
@@ -17,6 +23,7 @@ export function HUD() {
   const crowd = useGameStore((s) => s.crowdReaction);
   const gameOver = useGameStore((s) => s.gameOver);
   const plunging = useGameStore((s) => s.plunging);
+  const photoMode = useGameStore((s) => s.photoMode);
   const startRun = useGameStore((s) => s.startRun);
   const ff = useFormFactor();
 
@@ -84,7 +91,11 @@ export function HUD() {
         <Banner visible={plunging && !gameOver} tone="alert" testId="plunge-banner">
           MIDWAY MELTDOWN
         </Banner>
-        {gameOver && <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />}
+        <RaidTelegraphBanner />
+        <TrickOverlay />
+        {gameOver && !photoMode && (
+          <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />
+        )}
       </HUDFrame>
     );
   }
@@ -125,12 +136,56 @@ export function HUD() {
       <Banner visible={plunging && !gameOver} tone="alert" testId="plunge-banner">
         MIDWAY MELTDOWN
       </Banner>
-      {gameOver && <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />}
+      <RaidTelegraphBanner />
+      <TrickOverlay />
+      {gameOver && !photoMode && (
+        <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />
+      )}
     </HUDFrame>
   );
 }
 
+/** Color for each multiplier tier of the combo ring. */
+const COMBO_RING_COLORS: Record<number, string> = {
+  2: color.yellow,
+  4: color.orange,
+  8: color.red,
+};
+
+function useComboMultiplier() {
+  const [mult, setMult] = useState(1);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const tick = () => {
+      setMult(combo.getMultiplier());
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  return mult;
+}
+
 function HonkButton() {
+  const mult = useComboMultiplier();
+  const ringVisible = mult >= 2;
+  const ringColor = COMBO_RING_COLORS[mult] ?? color.purple;
+  const [showHonkHint, setShowHonkHint] = useState(() => shouldShow('first-honk'));
+
+  // Mark first-honk tutorial as shown on first press
+  useEffect(() => {
+    return onHonk(() => {
+      if (shouldShow('first-honk')) {
+        setShowHonkHint(false);
+        markShown('first-honk').catch(() => { /* non-critical */ });
+      }
+    });
+  }, []);
+
   return (
     <div
       style={{
@@ -140,6 +195,62 @@ function HonkButton() {
         transform: 'translateX(-50%)',
       }}
     >
+      {/* First-honk tutorial hint */}
+      {showHonkHint && (
+        <div
+          data-testid="honk-tutorial-hint"
+          style={{
+            position: 'absolute',
+            bottom: '110%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
+            ...typeStyle(ui.body),
+            color: color.yellow,
+            fontSize: '0.85rem',
+            pointerEvents: 'none',
+            textShadow: '0 0 8px rgba(0,0,0,0.8)',
+          }}
+        >
+          TAP TO HONK!
+        </div>
+      )}
+      {/* Combo ring — pulsing halo around the HONK button */}
+      {ringVisible && (
+        <div
+          data-testid="combo-ring"
+          aria-label={`Combo ${mult}×`}
+          style={{
+            position: 'absolute',
+            inset: -8,
+            borderRadius: '50%',
+            border: `3px solid ${ringColor}`,
+            boxShadow: `0 0 16px 4px ${ringColor}`,
+            pointerEvents: 'none',
+            animation: `mm-combo-pulse ${motion.slow}ms ${motion.easing.out} infinite alternate`,
+          }}
+        />
+      )}
+      {/* Multiplier label above the ring */}
+      {ringVisible && (
+        <div
+          data-testid="combo-label"
+          style={{
+            position: 'absolute',
+            top: -28,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            color: ringColor,
+            fontWeight: 800,
+            fontSize: '1rem',
+            textShadow: `0 0 8px ${ringColor}`,
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {mult}×
+        </div>
+      )}
       <BrandButton
         kind="primary"
         size="md"
@@ -161,6 +272,8 @@ function GameOverOverlay({
   crowd: number;
   onRestart: () => void;
 }) {
+  const setPhotoMode = useGameStore((s) => s.setPhotoMode);
+
   return (
     <div
       data-testid="game-over"
@@ -202,12 +315,170 @@ function GameOverOverlay({
         >
           Crowd Reaction: {crowd.toFixed(0)}
         </div>
-        <div style={{ marginTop: space.xl }}>
+        <div style={{ marginTop: space.xl, display: 'flex', gap: space.md, justifyContent: 'center', flexWrap: 'wrap' }}>
           <BrandButton kind="primary" size="lg" onClick={onRestart} testId="restart-button">
             AGAIN!
           </BrandButton>
+          <BrandButton
+            kind="secondary"
+            size="lg"
+            onClick={() => setPhotoMode(true)}
+            testId="photo-mode-button"
+          >
+            📸 PHOTO
+          </BrandButton>
         </div>
       </div>
+    </div>
+  );
+}
+
+const RAID_KIND_LABEL: Record<RaidKind, string> = {
+  TIGER: '🐯 TIGER ON THE TRACK!',
+  KNIVES: '🔪 KNIVES INCOMING!',
+  CANNONBALL: '💥 CANNONBALL!',
+};
+
+/** Feature B: Shows the 2s telegraph warning when a raid is about to fire. */
+function RaidTelegraphBanner() {
+  const [visible, setVisible] = useState(false);
+  const [label, setLabel] = useState('');
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const poll = () => {
+      // biome-ignore lint/suspicious/noExplicitAny: raid director
+      const rd = (window as any).__mmRaidDirector;
+      if (rd) {
+        const s = rd.getState() as { kind: RaidKind; phase: string } | null;
+        const show = s !== null && s.phase === 'telegraph';
+        setVisible(show);
+        if (show) setLabel(RAID_KIND_LABEL[s!.kind] ?? '');
+      }
+      rafRef.current = requestAnimationFrame(poll);
+    };
+    rafRef.current = requestAnimationFrame(poll);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  return (
+    <Banner
+      visible={visible}
+      tone="alert"
+      testId="raid-telegraph-banner"
+      style={{ top: '25%', fontSize: 'clamp(1.5rem, 5vw, 3rem)' }}
+    >
+      {label}
+    </Banner>
+  );
+}
+
+const TRICK_KIND_LABEL: Record<TrickKind, string> = {
+  BARREL_ROLL: 'BARREL ROLL!',
+  WHEELIE: 'WHEELIE!',
+  HANDSTAND: 'HANDSTAND!',
+  SPIN_180: 'SPIN 180!',
+};
+
+/** Feature C: Shows input buffer + trick name when airborne. */
+function TrickOverlay() {
+  const airborne = useGameStore((s) => s.airborne);
+  const trickActive = useGameStore((s) => s.trickActive);
+  const [inputBuffer, setInputBuffer] = useState<TrickInput[]>([]);
+  const [currentTrickKind, setCurrentTrickKind] = useState<TrickKind | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const poll = () => {
+      // biome-ignore lint/suspicious/noExplicitAny: trick system
+      const ts = (window as any).__mmTrickSystem;
+      if (ts) {
+        const state = ts.getState() as {
+          inputBuffer: TrickInput[];
+          currentTrick: { kind: TrickKind } | null;
+        };
+        setInputBuffer([...state.inputBuffer]);
+        setCurrentTrickKind(state.currentTrick?.kind ?? null);
+      }
+      rafRef.current = requestAnimationFrame(poll);
+    };
+    rafRef.current = requestAnimationFrame(poll);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  if (!airborne && !trickActive) return null;
+
+  const INPUT_SYMBOLS: Record<TrickInput, string> = {
+    left: '←',
+    right: '→',
+    up: '↑',
+    down: '↓',
+  };
+
+  return (
+    <div
+      data-testid="trick-overlay"
+      style={{
+        position: 'absolute',
+        top: '35%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        textAlign: 'center',
+        pointerEvents: 'none',
+        zIndex: 25,
+      }}
+    >
+      {/* Trick name */}
+      {currentTrickKind && (
+        <div
+          style={{
+            color: color.yellow,
+            fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+            fontWeight: 900,
+            textShadow: `4px 4px 0 rgba(0,0,0,0.8), 0 0 20px ${color.yellow}`,
+            marginBottom: space.sm,
+            letterSpacing: '0.05em',
+          }}
+        >
+          {TRICK_KIND_LABEL[currentTrickKind]}
+        </div>
+      )}
+      {/* Input buffer dots */}
+      {inputBuffer.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            gap: space.xs,
+            justifyContent: 'center',
+            fontSize: '1.4rem',
+            color: color.white,
+            textShadow: '2px 2px 0 rgba(0,0,0,0.7)',
+          }}
+        >
+          {inputBuffer.map((inp, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: stable input buffer
+            <span key={i}>{INPUT_SYMBOLS[inp]}</span>
+          ))}
+        </div>
+      )}
+      {/* AIRBORNE indicator */}
+      {airborne && !currentTrickKind && (
+        <div
+          style={{
+            color: color.orange,
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            opacity: 0.8,
+            letterSpacing: '0.1em',
+          }}
+        >
+          AIRBORNE
+        </div>
+      )}
     </div>
   );
 }

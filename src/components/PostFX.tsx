@@ -1,19 +1,17 @@
 import {
   Bloom,
   BrightnessContrast,
-  ChromaticAberration,
   EffectComposer,
   HueSaturation,
   Noise,
   ToneMapping,
-  Vignette,
 } from '@react-three/postprocessing';
 import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Vector2 } from 'three';
 import type { ZoneId } from '../utils/constants';
 import { useGameStore } from '../systems/gameState';
+import { SpeedFX } from './SpeedFX';
 
 /** Per-zone color grade target values. */
 const ZONE_GRADES: Record<ZoneId, { hue: number; saturation: number; brightness: number; contrast: number }> = {
@@ -50,22 +48,15 @@ export function PostFX() {
       <HueSaturation
         hue={grade.current.hue}
         saturation={grade.current.saturation}
-        blendFunction={BlendFunction.NORMAL}
       />
       <BrightnessContrast
         brightness={grade.current.brightness}
         contrast={grade.current.contrast}
-        blendFunction={BlendFunction.NORMAL}
       />
       <Bloom intensity={0.45} luminanceThreshold={0.72} luminanceSmoothing={0.22} mipmapBlur />
-      <ChromaticAberration
-        offset={new Vector2(0.0009, 0.0009)}
-        radialModulation={false}
-        modulationOffset={0}
-        blendFunction={BlendFunction.NORMAL}
-      />
       <Noise premultiply opacity={0.025} blendFunction={BlendFunction.MULTIPLY} />
-      <Vignette eskil={false} offset={0.28} darkness={0.55} />
+      {/* SpeedFX provides speed-reactive Vignette + ChromaticAberration */}
+      <SpeedFX />
     </EffectComposer>
   );
 }

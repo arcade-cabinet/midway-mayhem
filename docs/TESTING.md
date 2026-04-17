@@ -145,8 +145,61 @@ For CI under xvfb, these args activate real GPU rendering (vs SwiftShader).
 - `actionTimeout: 10_000` caps individual clicks
 - Screenshots attached `only-on-failure` in CI, `on` locally
 
+## Maestro native smoke tests
+
+Maestro tests verify the app launches, the start button is visible, and basic gameplay works on real devices. These run manually or in a device-farm CI step — they require a booted simulator or physical device.
+
+### Preconditions
+
+**iOS:**
+- Xcode installed, iOS Simulator booted (`xcrun simctl list devices booted`)
+- App installed on booted simulator: `xcrun simctl install booted <path/to/App.app>`
+- Maestro CLI installed: `brew install mobile-dev-inc/tap/maestro`
+
+**Android:**
+- Android SDK platform-tools installed (`adb` in PATH)
+- Emulator running or device connected (`adb devices`)
+- App installed: `adb install <path/to/app-debug.apk>`
+- Maestro CLI installed: `brew install mobile-dev-inc/tap/maestro`
+
+### Commands
+
+```bash
+# Verify Maestro + toolchain are present
+bash scripts/maestro-doctor.sh
+
+# Run iOS smoke test (requires booted iOS Simulator)
+bash scripts/native-smoke-ios.sh
+
+# Run Android smoke test (requires connected device/emulator)
+bash scripts/native-smoke-android.sh
+```
+
+### What the smoke tests check
+
+1. App launches (`com.midwaymayhem.app`)
+2. Title screen visible — `start-button` present within 15s
+3. START button tappable — HUD appears (`hud` + `hud-hype` testIds)
+4. iOS: HONK button tappable without error
+5. Screenshot captured to `~/.maestro/tests/`
+
+### Flows
+
+| File | Platform |
+|------|----------|
+| `maestro/ios-smoke.yaml` | iOS Simulator |
+| `maestro/android-smoke.yaml` | Android Emulator / Device |
+
+### Expected output
+
+```text
+[smoke:ios] Running Maestro iOS smoke test...
+[smoke:ios] Done. Screenshots in ~/.maestro/tests/
+```
+
+Screenshots are named `ios-smoke-gameplay.png` / `android-smoke-gameplay.png` and saved in the Maestro test output directory.
+
 ## Known limitations
 
 - No persistent `data-testid` yet on obstacles/pickups (they're instanced meshes) — collision tests rely on state snapshots via diag, not DOM queries.
-- No Maestro native smoke yet (scheduled for epic E7.T9).
 - No balance-audit script yet (scheduled for E7.T8).

@@ -78,6 +78,12 @@ class AudioBus {
   setSpeed(speedMps: number): void {
     if (!this.engineSynth) return;
     this.engineSynth.set({ detune: (speedMps - 40) * 8 });
+    // Keep engine drone alive at idle (-30 dB) so there is always an
+    // underlying rumble — silence at speed=0 feels dead.
+    const IDLE_DB = -30;
+    const RUNNING_DB = -22;
+    const targetDb = speedMps < 1 ? IDLE_DB : RUNNING_DB;
+    this.engineSynth.volume.rampTo(targetDb, 0.25);
   }
 
   /** Update listener orientation to match camera forward vector */
@@ -88,9 +94,30 @@ class AudioBus {
     this.listener.forwardZ.value = forward.z;
   }
 
-  playHonk(): void {
+  /**
+   * Play a horn sound. `slug` selects the loadout-chosen horn recipe;
+   * unknown slugs fall back to the classic clown bulb honk.
+   */
+  playHonk(slug?: string): void {
     if (!this.initialized || !this.enabled) return;
-    triggerClownHorn();
+    switch (slug) {
+      case 'slide-whistle':
+        triggerSlideWhistle('up');
+        break;
+      case 'air-horn':
+        // Air-horn is a whip-crack style burst — harsher than the bulb
+        triggerWhipCrack();
+        break;
+      case 'circus-fanfare':
+        // Fanfare = layered bulb + slide-whistle to approximate an excited
+        // multi-note blast without authoring a new SF2 preset
+        triggerClownHorn();
+        triggerSlideWhistle('up');
+        break;
+      default:
+        triggerClownHorn();
+        break;
+    }
   }
 
   /** Play crash sound with optional spatial position (xLanes ∈ [-1, 1]) */

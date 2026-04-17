@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useResponsiveCockpitScale } from '../hooks/useResponsiveCockpitScale';
+import { useLoadoutStore } from '../hooks/useLoadout';
 import { PLUNGE_DURATION_S, useGameStore } from '../systems/gameState';
 import { damageLevelFor } from '../systems/damageLevel';
 import { STEER } from '../utils/constants';
@@ -78,6 +79,37 @@ export function Cockpit() {
     [],
   );
 
+  // Loadout-driven material overrides (palette → hood color, rim → wheel rim color)
+  const loadout = useLoadoutStore((s) => s.loadout);
+
+  // Palette base color applied to the hood polka-dot background
+  const paletteBaseHex = useMemo(() => {
+    if (!loadout) return '#ff3e3e';
+    switch (loadout.palette) {
+      case 'neon-circus':   return '#0d0d0d';
+      case 'pastel-dream':  return '#ffd6e0';
+      case 'golden-hour':   return '#c8860a';
+      default:              return '#ff3e3e'; // classic
+    }
+  }, [loadout?.palette]);
+
+  // Update hood material color reactively
+  useMemo(() => {
+    hoodMat.color.set(paletteBaseHex);
+    hoodMat.needsUpdate = true;
+  }, [paletteBaseHex, hoodMat]);
+
+  // Rim color from loadout
+  const rimColor = useMemo(() => {
+    if (!loadout) return '#9c27b0';
+    switch (loadout.rim) {
+      case 'gold':         return '#ffd700';
+      case 'purple-candy': return '#9c27b0';
+      case 'rainbow':      return '#ff3e3e'; // approximate — gradient not possible in Three.js mat
+      default:             return '#cccccc'; // chrome
+    }
+  }, [loadout?.rim]);
+
   useFrame((state) => {
     const s = useGameStore.getState();
     const t = state.clock.elapsedTime;
@@ -105,10 +137,12 @@ export function Cockpit() {
       } else {
         root.position.y = y0 * (1 - fall);
         root.position.x = 0;
+        // Trick rotations (Feature C) applied AFTER plunge/drop checks
+        // These animate the cockpit-root for visual flair; damage-shake stays on bodyRef
         root.rotation.x = 0;
-        // Subtle pre-drop sway while hanging
-        if (dp < 0.1) root.rotation.z = Math.sin(t * 2) * 0.02;
-        else root.rotation.z *= 0.9;
+        root.rotation.y = s.trickRotationY;
+        if (dp < 0.1) root.rotation.z = Math.sin(t * 2) * 0.02 + s.trickRotationZ;
+        else root.rotation.z = s.trickRotationZ + (s.trickRotationZ === 0 ? root.rotation.z * 0.9 : 0);
       }
     }
     // Wire opacity fades out once settled
@@ -293,11 +327,11 @@ export function Cockpit() {
           <mesh position={[0, 0, -0.35]} rotation={[Math.PI / 2, 0, 0]} material={chromeMat}>
             <cylinderGeometry args={[0.035, 0.035, 0.6, 10]} />
           </mesh>
-          {/* Rim */}
+          {/* Rim — color driven by loadout */}
           <mesh>
             <torusGeometry args={[0.4, 0.06, 18, 36]} />
             <meshPhysicalMaterial
-              color="#9c27b0"
+              color={rimColor}
               roughness={0.2}
               metalness={0.3}
               clearcoat={0.8}

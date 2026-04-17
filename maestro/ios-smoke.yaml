@@ -1,0 +1,43 @@
+appId: com.midwaymayhem.app
+---
+# Midway Mayhem iOS Smoke Test
+# Preconditions:
+#   - iOS Simulator running (xcrun simctl list shows a booted device)
+#   - App installed via: xcrun simctl install booted <path-to-.app>
+#   - Maestro CLI installed: brew install mobile-dev-inc/tap/maestro
+
+- launchApp:
+    appId: com.midwaymayhem.app
+    clearState: false
+
+# Wait for title screen (iOS may need extra time for WebView warm-up)
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    id: "start-button"
+
+# Tap START button
+- tapOn:
+    id: "start-button"
+
+# Wait for HUD to appear (game is running)
+- waitForAnimationToEnd:
+    timeout: 20000
+- assertVisible:
+    id: "hud"
+- assertVisible:
+    id: "hud-hype"
+
+# Tap HONK button to verify gameplay interaction
+- tapOn:
+    id: "honk-button"
+
+# Take screenshot for verification
+- takeScreenshot: "ios-smoke-gameplay"
+
+# Wait a moment then exit
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- stopApp:
+    appId: com.midwaymayhem.app
