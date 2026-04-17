@@ -137,12 +137,8 @@ jobs:
     # reactivecircus/android-emulator-runner uses for x86_64 api-33 emulators.
     runs-on: ubuntu-latest
     needs: [build]
-    # Non-blocking — emulator boots are flaky on CI and are nice-to-have
-    # smoke, not a user-visible ship gate. The web build is the primary
-    # deliverable.
-    continue-on-error: true
-    # Non-fatal: emulator infra can have transient failures unrelated to the app.
-    # Failures surface in PR checks but do not block merge.
+    # Non-blocking — emulator boots are flaky on CI and nice-to-have smoke,
+    # not a user-visible ship gate. The web build is the primary deliverable.
     continue-on-error: true
     permissions:
       contents: read
