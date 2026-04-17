@@ -193,10 +193,12 @@ export function DebugCaptureBridge() {
     if (typeof window === 'undefined') return;
     // biome-ignore lint/suspicious/noExplicitAny: debug hook
     (window as any).__mmCapture = async (label?: string) => {
+      // NOTE: the CALLER (Space handler, canvas-tap handler) is responsible
+      // for setting throttle=0 if they want the car to decelerate. We do NOT
+      // call store.pause() — that halts the tick loop, which would freeze
+      // dropProgress mid-fall and prevent further keyboard/touch inspection
+      // (can't see the wheel turn when you press ← after capture).
       const payload = buildCapturePayload(gl, scene, camera, label ?? null);
-      // Pause the sim so subsequent frames don't race past the captured moment.
-      const store = useGameStore.getState();
-      if (store.running && !store.paused && !store.gameOver) store.pause();
       return postCapture(payload);
     };
     return () => {
