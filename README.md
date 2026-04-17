@@ -45,12 +45,16 @@ URL flags (dev + test):
 | Cockpit POV camera | Shipped |
 | 4 zones (Midway Strip / Balloon Alley / Ring of Fire / Funhouse Frenzy) | Shipped |
 | 5 critter/obstacle types + HONK flee mechanic | Shipped |
-| Trick system (airborne rotations) | Queued |
-| Ringmaster raids (telegraphed hazard events) | Queued |
-| Daily route (UTC-seeded track + local leaderboard) | Queued |
-| Replay ghost (input-trace of best run) | Queued |
-| 20 achievements | Queued |
-| Big Top Tour mode | Queued |
+| Trick system (airborne rotations) | Shipped |
+| Ringmaster raids (telegraphed hazard events) | Shipped |
+| Seed phrase NEW RUN modal + 3×2 difficulty grid + permadeath toggle | Shipped |
+| Dual-channel deterministic PRNG (track + events) | Shipped |
+| Pre-baked run plan (every obstacle/pickup/critter/ramp placed at startRun) | Shipped |
+| Optimal-line solver: racing-line cleanliness scoring + ghost overlay + difficulty telemetry | Shipped |
+| Start platform + checkered finish banner + plunge-past-track animation | Shipped |
+| Replay ghost (input-trace of best run) | Shipped |
+| 20 achievements + lifetime stats + ticket shop + cosmetic unlocks | Shipped |
+| Big Top Tour mode | Shipped |
 
 ---
 

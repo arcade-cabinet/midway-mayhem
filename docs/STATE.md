@@ -46,7 +46,7 @@ Where the project stands right now. Updated as work lands.
 - Track piece connection seams visible on large corners (composer math needs refinement for non-cardinal pieces)
 - No zone color grading yet — every zone looks the same (HDRI-dominated)
 - Post-FX can't be disabled from user settings (per hard-fail rule; intentional)
-- Bundle warning at 1,449 KB — chunk splitting not yet applied (grailguard pattern scheduled)
+- Bundle split into r3f-vendor / audio-vendor / ai-vendor / drizzle-orm / sql-wasm-browser / jeep-sqlite / main. Main chunk ≈ 470KB pre-gz, 143KB gz; r3f-vendor the largest at ~1.2MB / 366KB gz (drei + postprocessing).
 
 ## Performance (M1 Mac desktop)
 
