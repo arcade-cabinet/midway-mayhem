@@ -105,3 +105,15 @@ export const Score = trait({
   /** Seconds of clean driving since last hit — feeds the combo multiplier. */
   cleanSeconds: 0,
 });
+
+// ─── Zones ──────────────────────────────────────────────────────────────────
+
+export type ZoneTheme = 'carnival' | 'funhouse' | 'ringmaster' | 'grandfinale';
+
+/** A zone banner anchored at a specific distance along the track. Renderer
+ *  samples the track pose at `distance` and plants tapered banner meshes on
+ *  each edge with the theme text printed via canvas texture. */
+export const Zone = trait({
+  theme: 'carnival' as ZoneTheme,
+  distance: 0,
+});
