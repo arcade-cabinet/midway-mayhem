@@ -7,14 +7,16 @@
  * this test builds a bare Canvas rather than using the generic Scene
  * harness (which installs a camera of its own).
  */
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
 // @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
 import { commands } from '@vitest/browser/context';
+import { createWorld } from 'koota';
+import { WorldProvider } from 'koota/react';
 import { useEffect } from 'react';
 import type * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
 import { describe, expect, it } from 'vitest';
+import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { Cockpit } from './Cockpit';
 import type { FormTier } from './useFormFactor';
 
@@ -57,23 +59,27 @@ async function waitFrames(n: number) {
 describe('Cockpit — responsive visual gate', () => {
   for (const tier of TIERS) {
     it(`renders cockpit at ${tier}`, async () => {
+      const world = createWorld();
+      spawnPlayer(world);
       render(
-        <div
-          data-testid="cockpit-scene"
-          style={{ width: 1280, height: 720, position: 'relative' }}
-        >
-          <Canvas
-            dpr={1}
-            gl={{ antialias: false, preserveDrawingBuffer: true }}
-            style={{ width: '100%', height: '100%', display: 'block' }}
+        <WorldProvider world={world}>
+          <div
+            data-testid="cockpit-scene"
+            style={{ width: 1280, height: 720, position: 'relative' }}
           >
-            <Capture />
-            <color attach="background" args={['#0b0f1a']} />
-            <ambientLight intensity={0.55} color="#ffd6a8" />
-            <directionalLight position={[6, 10, 4]} intensity={1.2} color="#fff1db" />
-            <Cockpit tier={tier} />
-          </Canvas>
-        </div>,
+            <Canvas
+              dpr={1}
+              gl={{ antialias: false, preserveDrawingBuffer: true }}
+              style={{ width: '100%', height: '100%', display: 'block' }}
+            >
+              <Capture />
+              <color attach="background" args={['#0b0f1a']} />
+              <ambientLight intensity={0.55} color="#ffd6a8" />
+              <directionalLight position={[6, 10, 4]} intensity={1.2} color="#fff1db" />
+              <Cockpit tier={tier} />
+            </Canvas>
+          </div>
+        </WorldProvider>,
       );
 
       await waitFor(() => expect(window.__mmCockpitTest).toBeTruthy());

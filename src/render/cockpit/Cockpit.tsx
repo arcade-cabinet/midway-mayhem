@@ -27,6 +27,7 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { CockpitHood } from './CockpitHood';
 import { CockpitSteeringWheel } from './CockpitSteeringWheel';
+import { DiegeticHUD } from './DiegeticHUD';
 import { makePolkaDotTexture } from './polkaDotTexture';
 import {
   type FormTier,
@@ -200,6 +201,9 @@ export function Cockpit({ tier }: CockpitProps) {
 
       {/* Fuzzy dice dangling off the (implied) mirror above the dash */}
       <FuzzyDice />
+
+      {/* Diegetic HUD — speedometer + lane indicator as 3D meshes */}
+      <DiegeticHUD />
     </group>
   );
 }
