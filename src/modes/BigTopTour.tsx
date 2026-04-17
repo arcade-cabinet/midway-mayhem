@@ -20,8 +20,11 @@
  * Sub-modules (extracted to stay under 300 LOC):
  *   tour/TourWalker        — FPS camera controller + ZONE_TRIGGERS
  *   tour/TourStaticTrack   — composed track pieces + preloads
- *   tour/TourArenaProps    — instanced tents, poles, balloons
  *   tour/TourMobileJoystick — dual virtual thumb-sticks
+ *
+ * Arena geometry (tents, poles, spotlights, balloons) intentionally removed —
+ * the circus_arena HDRI is the big-top interior, and low-poly props in front
+ * of a high-fidelity HDRI looked jarringly out of place.
  */
 import { Environment } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
@@ -40,7 +43,6 @@ import { BalloonScene3D, CutsceneBalloons } from '../tour/CutsceneBalloons';
 import { CutsceneFire, FireScene3D } from '../tour/CutsceneFire';
 import { CutsceneFunhouse, FunhouseScene3D } from '../tour/CutsceneFunhouse';
 import { CutsceneStrip } from '../tour/CutsceneStrip';
-import { TourArenaProps } from './tour/TourArenaProps';
 import { TourMobileJoystick } from './tour/TourMobileJoystick';
 import { TourStaticTrack } from './tour/TourStaticTrack';
 import { TourWalker } from './tour/TourWalker';
@@ -164,7 +166,6 @@ export function BigTopTour({ onExit }: BigTopTourProps) {
             />
 
             <TourStaticTrack />
-            <TourArenaProps />
 
             <Collectibles
               playerPositionRef={playerPositionRef}
