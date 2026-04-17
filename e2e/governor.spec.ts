@@ -33,6 +33,7 @@ test.describe('Yuka governor autonomous playthrough', () => {
     test.setTimeout(60_000);
     await page.goto('/?skip=1&governor=1&diag=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
 
     await page.waitForTimeout(3000);
     await testInfo.attach('t=3s', {

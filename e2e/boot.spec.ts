@@ -5,6 +5,7 @@ test.describe('Boot sequence', () => {
   test('title screen loads with brand', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByTestId('title-screen')).toBeVisible();
+    await expectNoErrorModal(page);
     await expect(page.getByText(/MIDWAY/i)).toBeVisible();
     await expect(page.getByText(/MAYHEM/i)).toBeVisible();
     await expect(page.getByText(/CLOWN CAR CHAOS/i)).toBeVisible();
@@ -16,14 +17,16 @@ test.describe('Boot sequence', () => {
   test('?skip=1 drops directly into gameplay', async ({ page }) => {
     await page.goto('/?skip=1');
     await waitForHudReady(page);
-    await expectNoErrorModal(page);
+    await expectNoErrorModal(page); // entry
+    await expectNoErrorModal(page); // exit
   });
 
   test('title START button enters gameplay', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('start-button').click();
     await waitForHudReady(page);
-    await expectNoErrorModal(page);
+    await expectNoErrorModal(page); // entry
+    await expectNoErrorModal(page); // exit
   });
 
   test('asset preload succeeds — circus_arena HDRI available', async ({ page }) => {
@@ -31,8 +34,9 @@ test.describe('Boot sequence', () => {
     page.on('request', (r) => requestedUrls.push(r.url()));
     await page.goto('/?skip=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
     expect(requestedUrls.some((u) => u.includes('circus_arena_2k.hdr'))).toBe(true);
-    await expectNoErrorModal(page);
+    await expectNoErrorModal(page); // exit
   });
 
   test('no console errors during boot', async ({ page }) => {
@@ -42,6 +46,7 @@ test.describe('Boot sequence', () => {
     });
     await page.goto('/?skip=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
     // Tolerate known-harmless upstream warnings; halt on mm:halt, React errors, or own code paths
     const serious = consoleErrors.filter(
       (e) =>
@@ -50,5 +55,6 @@ test.describe('Boot sequence', () => {
         !/GLTFLoader.*colormap\.png/i.test(e),
     );
     expect(serious).toEqual([]);
+    await expectNoErrorModal(page); // exit
   });
 });

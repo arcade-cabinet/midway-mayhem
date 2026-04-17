@@ -5,8 +5,9 @@ test.describe('Error modal', () => {
   test('does not appear during a clean run', async ({ page }) => {
     await page.goto('/?skip=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
     await page.waitForTimeout(2000);
-    await expectNoErrorModal(page);
+    await expectNoErrorModal(page); // exit
   });
 
   test('missing HDRI asset triggers modal with specific path', async ({ page }) => {

@@ -5,6 +5,7 @@ test.describe('Gameplay mechanics', () => {
   test('distance increases over time during free-play', async ({ page }) => {
     await page.goto('/?skip=1&diag=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
     const before = await readDiag(page);
     await page.waitForTimeout(2000);
     const after = await readDiag(page);
@@ -15,6 +16,7 @@ test.describe('Gameplay mechanics', () => {
   test('pointer steering moves the player laterally', async ({ page }) => {
     await page.goto('/?skip=1&diag=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
     const canvas = page.locator('canvas').first();
     const box = await canvas.boundingBox();
     if (!box) throw new Error('canvas missing');
@@ -34,6 +36,7 @@ test.describe('Gameplay mechanics', () => {
   test('HONK button is clickable', async ({ page }) => {
     await page.goto('/?skip=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
     await page.getByTestId('honk-button').click();
     await expectNoErrorModal(page);
   });
@@ -41,6 +44,7 @@ test.describe('Gameplay mechanics', () => {
   test('HUD fields update as run progresses', async ({ page }) => {
     await page.goto('/?skip=1&governor=1&diag=1');
     await waitForHudReady(page);
+    await expectNoErrorModal(page); // entry
     await page.waitForTimeout(5000);
     const stats = page.getByTestId('hud-stats');
     await expect(stats).toContainText(/\d+m/); // distance shown
