@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { useGameStore } from '../systems/gameState';
-import { STEER } from '../utils/constants';
-import { damp } from '../utils/math';
+import { useGameStore } from '@/game/gameState';
+import { STEER } from '@/utils/constants';
+import { damp } from '@/utils/math';
 
 /**
  * Pointer + touch steering. Mouse X mapped to normalized [-1,1]; touch drag

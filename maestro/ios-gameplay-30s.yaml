@@ -1,0 +1,80 @@
+appId: com.midwaymayhem.app
+# Maestro flow: iOS 30-second gameplay — steer, honk, verify 100 m distance.
+# iOS note: swipe speed may need tuning for Metal vs Vulkan frame timing; timeouts
+# are 5 s longer than Android equivalents to allow for the slower WKWebView update cycle.
+# Output screenshot: docs/media/maestro/ios/mid-run.png
+---
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 20000
+
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 25000
+
+# Steer left/right 10 times
+- swipe:
+    start: "70%,75%"
+    end: "30%,75%"
+- swipe:
+    start: "30%,75%"
+    end: "70%,75%"
+- swipe:
+    start: "70%,75%"
+    end: "30%,75%"
+- swipe:
+    start: "30%,75%"
+    end: "70%,75%"
+- swipe:
+    start: "70%,75%"
+    end: "30%,75%"
+- swipe:
+    start: "30%,75%"
+    end: "70%,75%"
+- swipe:
+    start: "70%,75%"
+    end: "30%,75%"
+- swipe:
+    start: "30%,75%"
+    end: "70%,75%"
+- swipe:
+    start: "70%,75%"
+    end: "30%,75%"
+- swipe:
+    start: "30%,75%"
+    end: "70%,75%"
+
+# Honk 5 times
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+
+# Wait for distance >= 100 m
+- extendedWaitUntil:
+    visible:
+      text: "1[0-9][0-9]"
+    timeout: 35000
+
+- assertVisible:
+    id: "hud"
+- assertNotVisible:
+    id: "game-over"
+
+- takeScreenshot: "docs/media/maestro/ios/mid-run"
+
+- stopApp

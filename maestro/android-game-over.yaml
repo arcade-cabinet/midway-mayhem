@@ -1,0 +1,82 @@
+appId: com.midwaymayhem.app
+# Maestro flow: game-over — crash repeatedly until sanity hits 0, confirm overlay,
+# tap AGAIN, confirm run restarts.
+# sanity starts at 100 and decrements on crash (applyCrash reduces by ~20 per hit).
+# We drive into walls by steering hard left/right to provoke collisions.
+# Output screenshot: docs/media/maestro/android/game-over.png
+---
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 15000
+
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 20000
+
+# Deliberately crash by slamming the car repeatedly into obstacles.
+# Hard lateral swipes move the car to the rail edge where critters/obstacles hit.
+- swipe:
+    start: "20%,50%"
+    end: "80%,50%"
+    duration: 100
+- swipe:
+    start: "80%,50%"
+    end: "20%,50%"
+    duration: 100
+- swipe:
+    start: "20%,50%"
+    end: "80%,50%"
+    duration: 100
+- swipe:
+    start: "80%,50%"
+    end: "20%,50%"
+    duration: 100
+- swipe:
+    start: "20%,50%"
+    end: "80%,50%"
+    duration: 100
+- swipe:
+    start: "80%,50%"
+    end: "20%,50%"
+    duration: 100
+- swipe:
+    start: "20%,50%"
+    end: "80%,50%"
+    duration: 100
+- swipe:
+    start: "80%,50%"
+    end: "20%,50%"
+    duration: 100
+
+# Wait for game-over overlay (sanity depletes after ~5 crashes)
+- extendedWaitUntil:
+    visible:
+      id: "game-over"
+    timeout: 30000
+
+- assertVisible: "CROWD LOST IT!"
+
+- takeScreenshot: "docs/media/maestro/android/game-over"
+
+# Tap AGAIN to restart
+- tapOn:
+    id: "restart-button"
+
+# Run must restart — HUD becomes visible again, no game-over overlay
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 20000
+
+- assertNotVisible:
+    id: "game-over"
+
+- stopApp

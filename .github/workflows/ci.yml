@@ -1,0 +1,367 @@
+name: CI
+
+# Triggers on every push to main AND every pull request regardless of
+# target branch. Per governance rules: no branches filter on the
+# pull_request event — CI gates must run on PRs into feature branches,
+# release branches, or any other target equally.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      refresh_snapshots:
+        description: "Update missing snapshots"
+        type: boolean
+        default: false
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Biome lint + format check
+        run: pnpm exec biome ci .
+      - name: TypeScript type check
+        run: pnpm exec tsc --noEmit
+
+  node-tests:
+    name: Node Tests (Vitest)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Run node-surface Vitest tests
+        run: pnpm test:node
+
+  jsdom-tests:
+    name: jsdom Tests (Vitest)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Run jsdom-surface Vitest tests
+        run: pnpm test:jsdom
+
+  browser-smoke:
+    name: Browser Smoke Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        run: pnpm test:browser smoke --passWithNoTests
+        continue-on-error: false
+
+  browser-snapshots:
+    name: Browser Snapshot Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run browser snapshot tests
+        run: pnpm test:browser
+        continue-on-error: true
+
+  build:
+    name: Production Build + Bundle Budget
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, node-tests, jsdom-tests, browser-smoke]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build production bundle
+        run: pnpm build
+      - name: Bundle budget gate
+        run: pnpm audit:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bundle-size-report
+          path: docs/media/bundle-size/
+
+  android-smoke:
+    name: Android Smoke (Maestro)
+    # ubuntu-latest supports KVM hardware acceleration via /dev/kvm which
+    # reactivecircus/android-emulator-runner uses for x86_64 api-33 emulators.
+    runs-on: ubuntu-latest
+    needs: [build]
+    # Non-blocking — emulator boots are flaky on CI and nice-to-have smoke,
+    # not a user-visible ship gate. The web build is the primary deliverable.
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      - name: Download web build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Enable KVM for hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Build native web bundle
+        run: pnpm build:native
+
+      - name: Sync Capacitor assets into android/
+        run: pnpm exec cap sync android
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+        working-directory: android
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: midway-mayhem-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      - name: Install Maestro CLI
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Run all Maestro flows on emulator (api-33 / google_apis / x86_64)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_6
+          target: google_apis
+          script: |
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            FAILED=0
+            for FLOW in \
+              maestro/android-smoke.yaml \
+              maestro/android-gameplay-30s.yaml \
+              maestro/android-critter-scare.yaml \
+              maestro/android-ramp-trick.yaml \
+              maestro/android-pause-resume.yaml \
+              maestro/android-game-over.yaml; do
+              echo "==> Running ${FLOW}"
+              if "$HOME/.maestro/bin/maestro" test "${FLOW}"; then
+                echo "PASSED: ${FLOW}"
+              else
+                echo "FAILED: ${FLOW}"
+                FAILED=$((FAILED+1))
+              fi
+            done
+            exit ${FAILED}
+
+      - name: Copy Maestro screenshots to docs/media
+        if: always()
+        run: |
+          mkdir -p docs/media/maestro/android
+          LATEST=$(ls -1dt "$HOME/.maestro/tests/"* 2>/dev/null | head -1)
+          if [ -n "${LATEST}" ]; then
+            find "${LATEST}" -name "*.png" -exec cp {} docs/media/maestro/android/ \;
+          fi
+
+      - name: Upload Maestro results + debug APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-android-results
+          path: |
+            ~/.maestro/tests/
+            docs/media/maestro/android/
+          retention-days: 14
+
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [build]
+    # Non-blocking — Playwright E2E covers the same surfaces that the
+    # vitest-browser suite verifies deterministically in the same Chromium
+    # runtime. CI-runner flakiness (HDRI asset timing, swiftshader perf,
+    # preview-server port binding) produces noise that is not representative
+    # of real play. We keep the suite for telemetry + regression screenshots
+    # but do not block merge on it — the authoritative gate is vitest-browser.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Install xvfb for headed browser
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: pnpm build
+      - name: Run E2E tests (headed via xvfb)
+        env:
+          REFRESH_SNAPSHOTS: ${{ inputs.refresh_snapshots }}
+        run: |
+          pnpm copywasm
+          if [ "$REFRESH_SNAPSHOTS" == "true" ]; then
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots missing
+          else
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  lighthouse:
+    name: Lighthouse Audit
+    # Runs in parallel with build — only needs the source + preview to be launchable.
+    # Does NOT need the build artifact; pnpm preview serves the dist/ from the repo
+    # checkout if it exists, or we build inline.
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck]
+    # Non-blocking — Lighthouse scores on a WebGL-heavy game run via
+    # swiftshader in CI are not representative; we keep the audit for
+    # telemetry but don't block merge on score floors.
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build for Lighthouse
+        run: pnpm build
+      - name: Install Chromium for Lighthouse
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Lighthouse audit
+        run: pnpm audit:lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: docs/media/lighthouse/
+
+  frametime-audit:
+    name: Frame-Time Profiler
+    runs-on: ubuntu-latest
+    needs: [build]
+    # Non-blocking — WebGL swiftshader performance on CI runners is an
+    # unreliable proxy for real desktop framerate. We treat it as telemetry,
+    # not a ship gate.
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - name: Start preview server and run frame-time profiler
+        env:
+          PROFILE_BASE_URL: http://127.0.0.1:4175/midway-mayhem
+        run: |
+          pnpm copywasm
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" bash -c '
+            pnpm preview --port 4175 &
+            PREVIEW_PID=$!
+            # Wait for server
+            for i in $(seq 1 30); do
+              curl -sf http://127.0.0.1:4175/midway-mayhem/ > /dev/null && break
+              sleep 1
+            done
+            pnpm audit:frametime
+            AUDIT_EXIT=$?
+            kill $PREVIEW_PID 2>/dev/null || true
+            exit $AUDIT_EXIT
+          '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frametime-report
+          path: docs/media/frametime/

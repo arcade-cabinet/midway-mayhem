@@ -1,0 +1,39 @@
+appId: com.midwaymayhem.app
+# Maestro flow: Android smoke — boot, title, tap START, confirm HUD.
+# Preconditions:
+#   adb device connected, app installed, Maestro CLI in PATH.
+# Output screenshot: docs/media/maestro/android/boot.png
+---
+- launchApp:
+    clearState: false
+
+# Title screen must appear within 15 s (WebView + HDRI warm-up)
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 15000
+
+# Assert title copy is on screen
+- assertVisible: "MIDWAY"
+
+# Tap START to enter gameplay
+- tapOn:
+    id: "start-button"
+
+# HUD must appear within 20 s (3D scene init)
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 20000
+
+# Confirm core HUD panels rendered
+- assertVisible:
+    id: "hud-hype"
+- assertVisible:
+    id: "hud-stats"
+- assertVisible:
+    id: "honk-button"
+
+- takeScreenshot: "docs/media/maestro/android/boot"
+
+- stopApp

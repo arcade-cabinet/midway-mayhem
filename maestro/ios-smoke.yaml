@@ -1,0 +1,41 @@
+appId: com.midwaymayhem.app
+# Maestro flow: iOS smoke — boot, title, tap START, confirm HUD, tap HONK.
+# iOS-specific: WKWebView needs extra warm-up time (20 s vs Android 15 s).
+# Preconditions:
+#   xcrun simctl list devices booted — at least one device in Booted state
+#   App installed: xcrun simctl install booted <path/to/App.app>
+# Output screenshot: docs/media/maestro/ios/boot.png
+---
+- launchApp:
+    clearState: false
+
+# iOS WKWebView warm-up is slower than Android WebView
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 20000
+
+- assertVisible: "MIDWAY"
+
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 25000
+
+- assertVisible:
+    id: "hud-hype"
+- assertVisible:
+    id: "hud-stats"
+- assertVisible:
+    id: "honk-button"
+
+# Tap HONK — iOS-specific: verify audio permission doesn't block the UI
+- tapOn:
+    id: "honk-button"
+
+- takeScreenshot: "docs/media/maestro/ios/boot"
+
+- stopApp

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.12/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": false,
@@ -47,7 +47,16 @@
       "style": {
         "useConst": "error",
         "useImportType": "error",
-        "useNamingConvention": "off"
+        "useNamingConvention": "off",
+        "noRestrictedGlobals": {
+          "level": "error",
+          "options": {
+            "deniedGlobals": {
+              "localStorage": "Use @capacitor/preferences via src/persistence/preferences.ts. Storage stack is OPFS + SQLite — no localStorage anywhere.",
+              "sessionStorage": "Use @capacitor/preferences instead. Everything persists; nothing ephemeral."
+            }
+          }
+        }
       },
       "correctness": {
         "noUnusedVariables": "error",

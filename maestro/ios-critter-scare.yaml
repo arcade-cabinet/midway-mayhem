@@ -1,0 +1,66 @@
+appId: com.midwaymayhem.app
+# Maestro flow: iOS critter scare — honk near critters, verify crowd panel visible.
+# iOS note: WKWebView text updates may lag by 1 RAF cycle; crowd panel assertion
+# allows up to 5 s after final honk (vs 3 s on Android).
+# Output screenshot: docs/media/maestro/ios/critter-fleeing.png
+---
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 20000
+
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 25000
+
+- assertVisible:
+    id: "hud-crowd"
+
+# Drive toward critter spawn zone
+- swipe:
+    start: "50%,75%"
+    end: "50%,25%"
+    duration: 300
+- swipe:
+    start: "50%,75%"
+    end: "50%,25%"
+    duration: 300
+- swipe:
+    start: "50%,75%"
+    end: "50%,25%"
+    duration: 300
+
+# Honk to scare critters
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+- tapOn:
+    id: "honk-button"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- assertVisible:
+    id: "hud-crowd"
+
+- takeScreenshot: "docs/media/maestro/ios/critter-fleeing"
+
+- stopApp

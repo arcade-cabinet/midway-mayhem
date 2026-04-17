@@ -1,4 +1,4 @@
-import { ASSET_MANIFEST, assetUrlFor, type AssetEntry } from './manifest';
+import { ASSET_MANIFEST, type AssetEntry, assetUrlFor } from './manifest';
 
 /**
  * Preload all required assets with HEAD probes. Hard-fails on first

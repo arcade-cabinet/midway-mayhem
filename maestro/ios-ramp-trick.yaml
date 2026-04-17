@@ -1,0 +1,47 @@
+appId: com.midwaymayhem.app
+# Maestro flow: iOS ramp trick — become airborne, swipe up twice for WHEELIE.
+# iOS note: trick-overlay timeout extended to 45 s (WKWebView RAF timing
+# means the airborne state is detected slightly later than Android WebView).
+# Output screenshot: docs/media/maestro/ios/trick.png
+---
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 20000
+
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 25000
+
+# Wait for first ramp (airborne state triggers trick-overlay)
+- extendedWaitUntil:
+    visible:
+      id: "trick-overlay"
+    timeout: 45000
+
+# WHEELIE = up + up
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 150
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 150
+
+- waitForAnimationToEnd:
+    timeout: 4000
+
+- assertVisible:
+    id: "hud-sanity"
+
+- takeScreenshot: "docs/media/maestro/ios/trick"
+
+- stopApp
