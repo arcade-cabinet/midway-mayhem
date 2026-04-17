@@ -11,18 +11,10 @@
 import { useFrame } from '@react-three/fiber';
 import { useQuery } from 'koota/react';
 import { useMemo, useRef } from 'react';
-import * as THREE from 'three';
-import {
-  type GhostRecord,
-  currentRunElapsed,
-  loadBestGhost,
-  sampleGhost,
-} from '@/game/ghost';
-import {
-  sampleTrackPose,
-  type SampledSegment,
-} from '@/ecs/systems/trackSampler';
+import type * as THREE from 'three';
+import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { TrackSegment } from '@/ecs/traits';
+import { currentRunElapsed, type GhostRecord, loadBestGhost, sampleGhost } from '@/game/ghost';
 
 export function GhostCar() {
   const groupRef = useRef<THREE.Group>(null);
@@ -73,11 +65,7 @@ export function GhostCar() {
     const rightX = Math.cos(p.yaw);
     const rightZ = -Math.sin(p.yaw);
     g.visible = true;
-    g.position.set(
-      p.x + rightX * s.lateral,
-      p.y + 0.7,
-      p.z + rightZ * s.lateral,
-    );
+    g.position.set(p.x + rightX * s.lateral, p.y + 0.7, p.z + rightZ * s.lateral);
     g.rotation.set(-p.pitch, p.yaw, 0, 'YXZ');
   });
 
@@ -117,7 +105,11 @@ export function GhostCar() {
         [-0.7, 0.1, 0.9],
         [0.7, 0.1, 0.9],
       ].map(([x, y, z]) => (
-        <mesh key={`wheel-${x}-${z}`} position={[x as number, y as number, z as number]} rotation={[0, 0, Math.PI / 2]}>
+        <mesh
+          key={`wheel-${x}-${z}`}
+          position={[x as number, y as number, z as number]}
+          rotation={[0, 0, Math.PI / 2]}
+        >
           <cylinderGeometry args={[0.2, 0.2, 0.2, 10]} />
           <meshStandardMaterial color="#111" transparent opacity={0.5} depthWrite={false} />
         </mesh>

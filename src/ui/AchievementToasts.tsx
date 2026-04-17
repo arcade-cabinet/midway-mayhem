@@ -47,7 +47,8 @@ export function AchievementToasts() {
         <div
           key={t.key}
           style={{
-            background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.92) 0%, rgba(11, 15, 26, 0.92) 100%)',
+            background:
+              'linear-gradient(135deg, rgba(156, 39, 176, 0.92) 0%, rgba(11, 15, 26, 0.92) 100%)',
             color: '#fff1db',
             padding: '14px 28px',
             borderRadius: '8px',
