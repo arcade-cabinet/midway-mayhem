@@ -48,6 +48,8 @@ export interface TickableState {
   optimalPath: OptimalPath | null;
   cleanliness: number;
   currentPieceKind: PieceKind | null;
+  /** 0 = coast/decelerate; 1 = auto-accelerate (racing default). */
+  throttle: number;
 }
 
 export const DROP_DURATION_MS = 1800;
@@ -76,12 +78,15 @@ export function tickGameState(dt: number, now: number, set: SetFn, get: GetFn): 
   }
 
   // Speed interpolation toward target; target climbs slowly over time.
+  // throttle gates the whole acceleration model: 0 = coast to a stop (debug
+  // mode), 1 = full auto-accelerate to cruise (racing default).
   const CRUISE = 70;
   const BOOST = 90;
   const MEGA = 120;
   let target = Math.min(CRUISE, 30 + s.distance * 0.005);
   if (now < s.boostUntil) target = BOOST;
   if (now < s.megaBoostUntil) target = MEGA;
+  target *= s.throttle;
   const speed = s.speedMps + (target - s.speedMps) * Math.min(1, dt * 1.3);
   const distance = s.distance + speed * dt;
   const hype = (speed / MEGA) * 100;

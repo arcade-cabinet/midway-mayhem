@@ -1,17 +1,22 @@
 /**
  * @hook useKeyboardControls
  *
- * Global keyboard controls wired to the game store.
+ * Keyboard bindings for the web/debug build. The shipped Capacitor build
+ * is touch-only; keyboard is a developer-facing tool that never surfaces
+ * to mobile users.
  *
- * Bindings:
- *   Space / H        → honk()
- *   ArrowLeft / A    → steer -1 (decays to 0 on keyup)
+ * Bindings (web/debug):
+ *   H                → honk
+ *   ArrowLeft  / A   → steer -1 (decays to 0 on keyup)
  *   ArrowRight / D   → steer +1 (decays to 0 on keyup)
- *   P / Escape       → pause / resume
+ *   ArrowUp    / W   → throttle = 1 (car auto-accelerates)
+ *   ArrowDown  / S   → throttle = 0 (car coasts / stops)
+ *   Space            → PAUSE + CAPTURE (writes .capture/<ts>/ via /__capture)
  *   R                → restart on game-over screen
  *
- * Auto-registers on window. Returns a cleanup function.
- * Call once from Game.tsx alongside useSteering.
+ * Deliberately NO player-facing pause binding — this is a runner-style
+ * arcade racer, not a pausable game. Space's pause is a debug feature
+ * that co-occurs with a frame capture for bug reporting.
  */
 
 import { useEffect } from 'react';
@@ -22,6 +27,16 @@ import { damp } from '@/utils/math';
 
 /** Keyboard steer target: -1, 0, or +1. */
 let _kbSteerTarget = 0;
+
+function triggerCapture(): void {
+  // biome-ignore lint/suspicious/noExplicitAny: registered by DebugCaptureBridge
+  const fn = (window as any).__mmCapture as
+    | ((label?: string) => Promise<unknown>)
+    | undefined;
+  if (fn) {
+    void fn('space-pause');
+  }
+}
 
 export function useKeyboardControls(): void {
   useEffect(() => {
@@ -36,7 +51,6 @@ export function useKeyboardControls(): void {
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
-      // Skip if focus is in an input/textarea — let the browser handle it
       const target = e.target as HTMLElement | null;
       if (
         target instanceof HTMLInputElement ||
@@ -46,7 +60,6 @@ export function useKeyboardControls(): void {
         return;
       }
 
-      // Prevent arrow/space default scroll behaviours during gameplay
       if (
         ['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code) &&
         useGameStore.getState().running
@@ -56,23 +69,27 @@ export function useKeyboardControls(): void {
 
       held.add(e.key);
 
-      const { running, paused, gameOver } = useGameStore.getState();
+      const { running, gameOver } = useGameStore.getState();
 
-      // HONK — Space or H
-      if ((e.code === 'Space' || e.key === 'h' || e.key === 'H') && running && !paused) {
+      // HONK — H only. Space is reserved for debug capture.
+      if ((e.key === 'h' || e.key === 'H') && running) {
         honk();
         return;
       }
 
-      // PAUSE / RESUME — P or Escape
-      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-        if (running && !gameOver) {
-          if (paused) {
-            useGameStore.getState().resume();
-          } else {
-            useGameStore.getState().pause();
-          }
-        }
+      // THROTTLE — ↑/W sets throttle=1, ↓/S sets throttle=0
+      if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && running) {
+        useGameStore.getState().setThrottle(1);
+        return;
+      }
+      if ((e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') && running) {
+        useGameStore.getState().setThrottle(0);
+        return;
+      }
+
+      // DEBUG CAPTURE — Space pauses + snapshots the current frame.
+      if (e.code === 'Space' && running && !gameOver) {
+        triggerCapture();
         return;
       }
 
@@ -82,7 +99,6 @@ export function useKeyboardControls(): void {
         return;
       }
 
-      // STEER — update target
       _kbSteerTarget = resolveSteer();
     };
 
@@ -94,7 +110,6 @@ export function useKeyboardControls(): void {
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
 
-    // Damped steer loop — blends keyboard target into the store
     let lastFrame = performance.now();
     let raf = 0;
 
@@ -104,7 +119,6 @@ export function useKeyboardControls(): void {
 
       if (_kbSteerTarget !== 0) {
         const current = useGameStore.getState().steer;
-        // Keyboard steer ramps up quickly (low tau)
         const next = damp(current, _kbSteerTarget * STEER.SENSITIVITY, 0.05, dt);
         useGameStore.getState().setSteer(Math.max(-1, Math.min(1, next)));
       }
@@ -123,12 +137,11 @@ export function useKeyboardControls(): void {
 
 /**
  * Wire keyboard navigation to TitleScreen.
- * Exported separately so it can be used in TitleScreen.tsx.
  *
  * Enter / Space → START
- * T → VISIT THE MIDWAY (tour)
+ * T → VISIT THE MIDWAY (debug walk-around)
  * S → SHOP
- * Esc → close open panel (returns focus to START button)
+ * Esc → close open panel
  */
 export function useTitleKeyboard(opts: {
   onStart: () => void;

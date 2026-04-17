@@ -101,6 +101,11 @@ export function subscribeErrors(fn: Listener): () => void {
   };
 }
 
+/** Returns a frozen snapshot of all errors currently on the bus. */
+export function getReportedErrors(): readonly GameError[] {
+  return state.errors.slice();
+}
+
 export function isHalted(): boolean {
   return state.halted;
 }

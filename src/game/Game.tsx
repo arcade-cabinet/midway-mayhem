@@ -6,6 +6,7 @@ import { assetUrl } from '@/assets/manifest';
 import { Cockpit } from '@/cockpit/Cockpit';
 import { ExplosionFX } from '@/cockpit/ExplosionFX';
 import { RacingLineGhost } from '@/cockpit/RacingLineGhost';
+import { DebugCaptureBridge } from '@/game/debugCapture';
 import { useGameStore } from '@/game/gameState';
 import { Governor } from '@/game/governor/Governor';
 import { useKeyboardControls } from '@/hooks/useKeyboardControls';
@@ -50,7 +51,26 @@ export function Game() {
   useTouchGestures(canvasEl);
 
   return (
-    <div ref={wrapperRef} data-testid="mm-game" style={{ position: 'absolute', inset: 0 }}>
+    <div
+      ref={wrapperRef}
+      data-testid="mm-game"
+      style={{ position: 'absolute', inset: 0 }}
+      onPointerDown={(e) => {
+        // Tap-anywhere-on-canvas (except the horn mesh) triggers a debug
+        // pause+capture. The horn's R3F pointerDown fires first and sets
+        // __mmHornPressedAt; we skip the DOM event if that was just now.
+        const target = e.target as HTMLElement | null;
+        if (!target || target.tagName !== 'CANVAS') return;
+        // biome-ignore lint/suspicious/noExplicitAny: dev hook
+        const lastHorn = (window as any).__mmHornPressedAt as number | undefined;
+        if (lastHorn && performance.now() - lastHorn < 50) return;
+        // biome-ignore lint/suspicious/noExplicitAny: registered by DebugCaptureBridge
+        const fn = (window as any).__mmCapture as
+          | ((label?: string) => Promise<unknown>)
+          | undefined;
+        if (fn) void fn('tap-pause');
+      }}
+    >
       <Canvas
         onCreated={({ gl, scene }) => {
           setCanvasEl(gl.domElement);
@@ -60,7 +80,13 @@ export function Game() {
         }}
         shadows={false}
         dpr={[1, 2]}
-        gl={{ antialias: false, powerPreference: 'high-performance' }}
+        gl={{
+          antialias: false,
+          powerPreference: 'high-performance',
+          // Keep the backbuffer around so debug capture can toDataURL() at any
+          // moment. Small perf cost but this is a debug-first web build.
+          preserveDrawingBuffer: true,
+        }}
       >
         <ReactErrorBoundary context="canvas-root">
           <Suspense fallback={null}>
@@ -103,6 +129,7 @@ export function Game() {
 
             <Governor />
             <PostFX />
+            <DebugCaptureBridge />
             {photoMode && <PhotoModeControls />}
             {photoMode && (
               <PhotoModeDownloadCapture onCapture={(dataUrl) => triggerDownload(dataUrl)} />

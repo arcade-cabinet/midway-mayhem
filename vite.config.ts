@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import { captureServerPlugin } from './scripts/vite-capture-plugin';
 
 const isCapacitor = process.env.CAPACITOR === 'true';
 
@@ -24,7 +25,7 @@ const sharedAlias = {
 
 export default defineConfig({
   base: isCapacitor ? './' : '/midway-mayhem/',
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), captureServerPlugin()],
   resolve: { alias: sharedAlias },
   build: {
     target: 'es2022',
