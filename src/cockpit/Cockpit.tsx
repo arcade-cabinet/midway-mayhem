@@ -1,13 +1,14 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useResponsiveCockpitScale } from '@/hooks/useResponsiveCockpitScale';
-import { useLoadoutStore } from '@/hooks/useLoadout';
-import { PLUNGE_DURATION_S, useGameStore } from '@/game/gameState';
 import { damageLevelFor } from '@/game/damageLevel';
+import { useGameStore } from '@/game/gameState';
+import { useLoadoutStore } from '@/hooks/useLoadout';
+import { useResponsiveCockpitScale } from '@/hooks/useResponsiveCockpitScale';
 import { STEER } from '@/utils/constants';
 import { makePolkaDotTexture } from '@/utils/proceduralTextures';
 import { CockpitCamera } from './CockpitCamera';
+import { computePlungeOffset } from './plungeMotion';
 
 /**
  * World-origin cockpit. The camera is a child of this group; the cockpit
@@ -86,12 +87,16 @@ export function Cockpit() {
   const paletteBaseHex = useMemo(() => {
     if (!loadout) return '#ff3e3e';
     switch (loadout.palette) {
-      case 'neon-circus':   return '#0d0d0d';
-      case 'pastel-dream':  return '#ffd6e0';
-      case 'golden-hour':   return '#c8860a';
-      default:              return '#ff3e3e'; // classic
+      case 'neon-circus':
+        return '#0d0d0d';
+      case 'pastel-dream':
+        return '#ffd6e0';
+      case 'golden-hour':
+        return '#c8860a';
+      default:
+        return '#ff3e3e'; // classic
     }
-  }, [loadout?.palette]);
+  }, [loadout?.palette, loadout]);
 
   // Update hood material color reactively
   useMemo(() => {
@@ -103,12 +108,16 @@ export function Cockpit() {
   const rimColor = useMemo(() => {
     if (!loadout) return '#9c27b0';
     switch (loadout.rim) {
-      case 'gold':         return '#ffd700';
-      case 'purple-candy': return '#9c27b0';
-      case 'rainbow':      return '#ff3e3e'; // approximate — gradient not possible in Three.js mat
-      default:             return '#cccccc'; // chrome
+      case 'gold':
+        return '#ffd700';
+      case 'purple-candy':
+        return '#9c27b0';
+      case 'rainbow':
+        return '#ff3e3e'; // approximate — gradient not possible in Three.js mat
+      default:
+        return '#cccccc'; // chrome
     }
-  }, [loadout?.rim]);
+  }, [loadout?.rim, loadout]);
 
   useFrame((state) => {
     const s = useGameStore.getState();
@@ -124,16 +133,17 @@ export function Cockpit() {
       const fall = dp < 0.75 ? (dp / 0.75) ** 2 : 1 + Math.sin((dp - 0.75) * 12) * 0.06 * (1 - dp);
       const y0 = 12;
 
-      // Plunge animation: parabolic fall off the ramp side
+      // Plunge animation: the cockpit free-falls PAST the still-rendered track
+      // geometry. Track stays put in world space; the camera+hood group drops
+      // with real gravity so the player sees the track rise overhead as they
+      // fall. Math lives in ./plungeMotion for unit-testability.
       if (s.plunging) {
-        const elapsed = Math.min(1, (now - s.plungeStartedAt) / (PLUNGE_DURATION_S * 1000));
-        // Parabolic y drop (starts fast, accelerates)
-        root.position.y = -(elapsed * elapsed) * 18;
-        // Drift in the plunge direction
-        root.position.x = s.plungeDirection * elapsed * 6;
-        // Forward roll tipping over the edge
-        root.rotation.x = elapsed * 1.2;
-        root.rotation.z = s.plungeDirection * elapsed * 0.8;
+        const elapsedS = Math.max(0, (now - s.plungeStartedAt) / 1000);
+        const off = computePlungeOffset(elapsedS, s.plungeDirection);
+        root.position.y = off.y;
+        root.position.x = off.x;
+        root.rotation.x = off.rotX;
+        root.rotation.z = off.rotZ;
       } else {
         root.position.y = y0 * (1 - fall);
         root.position.x = 0;
@@ -142,7 +152,8 @@ export function Cockpit() {
         root.rotation.x = 0;
         root.rotation.y = s.trickRotationY;
         if (dp < 0.1) root.rotation.z = Math.sin(t * 2) * 0.02 + s.trickRotationZ;
-        else root.rotation.z = s.trickRotationZ + (s.trickRotationZ === 0 ? root.rotation.z * 0.9 : 0);
+        else
+          root.rotation.z = s.trickRotationZ + (s.trickRotationZ === 0 ? root.rotation.z * 0.9 : 0);
       }
     }
     // Wire opacity fades out once settled
@@ -207,7 +218,7 @@ export function Cockpit() {
       if (active) {
         if (smokeStartT.current === 0) smokeStartT.current = t;
         const offset = (i / 3) * 1.8; // stagger each particle
-        const elapsed = ((t - smokeStartT.current + offset) % 1.8);
+        const elapsed = (t - smokeStartT.current + offset) % 1.8;
         const frac = elapsed / 1.8;
         mesh.position.y = -0.3 + frac * 2.0;
         mesh.position.x = Math.sin(t * 2 + i * 1.2) * 0.15;
@@ -273,11 +284,7 @@ export function Cockpit() {
           <cylinderGeometry args={[0.32, 0.32, 2.0, 28, 1, false, 0, Math.PI]} />
         </mesh>
         {/* Chrome piping along cowl edge — just a thin band, not a floating box */}
-        <mesh
-          position={[0, 0.95, -0.48]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          material={chromeMat}
-        >
+        <mesh position={[0, 0.95, -0.48]} rotation={[-Math.PI / 2, 0, 0]} material={chromeMat}>
           <torusGeometry args={[0.32, 0.015, 8, 24, Math.PI]} />
         </mesh>
 
@@ -286,7 +293,11 @@ export function Cockpit() {
             opens up — hood reads as a rounded horizon rather than a wall.
             hoodZOffset pushes the hood forward on narrow form factors so
             more track is visible through the windshield. */}
-        <mesh position={[0, -0.1, -1.9 + cockpitScale.hoodZOffset]} material={hoodMat} scale={[0.95, 0.75, 1.25]}>
+        <mesh
+          position={[0, -0.1, -1.9 + cockpitScale.hoodZOffset]}
+          material={hoodMat}
+          scale={[0.95, 0.75, 1.25]}
+        >
           <sphereGeometry args={[0.92, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
         </mesh>
         {/* Chrome ridge — now laid ON the hood surface (y=0.55, just above

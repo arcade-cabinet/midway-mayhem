@@ -8,8 +8,8 @@
  */
 import { and, eq } from 'drizzle-orm';
 import { db } from './db';
-import { loadout, profile, unlocks } from './schema';
 import type { UnlockKind } from './schema';
+import { loadout, profile, unlocks } from './schema';
 
 // ─── Profile ────────────────────────────────────────────────────────────────
 
@@ -77,11 +77,7 @@ export async function recordRun({
 export async function grantUnlock(kind: UnlockKind, slug: string): Promise<void> {
   const now = Date.now();
   // INSERT OR IGNORE via drizzle's onConflictDoNothing
-  await db()
-    .insert(unlocks)
-    .values({ kind, slug, unlockedAt: now })
-    .onConflictDoNothing()
-    .run();
+  await db().insert(unlocks).values({ kind, slug, unlockedAt: now }).onConflictDoNothing().run();
 }
 
 export async function hasUnlock(kind: UnlockKind, slug: string): Promise<boolean> {

@@ -1,5 +1,6 @@
-import { TRACK } from '@/utils/constants';
+import { eventsRng } from '@/game/runRngBus';
 import { laneCenterAt, sampleLookahead } from '@/track/trackGenerator';
+import { TRACK } from '@/utils/constants';
 
 export interface GovernorInput {
   playerD: number;
@@ -92,7 +93,8 @@ export class GovernorDriver {
     const targetWorld = laneCenterAt(input.playerD + this.params.lookaheadMeters, bestLane);
     const offset = targetWorld.x - (input.playerLateral + 0);
     // Normalize offset into a steer value; add small jitter to avoid perfection
-    this.jitter += (Math.random() - 0.5) * dt * 2;
+    // Events channel so governor play is replay-deterministic per seed.
+    this.jitter += (eventsRng().next() - 0.5) * dt * 2;
     this.jitter = Math.max(-0.08, Math.min(0.08, this.jitter));
     const steerRaw = Math.max(-1, Math.min(1, offset * 0.08 + this.jitter));
     const steer = steerRaw * this.params.skill;

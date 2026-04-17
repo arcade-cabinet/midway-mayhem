@@ -18,11 +18,11 @@
  *   3. Updates zustand store.
  */
 import { create } from 'zustand';
-import type { UnlockKind } from '@/persistence/schema';
-import { getLoadout, setLoadout, type LoadoutRow } from '@/persistence/profile';
-import { PREF_KEYS, prefGetJSON, prefSetJSON } from '@/persistence/preferences';
-import { reportError } from '@/game/errorBus';
 import { setHornSlug } from '@/audio/honkBus';
+import { reportError } from '@/game/errorBus';
+import { PREF_KEYS, prefGetJSON, prefSetJSON } from '@/persistence/preferences';
+import { getLoadout, type LoadoutRow, setLoadout } from '@/persistence/profile';
+import type { UnlockKind } from '@/persistence/schema';
 
 export interface LoadoutStore {
   loadout: LoadoutRow | null;
@@ -59,13 +59,26 @@ export const useLoadoutStore = create<LoadoutStore>((set) => ({
   async equip(kind, slug) {
     const partial: Partial<LoadoutRow> = {};
     switch (kind) {
-      case 'palette':     partial.palette   = slug; break;
-      case 'ornament':    partial.ornament  = slug; break;
-      case 'horn':        partial.horn      = slug; break;
-      case 'horn_shape':  partial.hornShape = slug; break;
-      case 'rim':         partial.rim       = slug; break;
-      case 'dice':        partial.dice      = slug; break;
-      default: return;
+      case 'palette':
+        partial.palette = slug;
+        break;
+      case 'ornament':
+        partial.ornament = slug;
+        break;
+      case 'horn':
+        partial.horn = slug;
+        break;
+      case 'horn_shape':
+        partial.hornShape = slug;
+        break;
+      case 'rim':
+        partial.rim = slug;
+        break;
+      case 'dice':
+        partial.dice = slug;
+        break;
+      default:
+        return;
     }
     try {
       // SQLite is source of truth

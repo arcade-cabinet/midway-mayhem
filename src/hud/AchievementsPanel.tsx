@@ -6,15 +6,15 @@
  * in-progress show a progress bar.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BrandButton } from '@/design/components/BrandButton';
 import { Dialog } from '@/design/components/Dialog';
 import { GaugeBar } from '@/design/components/GaugeBar';
 import { Panel } from '@/design/components/Panel';
 import { color, radius, space } from '@/design/tokens';
-import { ui, typeStyle } from '@/design/typography';
-import { initDb } from '@/persistence/db';
+import { typeStyle, ui } from '@/design/typography';
 import { type AchievementStatus, listAll } from '@/persistence/achievements';
+import { initDb } from '@/persistence/db';
 
 interface Props {
   onClose: () => void;
@@ -23,6 +23,7 @@ interface Props {
 export function AchievementsPanel({ onClose }: Props) {
   const [achievements, setAchievements] = useState<AchievementStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     initDb()
@@ -33,15 +34,24 @@ export function AchievementsPanel({ onClose }: Props) {
       });
   }, []);
 
+  // Focus close button on mount
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
+  // Esc closes the panel
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
   const unlocked = achievements.filter((a) => a.unlockedAt !== null).length;
 
   return (
-    <Dialog
-      tone="info"
-      testId="achievements-panel"
-      role="dialog"
-      ariaLabel="Achievements"
-    >
+    <Dialog tone="info" testId="achievements-panel" role="dialog" ariaLabel="Achievements">
       {/* Header */}
       <div
         style={{
@@ -68,13 +78,26 @@ export function AchievementsPanel({ onClose }: Props) {
             </div>
           )}
         </div>
-        <BrandButton kind="ghost" size="sm" onClick={onClose} testId="achievements-close">
+        <BrandButton
+          ref={closeButtonRef}
+          kind="ghost"
+          size="sm"
+          onClick={onClose}
+          testId="achievements-close"
+        >
           CLOSE
         </BrandButton>
       </div>
 
       {loading ? (
-        <div style={{ ...typeStyle(ui.body), color: color.dim, padding: space.xl, textAlign: 'center' }}>
+        <div
+          style={{
+            ...typeStyle(ui.body),
+            color: color.dim,
+            padding: space.xl,
+            textAlign: 'center',
+          }}
+        >
           Loading…
         </div>
       ) : (
@@ -98,12 +121,17 @@ export function AchievementsPanel({ onClose }: Props) {
 
 function AchievementCard({ achievement: a }: { achievement: AchievementStatus }) {
   const unlocked = a.unlockedAt !== null;
-  const progress = a.targetValue > 1 ? a.progressValue / a.targetValue * 100 : 0;
+  const progress = a.targetValue > 1 ? (a.progressValue / a.targetValue) * 100 : 0;
   const showBar = a.targetValue > 1 && !unlocked;
 
-  const dateStr = unlocked && a.unlockedAt
-    ? new Date(a.unlockedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    : null;
+  const dateStr =
+    unlocked && a.unlockedAt
+      ? new Date(a.unlockedAt).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : null;
 
   return (
     <Panel
@@ -156,7 +184,9 @@ function AchievementCard({ achievement: a }: { achievement: AchievementStatus })
       {showBar && (
         <div style={{ marginTop: space.xs }}>
           <GaugeBar value={progress} tone="blue" height={6} />
-          <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.75rem', marginTop: 2 }}>
+          <div
+            style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.75rem', marginTop: 2 }}
+          >
             {a.progressValue} / {a.targetValue}
           </div>
         </div>
@@ -164,7 +194,14 @@ function AchievementCard({ achievement: a }: { achievement: AchievementStatus })
 
       {/* Unlock date */}
       {dateStr && (
-        <div style={{ ...typeStyle(ui.body), color: color.toneSuccess, fontSize: '0.75rem', marginTop: space.xs }}>
+        <div
+          style={{
+            ...typeStyle(ui.body),
+            color: color.toneSuccess,
+            fontSize: '0.75rem',
+            marginTop: space.xs,
+          }}
+        >
           Unlocked {dateStr}
         </div>
       )}

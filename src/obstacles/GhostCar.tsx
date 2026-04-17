@@ -15,10 +15,15 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { isDailyRoute, utcDateString } from '@/track/dailyRoute';
-import { getBestReplayForDate, replaysEqual, type ReplayRow, type ReplaySample } from '@/persistence/replay';
 import { reportError } from '@/game/errorBus';
 import { useGameStore } from '@/game/gameState';
+import {
+  getBestReplayForDate,
+  type ReplayRow,
+  type ReplaySample,
+  replaysEqual,
+} from '@/persistence/replay';
+import { isDailyRoute, utcDateString } from '@/track/dailyRoute';
 
 // ─── Interpolation helpers ──────────────────────────────────────────────────
 
@@ -87,7 +92,7 @@ function GhostMesh({ groupRef }: { groupRef: React.RefObject<THREE.Group | null>
         <sphereGeometry args={[0.14, 8, 6]} />
       </mesh>
       <mesh position={[0, 0.5, -1.7]} material={dotMat}>
-        <sphereGeometry args={[0.10, 8, 6]} />
+        <sphereGeometry args={[0.1, 8, 6]} />
       </mesh>
     </group>
   );

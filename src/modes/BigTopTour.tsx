@@ -22,14 +22,14 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { assetUrl } from '@/assets/manifest';
-import { ReactErrorBoundary } from '@/hud/ReactErrorBoundary';
+import { initAudioBusSafely } from '@/audio/audioBus';
+import { startApplauseBed } from '@/audio/sfx';
 import { color, space, zLayer } from '@/design/tokens';
 import { display, typeStyle } from '@/design/typography';
-import { composeTrack, DEFAULT_TRACK, type PiecePlacement } from '@/track/trackComposer';
-import { useWalkControls } from '@/hooks/useWalkControls';
-import { startApplauseBed } from '@/audio/sfx';
-import { initAudioBusSafely } from '@/audio/audioBus';
 import { reportError } from '@/game/errorBus';
+import { useWalkControls } from '@/hooks/useWalkControls';
+import { ReactErrorBoundary } from '@/hud/ReactErrorBoundary';
+import { composeTrack, DEFAULT_TRACK, type PiecePlacement } from '@/track/trackComposer';
 import { Collectibles } from '../tour/Collectibles';
 import { BalloonScene3D, CutsceneBalloons } from '../tour/CutsceneBalloons';
 import { CutsceneFire, FireScene3D } from '../tour/CutsceneFire';
@@ -99,7 +99,11 @@ export function BigTopTour({ onExit }: BigTopTourProps) {
     return () => {
       clearTimeout(timer);
       if (stop) {
-        try { stop(); } catch { /* cleanup — not fatal */ }
+        try {
+          stop();
+        } catch {
+          /* cleanup — not fatal */
+        }
       }
     };
   }, []);
@@ -109,12 +113,24 @@ export function BigTopTour({ onExit }: BigTopTourProps) {
     if (canvas) requestLock(canvas);
   };
 
+  const handleKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCanvasClick();
+    }
+  };
+
   return (
+    // biome-ignore lint/a11y/useSemanticElements: full-canvas overlay, div w/ role=button is correct
     <div
       ref={containerRef}
       data-testid="bigtop-tour"
+      role="button"
+      tabIndex={0}
+      aria-label="Enter pointer-lock first-person tour"
       style={{ position: 'absolute', inset: 0 }}
       onClick={handleCanvasClick}
+      onKeyDown={handleKey}
     >
       <Canvas
         onCreated={({ gl, scene }) => {
@@ -169,9 +185,7 @@ export function BigTopTour({ onExit }: BigTopTourProps) {
             {activeCutscene === 'balloon-alley' && (
               <BalloonScene3D progressRef={balloonProgressRef} />
             )}
-            {activeCutscene === 'ring-of-fire' && (
-              <FireScene3D progressRef={fireProgressRef} />
-            )}
+            {activeCutscene === 'ring-of-fire' && <FireScene3D progressRef={fireProgressRef} />}
             {activeCutscene === 'funhouse-frenzy' && (
               <FunhouseScene3D progressRef={funhouseProgressRef} />
             )}
@@ -180,18 +194,10 @@ export function BigTopTour({ onExit }: BigTopTourProps) {
       </Canvas>
 
       {/* HTML overlay cutscenes (outside Canvas — can render divs + buttons) */}
-      {activeCutscene === 'midway-strip' && (
-        <CutsceneStrip onDismiss={dismissCutscene} />
-      )}
-      {activeCutscene === 'balloon-alley' && (
-        <CutsceneBalloons onDismiss={dismissCutscene} />
-      )}
-      {activeCutscene === 'ring-of-fire' && (
-        <CutsceneFire onDismiss={dismissCutscene} />
-      )}
-      {activeCutscene === 'funhouse-frenzy' && (
-        <CutsceneFunhouse onDismiss={dismissCutscene} />
-      )}
+      {activeCutscene === 'midway-strip' && <CutsceneStrip onDismiss={dismissCutscene} />}
+      {activeCutscene === 'balloon-alley' && <CutsceneBalloons onDismiss={dismissCutscene} />}
+      {activeCutscene === 'ring-of-fire' && <CutsceneFire onDismiss={dismissCutscene} />}
+      {activeCutscene === 'funhouse-frenzy' && <CutsceneFunhouse onDismiss={dismissCutscene} />}
 
       {/* Mobile virtual joystick */}
       <MobileJoystick joystick={joystick} />
@@ -381,7 +387,11 @@ const _balloonGeo = new THREE.SphereGeometry(0.5, 8, 6);
 const _spotlightGeo = new THREE.CylinderGeometry(0.0, 1.2, 6, 12, 1, true);
 
 const _tentMat = new THREE.MeshStandardMaterial({ color: 0xe53935, roughness: 0.7 });
-const _poleMat = new THREE.MeshStandardMaterial({ color: 0xffd600, metalness: 0.6, roughness: 0.3 });
+const _poleMat = new THREE.MeshStandardMaterial({
+  color: 0xffd600,
+  metalness: 0.6,
+  roughness: 0.3,
+});
 const _balloonColorList = [0xe53935, 0xffd600, 0x1e88e5, 0x8e24aa, 0xf36f21];
 const _spotlightMat = new THREE.MeshBasicMaterial({
   color: 0xffffcc,
@@ -403,7 +413,7 @@ function ArenaProps() {
         d.rotation.set(0, (i * 0.7) % (Math.PI * 2), 0);
         d.scale.set(1, 1, 1);
         d.updateMatrix();
-        tentRef.current!.setMatrixAt(i, d.matrix);
+        tentRef.current?.setMatrixAt(i, d.matrix);
       });
       tentRef.current.instanceMatrix.needsUpdate = true;
     }
@@ -413,7 +423,7 @@ function ArenaProps() {
         d.rotation.set(0, 0, 0);
         d.scale.set(1, 1, 1);
         d.updateMatrix();
-        poleRef.current!.setMatrixAt(i, d.matrix);
+        poleRef.current?.setMatrixAt(i, d.matrix);
       });
       poleRef.current.instanceMatrix.needsUpdate = true;
     }
@@ -423,7 +433,7 @@ function ArenaProps() {
         d.rotation.set(0, 0, Math.PI);
         d.scale.set(1, 1, 1);
         d.updateMatrix();
-        spotRef.current!.setMatrixAt(i, d.matrix);
+        spotRef.current?.setMatrixAt(i, d.matrix);
       });
       spotRef.current.instanceMatrix.needsUpdate = true;
     }
@@ -435,7 +445,7 @@ function ArenaProps() {
       <instancedMesh ref={poleRef} args={[_poleGeo, _poleMat, POLE_POSITIONS.length]} />
       <instancedMesh ref={spotRef} args={[_spotlightGeo, _spotlightMat, POLE_POSITIONS.length]} />
       {_balloonColorList.map((c, ci) => (
-        <BalloonCluster key={ci} colorHex={c} slotIndex={ci} />
+        <BalloonCluster key={c} colorHex={c} slotIndex={ci} />
       ))}
     </>
   );
@@ -456,15 +466,13 @@ function BalloonCluster({ colorHex, slotIndex }: { colorHex: number; slotIndex: 
       d.rotation.set(0, 0, 0);
       d.scale.set(1, 1, 1);
       d.updateMatrix();
-      meshRef.current!.setMatrixAt(i, d.matrix);
+      meshRef.current?.setMatrixAt(i, d.matrix);
     });
     meshRef.current.instanceMatrix.needsUpdate = true;
   }, [mine, d]);
 
   if (mine.length === 0) return null;
-  return (
-    <instancedMesh ref={meshRef} args={[_balloonGeo, mat.current, mine.length]} />
-  );
+  return <instancedMesh ref={meshRef} args={[_balloonGeo, mat.current, mine.length]} />;
 }
 
 // ─── Mobile virtual joystick (HTML, outside Canvas) ───────────────────────
@@ -482,8 +490,7 @@ function MobileJoystick({ joystick }: MobileJoystickProps) {
 
   useEffect(() => {
     setVisible(
-      typeof window !== 'undefined' &&
-        ('ontouchstart' in window || navigator.maxTouchPoints > 0),
+      typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0),
     );
   }, []);
 

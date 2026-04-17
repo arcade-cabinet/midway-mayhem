@@ -105,9 +105,7 @@ describe('permuteTrack', () => {
     const r1 = permuteTrack(BASE, 1);
     const r2 = permuteTrack(BASE, 999999);
     // Interior pieces should differ at least sometimes
-    const interiorSame = r1
-      .slice(1, -1)
-      .every((k, i) => k === r2.slice(1, -1)[i]);
+    const interiorSame = r1.slice(1, -1).every((k, i) => k === r2.slice(1, -1)[i]);
     // With 4 interior pieces and random seeds, chance of identical order is low
     expect(interiorSame).toBe(false);
   });

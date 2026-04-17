@@ -1,8 +1,8 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
 import * as THREE from 'three';
-import { useShake } from '@/hooks/useShake';
 import { useGameStore } from '@/game/gameState';
+import { useShake } from '@/hooks/useShake';
 import { sampleTrack } from '@/track/trackGenerator';
 
 export function CameraRig() {

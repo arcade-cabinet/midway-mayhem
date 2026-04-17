@@ -1,5 +1,9 @@
-import * as Tone from 'tone';
 import { WorkletSynthesizer } from 'spessasynth_lib';
+// Processor worklet script must be registered with the audio context BEFORE
+// constructing a WorkletSynthesizer. Vite rewrites this `?url` import to the
+// emitted asset URL at build time so it works in both dev + production.
+import spessasynthProcessorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
+import * as Tone from 'tone';
 import { reportError } from '@/game/errorBus';
 import { getBuses } from './buses';
 
@@ -42,12 +46,27 @@ class SF2Bridge {
 
     this.readyPromise = (async () => {
       await Tone.start();
-      const ctx = Tone.getContext().rawContext as AudioContext;
+      const toneCtx = Tone.getContext();
+      const ctx = toneCtx.rawContext as unknown as AudioContext;
+
+      // Tone.js wraps its AudioContext via the `standardized-audio-context`
+      // polyfill. Chrome's native `AudioWorkletNode` rejects that wrapper
+      // because it isn't a true `BaseAudioContext`. We detect the mismatch
+      // and skip SF2 rather than halt the whole game — the procedural
+      // calliope in conductor.ts is the primary music engine; SF2 is a
+      // nice-to-have sweetener. See docs/ARCHITECTURE.md#audio.
+      if (!(ctx instanceof (globalThis.BaseAudioContext ?? AudioContext))) {
+        this.disabled = true;
+        return;
+      }
+
+      // Spessasynth requires the processor module to be registered on the
+      // audio context BEFORE the WorkletSynthesizer is constructed.
+      await ctx.audioWorklet.addModule(spessasynthProcessorUrl);
 
       // Fetch SF2 bytes. If the fetch 404s (SF2 not downloaded into
       // public/soundfonts/), fall back to disabled mode so the procedural
-      // layer keeps working. This is the ONE place we allow a fallback —
-      // SF2 is a nice-to-have sweetener, not a required asset.
+      // layer keeps working.
       const resp = await fetch(soundfontUrl);
       if (!resp.ok) {
         this.disabled = true;

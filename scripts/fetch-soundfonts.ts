@@ -22,17 +22,14 @@ const SOURCES: { name: string; url: string }[] = [
 async function fetchOne(name: string, url: string): Promise<void> {
   const outPath = join(OUT, name);
   if (existsSync(outPath)) {
-    console.log(`[fetch] ${name} already present — skipping`);
     return;
   }
-  console.log(`[fetch] ${name} ← ${url}`);
   const resp = await fetch(url, { redirect: 'follow' });
   if (!resp.ok) {
     throw new Error(`[fetch] ${name}: ${resp.status} ${resp.statusText}`);
   }
   const bytes = new Uint8Array(await resp.arrayBuffer());
   writeFileSync(outPath, bytes);
-  console.log(`[fetch] ${name} → ${outPath} (${(bytes.length / 1024 / 1024).toFixed(1)} MB)`);
 }
 
 async function main(): Promise<void> {
@@ -40,7 +37,6 @@ async function main(): Promise<void> {
   for (const s of SOURCES) {
     await fetchOne(s.name, s.url);
   }
-  console.log('[fetch] done');
 }
 
 void main();

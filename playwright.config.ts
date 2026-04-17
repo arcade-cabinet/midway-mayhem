@@ -110,6 +110,47 @@ export default defineConfig({
         launchOptions: { args: GPU_ARGS },
       },
     },
+    // 3D visual: captures live WebGL cockpit render (canvas NOT hidden)
+    {
+      name: 'visual-3d',
+      testMatch: '**/visual-3d.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 1440, height: 900 },
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
+    {
+      name: 'visual-3d-tablet',
+      testMatch: '**/visual-3d.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 820, height: 1180 },
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
+    {
+      name: 'visual-3d-phone-portrait',
+      testMatch: '**/visual-3d.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 390, height: 844 },
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
+    {
+      name: 'visual-3d-phone-landscape',
+      testMatch: '**/visual-3d.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 844, height: 390 },
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
   ],
   webServer: {
     command: 'pnpm preview --host 127.0.0.1 --port 4175 --strictPort',

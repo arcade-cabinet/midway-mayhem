@@ -19,16 +19,16 @@ export type RaidPhase = 'idle' | 'telegraph' | 'active' | 'cleanup';
 export interface KnifeState {
   lane: number;
   dropAt: number; // performance.now() when this knife hits
-  hit: boolean;   // player was in lane when knife fell
+  hit: boolean; // player was in lane when knife fell
   dodged: boolean;
 }
 
 export interface RaidState {
   kind: RaidKind;
   phase: RaidPhase;
-  startedAt: number;      // performance.now() when raid began
+  startedAt: number; // performance.now() when raid began
   telegraphDuration: number; // ms
-  activeDuration: number;    // ms
+  activeDuration: number; // ms
   /** TIGER: track distance of the tiger */
   tigerD?: number;
   tigerLateralProgress?: number; // 0–1 crossing progress
@@ -78,7 +78,8 @@ export class RaidDirector {
     // Start a new raid?
     if (!this.state && nowMs >= this.nextRaidAt) {
       this.beginRaid(nowMs, playerDistance, playerLateral);
-      callbacks.onTelegraph(this.state!.kind);
+      const started = this.state as RaidState | null;
+      if (started) callbacks.onTelegraph(started.kind);
     }
 
     if (!this.state) return;

@@ -9,9 +9,9 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { triggerWhipCrack } from '@/audio/sfx';
 import { color, space } from '@/design/tokens';
 import { display, typeStyle } from '@/design/typography';
-import { triggerWhipCrack } from '@/audio/sfx';
 
 const DURATION = 5.5;
 
@@ -51,7 +51,11 @@ export function CutsceneFire({ onDismiss }: { onDismiss: () => void }) {
   useEffect(() => {
     if (!audioFired.current) {
       audioFired.current = true;
-      try { triggerWhipCrack(); } catch { /* audio may not be ready */ }
+      try {
+        triggerWhipCrack();
+      } catch {
+        /* audio may not be ready */
+      }
     }
   }, []);
 

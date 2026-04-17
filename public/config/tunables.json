@@ -39,17 +39,24 @@
       "pickupJitter": 20
     },
     "zoneWeights": {
-      "midway-strip":   { "barrier": 1, "cones": 2, "gate": 1, "oil": 1, "hammer": 0, "critter": 2 },
-      "balloon-alley":  { "barrier": 1, "cones": 2, "gate": 2, "oil": 2, "hammer": 1, "critter": 2 },
-      "ring-of-fire":   { "barrier": 2, "cones": 1, "gate": 1, "oil": 3, "hammer": 2, "critter": 1 },
-      "funhouse-frenzy":{ "barrier": 2, "cones": 2, "gate": 2, "oil": 2, "hammer": 3, "critter": 3 }
+      "midway-strip": { "barrier": 1, "cones": 2, "gate": 1, "oil": 1, "hammer": 0, "critter": 2 },
+      "balloon-alley": { "barrier": 1, "cones": 2, "gate": 2, "oil": 2, "hammer": 1, "critter": 2 },
+      "ring-of-fire": { "barrier": 2, "cones": 1, "gate": 1, "oil": 3, "hammer": 2, "critter": 1 },
+      "funhouse-frenzy": {
+        "barrier": 2,
+        "cones": 2,
+        "gate": 2,
+        "oil": 2,
+        "hammer": 3,
+        "critter": 3
+      }
     }
   },
   "zones": {
-    "midway-strip":   { "root": "C4", "tempo": 132, "colorGrade": "#e53935" },
-    "balloon-alley":  { "root": "D4", "tempo": 128, "colorGrade": "#1e88e5" },
-    "ring-of-fire":   { "root": "A3", "tempo": 140, "colorGrade": "#f36f21" },
-    "funhouse-frenzy":{ "root": "F4", "tempo": 148, "colorGrade": "#8e24aa" }
+    "midway-strip": { "root": "C4", "tempo": 132, "colorGrade": "#e53935" },
+    "balloon-alley": { "root": "D4", "tempo": 128, "colorGrade": "#1e88e5" },
+    "ring-of-fire": { "root": "A3", "tempo": 140, "colorGrade": "#f36f21" },
+    "funhouse-frenzy": { "root": "F4", "tempo": 148, "colorGrade": "#8e24aa" }
   },
   "audio": {
     "buses": {

@@ -2,35 +2,35 @@
  * @/persistence — public barrel for the persistence sub-package.
  * Import from here, not from deep module paths.
  */
-export { initDb, resetDbForTests, db, persistToOpfs } from './db';
-export * from './schema';
+export { db, initDb, persistToOpfs, resetDbForTests } from './db';
 export {
-  getProfile,
+  clearPrefsForTests,
+  PREF_KEYS,
+  prefGetBool,
+  prefGetJSON,
+  prefGetString,
+  prefRemove,
+  prefSetBool,
+  prefSetJSON,
+  prefSetString,
+} from './preferences';
+export type { LoadoutRow, ProfileRow } from './profile';
+export {
   addTickets,
-  spendTickets,
-  recordRun,
+  getLoadout,
+  getProfile,
   grantUnlock,
   hasUnlock,
   listUnlocks,
-  getLoadout,
+  recordRun,
   setLoadout,
+  spendTickets,
 } from './profile';
-export type { ProfileRow, LoadoutRow } from './profile';
+export type { ReplayRow, ReplaySample } from './replay';
 export {
-  saveReplay,
-  listReplaysForDate,
   getBestReplayForDate,
+  listReplaysForDate,
   replaysEqual,
+  saveReplay,
 } from './replay';
-export type { ReplaySample, ReplayRow } from './replay';
-export {
-  prefSetString,
-  prefGetString,
-  prefSetJSON,
-  prefGetJSON,
-  prefSetBool,
-  prefGetBool,
-  prefRemove,
-  clearPrefsForTests,
-  PREF_KEYS,
-} from './preferences';
+export * from './schema';

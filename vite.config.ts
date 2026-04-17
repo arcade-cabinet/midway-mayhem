@@ -1,4 +1,5 @@
 import path from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
@@ -8,7 +9,7 @@ const src = (sub: string) => path.resolve(__dirname, `src/${sub}`);
 
 export default defineConfig({
   base: isCapacitor ? './' : '/midway-mayhem/',
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
@@ -49,5 +50,5 @@ export default defineConfig({
   },
   server: { port: 5173, strictPort: false },
   preview: { port: 4175 },
-  optimizeDeps: { exclude: ['sql.js'] },
+  optimizeDeps: { include: ['sql.js'] },
 });

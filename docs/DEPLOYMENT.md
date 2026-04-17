@@ -12,8 +12,43 @@ domain: ops
 | Platform | Status | URL / Artifact |
 |---|---|---|
 | Web (GitHub Pages) | planned | `https://arcade-cabinet.github.io/midway-mayhem/` |
-| Android debug APK | planned | PR artifact + GitHub Release |
+| Android debug APK | active | `midway-mayhem-debug-apk` artifact on every PR + main push |
 | iOS simulator build | planned | local only until App Store pipeline |
+
+## Android
+
+The `android/` Capacitor project is checked into the repository (scaffolded via `pnpm exec cap add android`). The CI `android-smoke` job builds and distributes a debug APK for every PR and every push to `main`.
+
+### Android CI job (`android-smoke` in ci.yml)
+
+Runs on `ubuntu-latest` with KVM enabled for hardware acceleration.
+
+Steps:
+1. `pnpm build:native` — builds `dist/` with `CAPACITOR=true` (relative base `./`)
+2. `pnpm exec cap sync android` — copies `dist/` into `android/app/src/main/assets/public/`
+3. `./gradlew assembleDebug` — produces `android/app/build/outputs/apk/debug/app-debug.apk`
+4. Uploads APK as `midway-mayhem-debug-apk` artifact (14-day retention)
+5. Boots `api-level: 33 / x86_64 / google_apis` emulator via `reactivecircus/android-emulator-runner@v2`
+6. Runs all 6 Maestro flows sequentially (see `docs/TESTING.md → Maestro native smoke tests`)
+7. Uploads screenshots + Maestro test output as `maestro-android-results` artifact
+
+### Local Android QA
+
+```bash
+# Full build + install + 6 flows (requires adb device / emulator)
+pnpm qa:native:android
+
+# Just build the APK without running flows
+pnpm native:android:debug
+# APK: android/app/build/outputs/apk/debug/app-debug.apk
+
+# Install manually
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### App ID
+
+`com.midwaymayhem.app` — defined in `capacitor.config.ts` and baked into `android/app/src/main/res/values/strings.xml` during `cap add android`.
 
 ## Build commands
 

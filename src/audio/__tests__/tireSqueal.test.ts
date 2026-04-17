@@ -38,7 +38,9 @@ function makeSqueal() {
   const clock = () => nowS;
   const squeal = new TireSquealSystem(clock);
   squeal.init();
-  const tick = (s: number) => { nowS += s; };
+  const tick = (s: number) => {
+    nowS += s;
+  };
   return { squeal, tick };
 }
 

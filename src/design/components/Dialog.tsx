@@ -8,6 +8,7 @@ interface Props {
   style?: CSSProperties;
   role?: 'dialog' | 'alertdialog';
   ariaLabel?: string;
+  ariaLabelledBy?: string;
   ariaDescribedBy?: string;
 }
 
@@ -28,14 +29,18 @@ export function Dialog({
   style,
   role = 'dialog',
   ariaLabel,
+  ariaLabelledBy,
   ariaDescribedBy,
 }: Props) {
   return (
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dialog|alertdialog, aria-modal is valid
     <div
       data-testid={testId}
       role={role}
+      aria-modal="true"
       aria-live={role === 'alertdialog' ? 'assertive' : undefined}
       aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}
       style={{
         position: 'fixed',

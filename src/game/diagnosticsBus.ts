@@ -5,6 +5,8 @@ import { useGameStore } from './gameState';
 export interface DiagnosticsDump {
   generatedAt: number;
   fps: number;
+  /** Most-recent frame delta in milliseconds (raw, not smoothed). */
+  frameTimeMs: number;
   running: boolean;
   paused: boolean;
   gameOver: boolean;
@@ -29,6 +31,8 @@ export interface DiagnosticsDump {
 const bus = {
   lastFrameTime: 0,
   fps: 0,
+  /** Raw frame delta in milliseconds from the most-recent useFrame tick. */
+  frameTimeMs: 0,
   obstacleCount: 0,
   pickupCount: 0,
   drawCalls: 0,
@@ -52,6 +56,7 @@ export function installDiagnosticsBus() {
       return {
         generatedAt: performance.now(),
         fps: bus.fps,
+        frameTimeMs: bus.frameTimeMs,
         running: s.running,
         paused: s.paused,
         gameOver: s.gameOver,
@@ -94,6 +99,8 @@ export function installDiagnosticsBus() {
 export function reportFrame(dt: number) {
   const fpsSample = 1 / Math.max(dt, 1e-4);
   bus.fps = bus.fps === 0 ? fpsSample : bus.fps * 0.9 + fpsSample * 0.1;
+  // Raw frame delta in milliseconds — used by the perf profiler script.
+  bus.frameTimeMs = dt * 1000;
 }
 export function reportCounts(obstacles: number, pickups: number, drawCalls: number) {
   bus.obstacleCount = obstacles;

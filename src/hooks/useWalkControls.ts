@@ -11,9 +11,9 @@
 import { useEffect, useRef } from 'react';
 
 export interface WalkState {
-  forward: number;  // -1..1  (positive = forward)
-  right: number;    // -1..1  (positive = right strafe)
-  lookYaw: number;  // accumulated radians (world Y rotation)
+  forward: number; // -1..1  (positive = forward)
+  right: number; // -1..1  (positive = right strafe)
+  lookYaw: number; // accumulated radians (world Y rotation)
   lookPitch: number; // clamped ±Math.PI/2.4
 }
 

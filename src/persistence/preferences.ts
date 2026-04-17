@@ -12,20 +12,58 @@
  */
 
 const PREFIX = 'mm.';
+const OPFS_FILE = 'mm-prefs.json';
 
-// In-memory fallback for test/Node environments
-const _memStore = new Map<string, string>();
+// In-memory cache — hydrated once from OPFS on first read.
+const _cache = new Map<string, string>();
+let _cacheHydrated = false;
 
-function isTestEnv(): boolean {
-  return (
-    typeof process !== 'undefined' &&
-    (process.env['VITEST'] === 'true' || process.env['NODE_ENV'] === 'test')
-  );
+/**
+ * True on a real Capacitor native build (iOS/Android). False on web —
+ * @capacitor/preferences on web throws "not implemented on web" unless the
+ * full Capacitor web runtime is initialized, which we don't use.
+ */
+function isCapacitorNative(): boolean {
+  if (typeof window === 'undefined') return false;
+  // biome-ignore lint/suspicious/noExplicitAny: Capacitor injects this globally at native boot
+  const cap = (window as any).Capacitor;
+  return Boolean(cap?.isNativePlatform?.());
 }
 
-async function getPreferences() {
-  if (isTestEnv() || typeof window === 'undefined') return null;
-  // Dynamic import so native plugin isn't required in Node/test
+async function hydrateFromOpfs(): Promise<void> {
+  if (_cacheHydrated) return;
+  _cacheHydrated = true;
+  if (typeof navigator === 'undefined' || !navigator.storage?.getDirectory) return;
+  try {
+    const root = await navigator.storage.getDirectory();
+    const handle = await root.getFileHandle(OPFS_FILE, { create: false });
+    const file = await handle.getFile();
+    const text = await file.text();
+    if (!text) return;
+    const parsed = JSON.parse(text) as Record<string, string>;
+    for (const [k, v] of Object.entries(parsed)) _cache.set(k, v);
+  } catch {
+    // First run (file doesn't exist) or OPFS unavailable — leave cache empty
+  }
+}
+
+async function flushToOpfs(): Promise<void> {
+  if (typeof navigator === 'undefined' || !navigator.storage?.getDirectory) return;
+  try {
+    const root = await navigator.storage.getDirectory();
+    const handle = await root.getFileHandle(OPFS_FILE, { create: true });
+    const writable = await handle.createWritable();
+    const snap: Record<string, string> = {};
+    for (const [k, v] of _cache.entries()) snap[k] = v;
+    await writable.write(JSON.stringify(snap));
+    await writable.close();
+  } catch {
+    // Swallow — losing prefs on page close is degraded but non-fatal
+  }
+}
+
+async function getNativePreferences() {
+  if (!isCapacitorNative()) return null;
   try {
     const { Preferences } = await import('@capacitor/preferences');
     return Preferences;
@@ -36,22 +74,26 @@ async function getPreferences() {
 
 export async function prefSetString(key: string, value: string): Promise<void> {
   const k = PREFIX + key;
-  const prefs = await getPreferences();
+  const prefs = await getNativePreferences();
   if (prefs) {
     await prefs.set({ key: k, value });
-  } else {
-    _memStore.set(k, value);
+    return;
   }
+  // Web path: OPFS-backed KV cache (never localStorage).
+  await hydrateFromOpfs();
+  _cache.set(k, value);
+  await flushToOpfs();
 }
 
 export async function prefGetString(key: string): Promise<string | null> {
   const k = PREFIX + key;
-  const prefs = await getPreferences();
+  const prefs = await getNativePreferences();
   if (prefs) {
     const { value } = await prefs.get({ key: k });
     return value ?? null;
   }
-  return _memStore.get(k) ?? null;
+  await hydrateFromOpfs();
+  return _cache.get(k) ?? null;
 }
 
 export async function prefSetJSON<T>(key: string, value: T): Promise<void> {
@@ -80,17 +122,20 @@ export async function prefGetBool(key: string, defaultValue = false): Promise<bo
 
 export async function prefRemove(key: string): Promise<void> {
   const k = PREFIX + key;
-  const prefs = await getPreferences();
+  const prefs = await getNativePreferences();
   if (prefs) {
     await prefs.remove({ key: k });
-  } else {
-    _memStore.delete(k);
+    return;
   }
+  await hydrateFromOpfs();
+  _cache.delete(k);
+  await flushToOpfs();
 }
 
-/** Clear in-memory store for tests. */
+/** Clear the in-memory cache (and OPFS mirror on web). Used by tests + reset flows. */
 export function clearPrefsForTests(): void {
-  _memStore.clear();
+  _cache.clear();
+  _cacheHydrated = false;
 }
 
 // ─── Named preference keys ─────────────────────────────────────────────────

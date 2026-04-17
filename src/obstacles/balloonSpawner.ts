@@ -5,12 +5,12 @@
  * Only active while currentZone === 'balloon-alley'.
  */
 
-import type { Rng } from '@/utils/rng';
 import { TRACK } from '@/utils/constants';
+import type { Rng } from '@/utils/rng';
 
 export interface Balloon {
   id: number;
-  d: number;        // distance along track (fixed at spawn)
+  d: number; // distance along track (fixed at spawn)
   startLateral: number; // starting X offset
   targetLateral: number; // drift-to X offset
   driftDuration: number; // seconds for full drift

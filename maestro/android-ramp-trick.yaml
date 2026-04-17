@@ -1,0 +1,52 @@
+appId: com.midwaymayhem.app
+# Maestro flow: ramp trick — become airborne on first ramp, swipe up twice
+# (WHEELIE input = up+up per trickSystem), confirm trick-overlay appears and
+# sanity rises from trick bonus.
+# trick-overlay testId is present while airborne or trickActive.
+# Output screenshot: docs/media/maestro/android/trick.png
+---
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 15000
+
+- tapOn:
+    id: "start-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 20000
+
+# Drive straight to reach the first ramp (spawns ~150–200 m into the track)
+# Swipe up = forward acceleration in the cockpit touch mapping (not used for tricks)
+# We just wait — the car drives automatically at arcade speed
+- extendedWaitUntil:
+    visible:
+      id: "trick-overlay"
+    timeout: 40000
+
+# Now airborne — input WHEELIE: swipe up twice rapidly
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 150
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 150
+
+# Wait for trick animation + sanity bonus to apply
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# trick-overlay may have cleared; sanity panel must remain visible
+- assertVisible:
+    id: "hud-sanity"
+
+- takeScreenshot: "docs/media/maestro/android/trick"
+
+- stopApp

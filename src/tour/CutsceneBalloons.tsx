@@ -11,9 +11,9 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { triggerSlideWhistle } from '@/audio/sfx';
 import { color, space } from '@/design/tokens';
 import { display, typeStyle } from '@/design/typography';
-import { triggerSlideWhistle } from '@/audio/sfx';
 
 const DURATION = 5.0;
 const BALLOON_COUNT = 12;
@@ -37,8 +37,8 @@ const BALLOON_LAYOUT: BalloonLayout[] = Array.from({ length: BALLOON_COUNT }, (_
 export function BalloonScene3D({ progressRef }: { progressRef: React.MutableRefObject<number> }) {
   return (
     <>
-      {BALLOON_LAYOUT.map((b, i) => (
-        <BalloonMesh key={i} layout={b} progressRef={progressRef} />
+      {BALLOON_LAYOUT.map((b) => (
+        <BalloonMesh key={`${b.x},${b.z},${b.phase}`} layout={b} progressRef={progressRef} />
       ))}
     </>
   );
@@ -83,7 +83,11 @@ export function CutsceneBalloons({ onDismiss }: { onDismiss: () => void }) {
   useEffect(() => {
     if (!audioFired.current) {
       audioFired.current = true;
-      try { triggerSlideWhistle('up'); } catch { /* audio may not be ready */ }
+      try {
+        triggerSlideWhistle('up');
+      } catch {
+        /* audio may not be ready */
+      }
     }
   }, []);
 

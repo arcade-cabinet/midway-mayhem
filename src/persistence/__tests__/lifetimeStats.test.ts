@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { initDb, resetDbForTests } from '../db';
-import { getStats, recordRun, resetStats } from '../lifetimeStats';
 import type { RunSummary } from '../lifetimeStats';
+import { getStats, recordRun, resetStats } from '../lifetimeStats';
 
 const BASE_RUN: RunSummary = {
   distanceM: 100,
@@ -76,9 +76,39 @@ describe('recordRun — single run', () => {
 
 describe('recordRun — 3 runs, aggregates correct', () => {
   it('accumulates all counters across 3 runs', async () => {
-    await recordRun({ ...BASE_RUN, distanceM: 100, crashes: 1, scares: 2, ticketsEarned: 3, crowd: 100, maxComboChain: 5, plunged: false, secondsPlayed: 30 });
-    await recordRun({ ...BASE_RUN, distanceM: 200, crashes: 3, scares: 5, ticketsEarned: 1, crowd: 300, maxComboChain: 10, plunged: true,  secondsPlayed: 60 });
-    await recordRun({ ...BASE_RUN, distanceM: 150, crashes: 0, scares: 1, ticketsEarned: 2, crowd: 200, maxComboChain: 7,  plunged: false, secondsPlayed: 45 });
+    await recordRun({
+      ...BASE_RUN,
+      distanceM: 100,
+      crashes: 1,
+      scares: 2,
+      ticketsEarned: 3,
+      crowd: 100,
+      maxComboChain: 5,
+      plunged: false,
+      secondsPlayed: 30,
+    });
+    await recordRun({
+      ...BASE_RUN,
+      distanceM: 200,
+      crashes: 3,
+      scares: 5,
+      ticketsEarned: 1,
+      crowd: 300,
+      maxComboChain: 10,
+      plunged: true,
+      secondsPlayed: 60,
+    });
+    await recordRun({
+      ...BASE_RUN,
+      distanceM: 150,
+      crashes: 0,
+      scares: 1,
+      ticketsEarned: 2,
+      crowd: 200,
+      maxComboChain: 7,
+      plunged: false,
+      secondsPlayed: 45,
+    });
 
     const stats = await getStats();
 

@@ -1,11 +1,11 @@
 import { useFrame } from '@react-three/fiber';
 import { type ReactNode, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { reportScene } from '@/game/diagnosticsBus';
 import { useGameStore } from '@/game/gameState';
-import { TRACK } from '@/utils/constants';
 import { trackToWorld } from '@/obstacles/ObstacleSystem';
+import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
+import { TRACK } from '@/utils/constants';
 
 /**
  * Follow-camera world-scroller. Places the PLAYER'S current track position

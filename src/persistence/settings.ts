@@ -25,6 +25,8 @@ export interface GameSettings {
   showFps: boolean;
   showZoneBanner: boolean;
   subtitles: boolean;
+  /** Show the racing-line ghost overlay during gameplay. Default true. */
+  showRacingLine: boolean;
 }
 
 const DEFAULTS: GameSettings = {
@@ -36,6 +38,7 @@ const DEFAULTS: GameSettings = {
   showFps: false,
   showZoneBanner: true,
   subtitles: false,
+  showRacingLine: true,
 };
 
 // Preferences key
@@ -85,9 +88,7 @@ export async function updateSettings(partial: Partial<GameSettings>): Promise<vo
 
   // Broadcast to any other listener (e.g. audioBus can listen)
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(
-      new CustomEvent('mm:settingsChanged', { detail: next }),
-    );
+    window.dispatchEvent(new CustomEvent('mm:settingsChanged', { detail: next }));
   }
 }
 

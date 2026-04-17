@@ -9,11 +9,11 @@ import { Canvas } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
 import { Suspense } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { resetGameState, useGameStore } from '@/game/gameState';
 import { BalloonLayer } from '@/obstacles/BalloonLayer';
 import { BarkerCrowd } from '@/obstacles/BarkerCrowd';
 import { FireHoopGate } from '@/obstacles/FireHoopGate';
 import { MirrorLayer } from '@/obstacles/MirrorLayer';
-import { resetGameState, useGameStore } from '@/game/gameState';
 
 describe('Zone Gimmick Layers (browser)', () => {
   beforeEach(() => {
@@ -32,10 +32,9 @@ describe('Zone Gimmick Layers (browser)', () => {
         </Suspense>
       </Canvas>,
     );
-    await waitFor(
-      () => expect(container.querySelector('canvas')).toBeInTheDocument(),
-      { timeout: 10000 },
-    );
+    await waitFor(() => expect(container.querySelector('canvas')).toBeInTheDocument(), {
+      timeout: 10000,
+    });
     // The testid is on a R3F group — verify canvas exists (R3F groups aren't in DOM)
     expect(container.querySelector('canvas')).toBeInTheDocument();
   });
@@ -49,10 +48,9 @@ describe('Zone Gimmick Layers (browser)', () => {
         </Suspense>
       </Canvas>,
     );
-    await waitFor(
-      () => expect(container.querySelector('canvas')).toBeInTheDocument(),
-      { timeout: 10000 },
-    );
+    await waitFor(() => expect(container.querySelector('canvas')).toBeInTheDocument(), {
+      timeout: 10000,
+    });
   });
 
   it('MirrorLayer mounts and does not render copies outside funhouse-frenzy', async () => {
@@ -64,10 +62,9 @@ describe('Zone Gimmick Layers (browser)', () => {
         </Suspense>
       </Canvas>,
     );
-    await waitFor(
-      () => expect(container.querySelector('canvas')).toBeInTheDocument(),
-      { timeout: 10000 },
-    );
+    await waitFor(() => expect(container.querySelector('canvas')).toBeInTheDocument(), {
+      timeout: 10000,
+    });
     // biome-ignore lint/suspicious/noExplicitAny: test assertion
     expect((window as any).__mmDiag_mirrors ?? 0).toBe(0);
   });
@@ -81,9 +78,8 @@ describe('Zone Gimmick Layers (browser)', () => {
         </Suspense>
       </Canvas>,
     );
-    await waitFor(
-      () => expect(container.querySelector('canvas')).toBeInTheDocument(),
-      { timeout: 10000 },
-    );
+    await waitFor(() => expect(container.querySelector('canvas')).toBeInTheDocument(), {
+      timeout: 10000,
+    });
   });
 });

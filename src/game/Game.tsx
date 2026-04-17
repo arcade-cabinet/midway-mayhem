@@ -3,40 +3,51 @@ import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { assetUrl } from '@/assets/manifest';
-import { useSteering } from '@/hooks/useSteering';
 import { audioBus, honk } from '@/audio';
-import { getDailySeed, isDailyRoute, utcDateString } from '@/track/dailyRoute';
-import { db } from '@/persistence/db';
-import { dailyRuns } from '@/persistence/schema';
-import { recordRun } from '@/persistence/profile';
-import { finishAndMaybeSave, sampleFrame, startRecording } from '@/game/replayRecorder';
-import { reportError } from '@/game/errorBus';
-import { BalloonSpawner } from '@/obstacles/balloonSpawner';
-import { MirrorDuplicator } from '@/obstacles/mirrorDuplicator';
-import { RaidDirector } from '@/obstacles/raidDirector';
-import { TrickSystem } from '@/game/trickSystem';
-import { useGameStore } from '@/game/gameState';
-import { Governor } from '@/game/governor/Governor';
 import { tireSqueal } from '@/audio/tireSqueal';
-import { createRng } from '@/utils/rng';
-import { GhostCar } from '@/obstacles/GhostCar';
-import { PhotoModeControls, PhotoModeDownloadCapture, PhotoModeOverlay, triggerDownload } from '@/hud/PhotoMode';
-import { BarkerCrowd } from '@/obstacles/BarkerCrowd';
-import { BalloonLayer } from '@/obstacles/BalloonLayer';
 import { Cockpit } from '@/cockpit/Cockpit';
 import { ExplosionFX } from '@/cockpit/ExplosionFX';
-import { FireHoopGate } from '@/obstacles/FireHoopGate';
-import { GameLoop } from './GameLoop';
+import { RacingLineGhost } from '@/cockpit/RacingLineGhost';
+import { reportError } from '@/game/errorBus';
+import { useGameStore } from '@/game/gameState';
+import { Governor } from '@/game/governor/Governor';
+import { finishAndMaybeSave, sampleFrame, startRecording } from '@/game/replayRecorder';
+import { eventsRng } from '@/game/runRngBus';
+import { TrickSystem } from '@/game/trickSystem';
+import { useKeyboardControls } from '@/hooks/useKeyboardControls';
+import { useSteering } from '@/hooks/useSteering';
+import { useTouchGestures } from '@/hooks/useTouchGestures';
 import { HUD } from '@/hud/HUD';
+import { LiveRegion } from '@/hud/LiveRegion';
+import {
+  PhotoModeControls,
+  PhotoModeDownloadCapture,
+  PhotoModeOverlay,
+  triggerDownload,
+} from '@/hud/PhotoMode';
+import { ReactErrorBoundary } from '@/hud/ReactErrorBoundary';
+import { ZoneBanner } from '@/hud/ZoneBanner';
+import { BalloonLayer } from '@/obstacles/BalloonLayer';
+import { BarkerCrowd } from '@/obstacles/BarkerCrowd';
+import { BalloonSpawner } from '@/obstacles/balloonSpawner';
+import { FireHoopGate } from '@/obstacles/FireHoopGate';
+import { GhostCar } from '@/obstacles/GhostCar';
 import { MirrorLayer } from '@/obstacles/MirrorLayer';
+import { MirrorDuplicator } from '@/obstacles/mirrorDuplicator';
 import { ObstacleSystem } from '@/obstacles/ObstacleSystem';
 import { PickupSystem } from '@/obstacles/PickupSystem';
-import { PostFX } from './PostFX';
 import { RaidLayer } from '@/obstacles/RaidLayer';
-import { ReactErrorBoundary } from '@/hud/ReactErrorBoundary';
+import { RaidDirector } from '@/obstacles/raidDirector';
+import { db } from '@/persistence/db';
+import { recordRun } from '@/persistence/profile';
+import { dailyRuns } from '@/persistence/schema';
+import { getDailySeed, isDailyRoute, utcDateString } from '@/track/dailyRoute';
+import { FinishBanner } from '@/track/FinishBanner';
+import { StartPlatform } from '@/track/StartPlatform';
 import { TrackSystem } from '@/track/TrackSystem';
 import { WorldScroller } from '@/track/WorldScroller';
-import { ZoneBanner } from '@/hud/ZoneBanner';
+import { GameLoop } from './GameLoop';
+import { PostFX } from './PostFX';
 
 export function Game() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -51,17 +62,39 @@ export function Game() {
   const trickSystemRef = useRef<TrickSystem | null>(null);
 
   useEffect(() => {
-    startRun();
+    // Pick up deterministic seed from URL ?seed=N hook (set by App.tsx bootstrap)
+    // biome-ignore lint/suspicious/noExplicitAny: test seed hook
+    const overrideSeed = (window as any).__mmSeed as number | undefined;
+    // biome-ignore lint/suspicious/noExplicitAny: NewRunModal commits via this hook
+    const runConfig = (window as any).__mmRunConfig as
+      | import('@/hud/NewRunModal').NewRunConfig
+      | undefined;
+    if (runConfig) {
+      startRun({
+        seed: runConfig.seed,
+        seedPhrase: runConfig.seedPhrase,
+        difficulty: runConfig.difficulty,
+        permadeath: runConfig.permadeath,
+      });
+      // Clear after consuming so a back-to-title-then-new run doesn't replay stale config.
+      // biome-ignore lint/suspicious/noExplicitAny: clearing bridge
+      (window as any).__mmRunConfig = undefined;
+    } else {
+      startRun(overrideSeed !== undefined ? { seed: overrideSeed } : {});
+    }
     startRecording();
     // biome-ignore lint/suspicious/noExplicitAny: dev hook
     (window as any).__mmHonk = () => honk();
 
-    // Initialize feature systems
-    const seed = useGameStore.getState().seed || 1;
-    const rng = createRng(seed);
-    const balloonSpawner = new BalloonSpawner(createRng(seed + 1));
-    const mirrorDuplicator = new MirrorDuplicator(createRng(seed + 2));
-    const raidDirector = new RaidDirector(createRng(seed + 3));
+    // Initialize feature systems. Every streaming in-run spawner/director
+    // shares ONE events channel — burning entropy in one does not desync the
+    // others relative to the master seed, because they cooperatively advance
+    // the same generator and replay runs in the same order.
+    const eRng = eventsRng();
+    const rng = eRng;
+    const balloonSpawner = new BalloonSpawner(eRng);
+    const mirrorDuplicator = new MirrorDuplicator(eRng);
+    const raidDirector = new RaidDirector(eRng);
     const trickSystem = new TrickSystem();
 
     balloonSpawnerRef.current = balloonSpawner;
@@ -91,12 +124,12 @@ export function Game() {
         const crowd = s.crowdReaction;
         const daily = isDailyRoute();
         const today = utcDateString();
-        const seed = getDailySeed();
+        // Prefer the actual run seed (from the NewRunModal); fall back to the
+        // daily seed only for legacy runs that don't have a seed set.
+        const seed = s.seed || getDailySeed();
 
         // Record to profile stats (always)
-        recordRun({ distance: distM, crowd }).catch((err) =>
-          reportError(err, 'Game.recordRun'),
-        );
+        recordRun({ distance: distM, crowd }).catch((err) => reportError(err, 'Game.recordRun'));
 
         // Record to daily_runs table (always, even in practice). Use drizzle's
         // onConflictDoUpdate for atomic upsert — cleaner than raw SQL and
@@ -160,22 +193,15 @@ export function Game() {
         }
 
         // Raid director
-        raidDirector.update(
-          now,
-          s.distance,
-          s.lateral,
-          s.airborne,
-          s.running,
-          {
-            onTelegraph: (_kind) => {
-              // Could trigger a banner — raid HUD handles this
-            },
-            onHeavyCrash: () => useGameStore.getState().applyCrash(true),
-            onLightCrash: () => useGameStore.getState().applyCrash(false),
-            onCrowdBonus: (amount) =>
-              useGameStore.setState((prev) => ({ crowdReaction: prev.crowdReaction + amount })),
+        raidDirector.update(now, s.distance, s.lateral, s.airborne, s.running, {
+          onTelegraph: (_kind) => {
+            // Could trigger a banner — raid HUD handles this
           },
-        );
+          onHeavyCrash: () => useGameStore.getState().applyCrash(true),
+          onLightCrash: () => useGameStore.getState().applyCrash(false),
+          onCrowdBonus: (amount) =>
+            useGameStore.setState((prev) => ({ crowdReaction: prev.crowdReaction + amount })),
+        });
 
         // Trick system: detect airborne from currentPieceKind (ramp pieces)
         const isAirborne =
@@ -197,11 +223,7 @@ export function Game() {
           useGameStore.getState().setAirborne(isAirborne);
         }
         const ts = trickSystem.getState();
-        useGameStore.getState().setTrickState(
-          ts.currentTrick !== null,
-          ts.rotY,
-          ts.rotZ,
-        );
+        useGameStore.getState().setTrickState(ts.currentTrick !== null, ts.rotY, ts.rotZ);
 
         // Balloon pickup collection
         const hitId = balloonSpawner.checkCollision(s.distance, s.lateral, now);
@@ -225,6 +247,8 @@ export function Game() {
   }, [startRun]);
 
   useSteering(canvasEl);
+  useKeyboardControls();
+  useTouchGestures(canvasEl);
 
   return (
     <div ref={wrapperRef} data-testid="mm-game" style={{ position: 'absolute', inset: 0 }}>
@@ -255,6 +279,8 @@ export function Game() {
             {/* WORLD — scrolls past the fixed cockpit at origin */}
             <WorldScroller>
               <TrackSystem />
+              <StartPlatform />
+              <FinishBanner />
               <ObstacleSystem />
               <PickupSystem />
               {/* Feature A: Zone gimmick layers */}
@@ -266,6 +292,8 @@ export function Game() {
               <RaidLayer />
               {/* Ghost car replay for daily route */}
               <GhostCar />
+              {/* Racing-line ghost: optimal lateral guide ahead of player */}
+              <RacingLineGhost />
             </WorldScroller>
 
             {/* COCKPIT — world-origin, camera inside */}
@@ -279,15 +307,14 @@ export function Game() {
             {/* Photo mode: orbit controls + PNG capture wired into canvas */}
             {photoMode && <PhotoModeControls />}
             {photoMode && (
-              <PhotoModeDownloadCapture
-                onCapture={(dataUrl) => triggerDownload(dataUrl)}
-              />
+              <PhotoModeDownloadCapture onCapture={(dataUrl) => triggerDownload(dataUrl)} />
             )}
           </Suspense>
         </ReactErrorBoundary>
       </Canvas>
       <HUD />
       <ZoneBanner />
+      <LiveRegion />
       {photoMode && <PhotoModeOverlay />}
     </div>
   );

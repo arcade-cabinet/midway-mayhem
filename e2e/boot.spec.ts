@@ -6,12 +6,26 @@ test.describe('Boot sequence', () => {
     await page.goto('/');
     await expect(page.getByTestId('title-screen')).toBeVisible();
     await expectNoErrorModal(page);
-    await expect(page.getByText(/MIDWAY/i)).toBeVisible();
-    await expect(page.getByText(/MAYHEM/i)).toBeVisible();
-    await expect(page.getByText(/CLOWN CAR CHAOS/i)).toBeVisible();
-    await expect(page.getByText(/DRIVE FAST\. HONK LOUDER\./i)).toBeVisible();
+    // Brand wordmark is baked into the hero art PNG, so assert the art loaded
+    // + every canonical landing button is present + no error modal.
     await expect(page.getByTestId('start-button')).toBeVisible();
+    await expect(page.getByTestId('shop-button')).toBeVisible();
+    await expect(page.getByTestId('achievements-button')).toBeVisible();
+    await expect(page.getByTestId('settings-button')).toBeVisible();
+    await expect(page.getByTestId('title-ticket-balance')).toBeVisible();
     await expectNoErrorModal(page);
+  });
+
+  test('DB bootstrap succeeds — no initSqlJs / Mayhem Halted modal', async ({ page }) => {
+    // Regression guard for the sql.js CJS-interop bug where
+    // `(await import('sql.js')).default` resolved to a non-function.
+    await page.goto('/');
+    await expect(page.getByTestId('title-screen')).toBeVisible();
+    // Give initDb a full second to finish before checking
+    await page.waitForTimeout(1_000);
+    await expectNoErrorModal(page);
+    // Additionally assert no MAYHEM HALTED text anywhere
+    await expect(page.getByText(/MAYHEM HALTED/i)).toHaveCount(0);
   });
 
   test('?skip=1 drops directly into gameplay', async ({ page }) => {

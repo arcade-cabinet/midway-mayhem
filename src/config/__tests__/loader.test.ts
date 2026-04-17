@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearErrorsForTests } from '@/game/errorBus';
 import { DEFAULT_TUNABLES } from '../defaults';
+import { applyLoadedTunables, resetTunablesToDefaults, tunables } from '../index';
 import { loadTunables } from '../loader';
 import { parseTunables } from '../schema';
-import { applyLoadedTunables, resetTunablesToDefaults, tunables } from '../index';
-import { clearErrorsForTests } from '@/game/errorBus';
 
 // ---------------------------------------------------------------------------
 // parseTunables — unit tests (no fetch needed)
@@ -107,10 +107,13 @@ describe('loadTunables', () => {
   });
 
   it('round-trips valid JSON through fetch and returns typed Tunables', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => DEFAULT_TUNABLES,
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => DEFAULT_TUNABLES,
+      }),
+    );
 
     const t = await loadTunables('/config/tunables.json');
     expect(t.speed.base).toBe(30);
@@ -119,46 +122,58 @@ describe('loadTunables', () => {
   });
 
   it('throws and calls reportError on HTTP 404', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      statusText: 'Not Found',
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      }),
+    );
 
     await expect(loadTunables('/config/tunables.json')).rejects.toThrow(/HTTP 404/);
   });
 
   it('throws and calls reportError on invalid JSON shape', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ speed: { base: 'not-a-number' } }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ speed: { base: 'not-a-number' } }),
+      }),
+    );
 
     await expect(loadTunables('/config/tunables.json')).rejects.toThrow(/validation failed/i);
   });
 
-  it.skipIf(typeof window === 'undefined')('uses the ?config= URL override when window.location.search contains it', async () => {
-    const customUrl = 'https://cdn.example.com/custom-tunables.json';
+  it.skipIf(typeof window === 'undefined')(
+    'uses the ?config= URL override when window.location.search contains it',
+    async () => {
+      const customUrl = 'https://cdn.example.com/custom-tunables.json';
 
-    // Mock window.location.search
-    const origLocation = window.location;
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { ...origLocation, search: `?config=${encodeURIComponent(customUrl)}` },
-    });
+      // Mock window.location.search
+      const origLocation = window.location;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...origLocation, search: `?config=${encodeURIComponent(customUrl)}` },
+      });
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => DEFAULT_TUNABLES,
-    }));
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => DEFAULT_TUNABLES,
+        }),
+      );
 
-    await loadTunables('/config/tunables.json');
+      await loadTunables('/config/tunables.json');
 
-    // biome-ignore lint/suspicious/noExplicitAny: test
-    expect((fetch as any).mock.calls[0][0]).toBe(customUrl);
+      // biome-ignore lint/suspicious/noExplicitAny: test
+      expect((fetch as any).mock.calls[0][0]).toBe(customUrl);
 
-    Object.defineProperty(window, 'location', { configurable: true, value: origLocation });
-  });
+      Object.defineProperty(window, 'location', { configurable: true, value: origLocation });
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------

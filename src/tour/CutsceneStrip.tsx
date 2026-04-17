@@ -6,9 +6,9 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { triggerClownHorn } from '@/audio/sfx';
 import { color, space } from '@/design/tokens';
 import { display, typeStyle } from '@/design/typography';
-import { triggerClownHorn } from '@/audio/sfx';
 
 interface Props {
   onDismiss: () => void;
@@ -22,7 +22,11 @@ export function CutsceneStrip({ onDismiss }: Props) {
   const dismissedRef = useRef(false);
 
   useEffect(() => {
-    try { triggerClownHorn(); } catch { /* audio may not be ready */ }
+    try {
+      triggerClownHorn();
+    } catch {
+      /* audio may not be ready */
+    }
   }, []);
 
   useEffect(() => {
@@ -87,9 +91,7 @@ export function CutsceneStrip({ onDismiss }: Props) {
             The GREATEST show on wheels!
           </span>
           <br />
-          <span style={{ color: color.red, fontSize: '1rem' }}>
-            HONK IF YOU DARE!!
-          </span>
+          <span style={{ color: color.red, fontSize: '1rem' }}>HONK IF YOU DARE!!</span>
         </div>
       </div>
       <button

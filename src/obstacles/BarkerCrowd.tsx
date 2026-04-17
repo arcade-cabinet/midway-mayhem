@@ -11,9 +11,9 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
-import { useGameStore } from '@/game/gameState';
 import { onHonk } from '@/audio/honkBus';
+import { useGameStore } from '@/game/gameState';
+import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { TRACK } from '@/utils/constants';
 import { trackToWorld } from './ObstacleSystem';
 
@@ -36,7 +36,7 @@ interface Barker {
   side: -1 | 1; // left or right of track
   colorIndex: number;
   cheerStartedAt: number; // ms, 0 = not cheering
-  lastHonkAt: number;     // ms, for cooldown
+  lastHonkAt: number; // ms, for cooldown
 }
 
 function buildBarkers(): Barker[] {

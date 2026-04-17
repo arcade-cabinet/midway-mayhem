@@ -74,6 +74,24 @@ The game's design was pinned across two conversations: Gemini (7 rounds of visua
 - **Grailguard + marmalade-drops are references.** Mirror proven patterns before inventing.
 - **The cockpit is the hero procedural element** — gets its own deep refinement pass because it's the identity-carrier the player sees every frame.
 
+## Racing line ghost
+
+A translucent wireframe clone of the clown car floats 12 metres ahead of the
+player on the optimal racing line. It is always positioned at `optimalLateralAt(path, distance + 12)` — the lateral coordinate that minimises obstacle hits and collects high-value pickups.
+
+**Player-feedback role:** The ghost teaches the line without interrupting play.
+The player never has to read text or pause; they learn by chasing the ghost.
+When they are on the line the ghost aligns with them, providing an at-a-glance
+confirmation. When they drift, the ghost floats to the side, creating a
+natural "catch up" pull.
+
+Design constraints:
+- Color: brand yellow `#FFD600` — distinct from obstacles (red) and pickups (blue/orange).
+- Opacity: 0.35 — visible but does not block forward sightline.
+- Wireframe material: reads as a guide/outline, not a solid competing car.
+- World-space (inside WorldScroller): stays on track during the plunge animation.
+- Togglable via Settings → "Show racing line" (default on).
+
 ## Player experience laws
 
 1. Player instinctively steers within 10 seconds of boot.
@@ -129,6 +147,16 @@ Zero samples — all Tone.js procedural:
 - **Pickup boost:** E5 sawtooth sweep
 - **Pickup mega:** C5→E5→G5 triad arpeggio
 - **Zone ambient** (future): layered pad arrangements per zone, crossfade on boundary
+
+## Scoring
+
+### Racing line scoring
+
+The racing-line cleanliness score (`state.cleanliness`, 0–1) measures how closely the player follows the pre-computed optimal path through obstacles and pickups. A perfect line scores 1.0; drifting 3 m or more from the ideal costs down to 0.0.
+
+**Why it pairs with the combo chain:** The combo chain multiplier rewards *frequency* of cool events (near-misses, pickups, scares). The racing-line bonus rewards *quality* of execution — staying on the ideal trajectory between events. They are complementary axes: a player who chains events sloppily earns less than one who chains them with precision. Both multipliers stack on crowd gain events that go through `applyPickup`.
+
+**HUD readout:** `<RacingLineMeter>` (bottom-left panel on desktop, bottom row on portrait phones) shows a live percentage with a color gradient from red (0%) through yellow (50%) to green (100%). The bar updates every frame with an EMA smoother so it reads like a confidence gauge rather than a jitter meter.
 
 ## Appendix A — Vision trail summary
 

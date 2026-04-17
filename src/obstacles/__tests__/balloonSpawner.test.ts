@@ -83,7 +83,7 @@ describe('BalloonSpawner', () => {
     spawner.update(0, 'balloon-alley', now);
     const b = spawner.getBalloons()[0]!;
     spawner.consumeBalloon(b.id);
-    expect(spawner.getBalloons().find((x) => x.id === b.id)!.consumed).toBe(true);
+    expect(spawner.getBalloons().find((x) => x.id === b.id)?.consumed).toBe(true);
   });
 
   it('instanceCount reflects active (non-consumed) balloons', () => {

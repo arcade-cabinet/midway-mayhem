@@ -12,6 +12,7 @@
 
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
+import { useEffect, useRef } from 'react';
 import { color, elevation, radius, safeArea, space } from '@/design/tokens';
 import { display, typeStyle } from '@/design/typography';
 import { useGameStore } from '@/game/gameState';
@@ -37,11 +38,7 @@ export function PhotoModeControls() {
 }
 
 /** R3F sub-component for PNG download — needs access to the renderer. */
-export function PhotoModeDownloadCapture({
-  onCapture,
-}: {
-  onCapture: (dataUrl: string) => void;
-}) {
+export function PhotoModeDownloadCapture({ onCapture }: { onCapture: (dataUrl: string) => void }) {
   const { gl } = useThree();
 
   const capture = () => {
@@ -60,6 +57,21 @@ export function PhotoModeDownloadCapture({
 /** HUD overlay layer for photo mode — renders OUTSIDE the canvas. */
 export function PhotoModeOverlay() {
   const setPhotoMode = useGameStore((s) => s.setPhotoMode);
+  const downloadRef = useRef<HTMLButtonElement | null>(null);
+
+  // Focus download button on mount
+  useEffect(() => {
+    downloadRef.current?.focus();
+  }, []);
+
+  // Esc dismisses photo mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleDismiss();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  });
 
   const handleDownload = () => {
     // biome-ignore lint/suspicious/noExplicitAny: dev hook
@@ -78,7 +90,7 @@ export function PhotoModeOverlay() {
   const handleDismiss = () => {
     setPhotoMode(false);
     // biome-ignore lint/suspicious/noExplicitAny: dev hook
-    delete (window as any).__mmPhotoCapture;
+    (window as any).__mmPhotoCapture = undefined;
   };
 
   return (
@@ -117,6 +129,7 @@ export function PhotoModeOverlay() {
         }}
       >
         <button
+          ref={downloadRef}
           data-testid="photo-download-btn"
           type="button"
           onClick={handleDownload}

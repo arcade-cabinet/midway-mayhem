@@ -17,9 +17,7 @@ test.describe('Cockpit POV capture (debug)', () => {
     });
   });
 
-  test('mid-drop at 0.9s (cockpit-only, obstacles not yet spawned)', async ({
-    page,
-  }, testInfo) => {
+  test('mid-drop at 0.9s (cockpit-only, obstacles not yet spawned)', async ({ page }, testInfo) => {
     await page.goto('/?skip=1');
     await waitForHudReady(page);
     await page.waitForTimeout(900);
@@ -29,9 +27,7 @@ test.describe('Cockpit POV capture (debug)', () => {
     });
   });
 
-  test('long settled at 3.5s (shows track + obstacles)', async ({
-    page,
-  }, testInfo) => {
+  test('long settled at 3.5s (shows track + obstacles)', async ({ page }, testInfo) => {
     await page.goto('/?skip=1');
     await waitForHudReady(page);
     await page.waitForTimeout(3500);

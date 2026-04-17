@@ -18,11 +18,10 @@
  * each screenshot.
  */
 
-import { execFileSync } from 'node:child_process';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { chromium, type Browser, type Page } from 'playwright';
+import { type Browser, chromium, type Page } from 'playwright';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const OUT_DIR = path.join(ROOT, 'docs', 'media', 'marketing');
@@ -62,7 +61,6 @@ function buildCaptures(): Capture[] {
 function ensureDist() {
   const distIndex = path.join(ROOT, 'dist', 'index.html');
   if (!fs.existsSync(distIndex)) {
-    console.log('[capture] No dist found — running pnpm build…');
     execFileSync('pnpm', ['build'], { cwd: ROOT, stdio: 'inherit' });
   }
 }
@@ -96,8 +94,6 @@ async function startPreview(): Promise<() => void> {
     });
   });
 
-  console.log('[capture] Preview server ready at', BASE_URL);
-
   return () => {
     proc.kill('SIGTERM');
   };
@@ -108,7 +104,10 @@ async function startPreview(): Promise<() => void> {
 // ---------------------------------------------------------------------------
 
 // Camera positions/rotations per pose (in Three.js coordinate system)
-const CAMERA_POSES: Record<Pose, { position: [number, number, number]; lookAt: [number, number, number] }> = {
+const CAMERA_POSES: Record<
+  Pose,
+  { position: [number, number, number]; lookAt: [number, number, number] }
+> = {
   'cockpit-pov': {
     position: [0, 1.2, 0.6],
     lookAt: [0, 0.8, -20],
@@ -147,9 +146,17 @@ async function injectCaptureMode(page: Page, zone: Zone, pose: Pose): Promise<vo
         if (store) {
           store.setState({ distance, currentZone: z, dropProgress: 1 });
         }
-      } catch { /* state not available yet */ }
+      } catch {
+        /* state not available yet */
+      }
     },
-    { zone, pose, position: camConfig.position, lookAt: camConfig.lookAt, distance: targetDistance },
+    {
+      zone,
+      pose,
+      position: camConfig.position,
+      lookAt: camConfig.lookAt,
+      distance: targetDistance,
+    },
   );
 }
 
@@ -198,11 +205,9 @@ async function capture(): Promise<void> {
     await page.waitForTimeout(3000);
 
     const captures = buildCaptures();
-    let captured = 0;
+    let _captured = 0;
 
     for (const cap of captures) {
-      console.log(`[capture] ${cap.zone} / ${cap.pose}…`);
-
       await injectCaptureMode(page, cap.zone, cap.pose);
 
       // Wait a frame for the camera to update
@@ -215,12 +220,8 @@ async function capture(): Promise<void> {
         fullPage: false,
         clip: { x: 0, y: 0, width: VIEWPORT.width, height: VIEWPORT.height },
       });
-
-      console.log(`[capture] -> ${path.relative(ROOT, outPath)}`);
-      captured++;
+      _captured++;
     }
-
-    console.log(`\n[capture] Done! ${captured} / ${captures.length} screenshots in docs/media/marketing/`);
 
     await context.close();
   } finally {

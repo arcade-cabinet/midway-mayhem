@@ -9,9 +9,9 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { triggerCrashRoll } from '@/audio/sfx';
 import { color, space } from '@/design/tokens';
 import { display, typeStyle } from '@/design/typography';
-import { triggerCrashRoll } from '@/audio/sfx';
 
 const DURATION = 5.0;
 
@@ -24,11 +24,7 @@ const _mirrorMat = new THREE.MeshStandardMaterial({
 });
 
 /** R3F component — mount INSIDE Canvas */
-export function FunhouseScene3D({
-  progressRef,
-}: {
-  progressRef: React.MutableRefObject<number>;
-}) {
+export function FunhouseScene3D({ progressRef }: { progressRef: React.MutableRefObject<number> }) {
   const leftRef = useRef<THREE.Mesh>(null);
   const rightRef = useRef<THREE.Mesh>(null);
 
@@ -47,18 +43,8 @@ export function FunhouseScene3D({
 
   return (
     <>
-      <mesh
-        ref={leftRef}
-        geometry={_planeGeo}
-        material={_mirrorMat}
-        position={[-5, 2.5, -5]}
-      />
-      <mesh
-        ref={rightRef}
-        geometry={_planeGeo}
-        material={_mirrorMat}
-        position={[5, 2.5, -5]}
-      />
+      <mesh ref={leftRef} geometry={_planeGeo} material={_mirrorMat} position={[-5, 2.5, -5]} />
+      <mesh ref={rightRef} geometry={_planeGeo} material={_mirrorMat} position={[5, 2.5, -5]} />
     </>
   );
 }
@@ -76,9 +62,23 @@ export function CutsceneFunhouse({ onDismiss }: { onDismiss: () => void }) {
       audioFired.current = true;
       try {
         triggerCrashRoll();
-        setTimeout(() => { try { triggerCrashRoll(); } catch { /* ok */ } }, 300);
-        setTimeout(() => { try { triggerCrashRoll(); } catch { /* ok */ } }, 600);
-      } catch { /* audio may not be ready */ }
+        setTimeout(() => {
+          try {
+            triggerCrashRoll();
+          } catch {
+            /* ok */
+          }
+        }, 300);
+        setTimeout(() => {
+          try {
+            triggerCrashRoll();
+          } catch {
+            /* ok */
+          }
+        }, 600);
+      } catch {
+        /* audio may not be ready */
+      }
     }
   }, []);
 

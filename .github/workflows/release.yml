@@ -56,29 +56,25 @@ jobs:
         run: |
           cd dist && zip -r "../midway-mayhem-web-${RELEASE_TAG}.zip" . && cd ..
 
-      # Android APK commented out until android/ directory is committed.
-      # TODO: Uncomment after running `pnpm exec cap add android` and
-      #       committing the android/ project directory.
-      #
-      # - name: Setup Java (Temurin 21)
-      #   uses: actions/setup-java@v5
-      #   with:
-      #     distribution: temurin
-      #     java-version: '21'
-      #
-      # - name: Assemble Android release APK
-      #   env:
-      #     RELEASE_TAG: ${{ github.event.release.tag_name }}
-      #   run: |
-      #     pnpm exec cap sync android
-      #     cd android
-      #     ./gradlew assembleRelease || ./gradlew assembleDebug
-      #     cd ..
-      #     if [ -f android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
-      #       cp android/app/build/outputs/apk/release/app-release-unsigned.apk "midway-mayhem-android-${RELEASE_TAG}.apk"
-      #     else
-      #       cp android/app/build/outputs/apk/debug/app-debug.apk "midway-mayhem-android-${RELEASE_TAG}.apk"
-      #     fi
+      - name: Setup Java (Temurin 21)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Assemble Android release APK
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          pnpm exec cap sync android
+          cd android
+          ./gradlew assembleRelease || ./gradlew assembleDebug
+          cd ..
+          if [ -f android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release-unsigned.apk "midway-mayhem-android-${RELEASE_TAG}.apk"
+          else
+            cp android/app/build/outputs/apk/debug/app-debug.apk "midway-mayhem-android-${RELEASE_TAG}.apk"
+          fi
 
       - name: Attach artifacts to the published release
         env:
@@ -87,12 +83,14 @@ jobs:
         run: |
           gh release upload "$RELEASE_TAG" \
             "midway-mayhem-web-${RELEASE_TAG}.zip" \
+            "midway-mayhem-android-${RELEASE_TAG}.apk" \
             --clobber
 
       - name: Upload artifacts as workflow artefacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: midway-mayhem-release-${{ github.event.release.tag_name }}
           path: |
             midway-mayhem-web-*.zip
+            midway-mayhem-android-*.apk
           if-no-files-found: warn

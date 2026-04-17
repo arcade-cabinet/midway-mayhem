@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { resetAchievementBusForTests, subscribeAchievements } from '@/game/achievementBus';
-import { initDb, resetDbForTests } from '../db';
+import type { LifetimeForCheck, RunAchievementStats } from '../achievements';
 import {
   ACHIEVEMENT_CATALOG,
   checkRunAchievements,
@@ -8,7 +8,7 @@ import {
   listAll,
   updateProgress,
 } from '../achievements';
-import type { LifetimeForCheck, RunAchievementStats } from '../achievements';
+import { initDb, resetDbForTests } from '../db';
 
 const EMPTY_RUN: RunAchievementStats = {
   distance: 0,

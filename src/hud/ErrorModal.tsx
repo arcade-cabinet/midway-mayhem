@@ -34,7 +34,13 @@ export function ErrorModal() {
   };
 
   return (
-    <Dialog tone="danger" testId="error-modal" role="alertdialog">
+    <Dialog
+      tone="danger"
+      testId="error-modal"
+      role="alertdialog"
+      ariaLabel="Mayhem Halted"
+      ariaDescribedBy="error-modal-message"
+    >
       <div
         style={{
           display: 'flex',

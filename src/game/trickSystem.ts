@@ -19,7 +19,7 @@ export interface TrickResult {
   /** Target rotation axis and total angle (radians) */
   axis: 'z' | 'x' | 'y';
   totalAngle: number; // radians
-  duration: number;   // seconds
+  duration: number; // seconds
 }
 
 export interface TrickState {
@@ -83,7 +83,12 @@ export function recognizeTrick(buffer: TrickInput[]): TrickResult | null {
 }
 
 /** Returns how far the rotation is from neutral (0) on the given axis. */
-export function landingDeviation(rotZ: number, rotX: number, rotY: number, axis: 'z' | 'x' | 'y'): number {
+export function landingDeviation(
+  rotZ: number,
+  rotX: number,
+  rotY: number,
+  axis: 'z' | 'x' | 'y',
+): number {
   const rot = axis === 'z' ? rotZ : axis === 'x' ? rotX : rotY;
   // Normalize to [-π, π]
   let angle = rot % (Math.PI * 2);
@@ -99,7 +104,11 @@ export function isCleanLanding(rotZ: number, rotX: number, rotY: number): boolea
   const zNorm = zDev > Math.PI ? Math.PI * 2 - zDev : zDev;
   const xNorm = xDev > Math.PI ? Math.PI * 2 - xDev : xDev;
   const yNorm = yDev > Math.PI ? Math.PI * 2 - yDev : yDev;
-  return zNorm < CLEAN_LANDING_TOLERANCE && xNorm < CLEAN_LANDING_TOLERANCE && yNorm < CLEAN_LANDING_TOLERANCE;
+  return (
+    zNorm < CLEAN_LANDING_TOLERANCE &&
+    xNorm < CLEAN_LANDING_TOLERANCE &&
+    yNorm < CLEAN_LANDING_TOLERANCE
+  );
 }
 
 export class TrickSystem {
@@ -127,7 +136,14 @@ export class TrickSystem {
     this.state.airborne = airborne;
 
     // Landing transition
-    if (wasAirborne && !airborne && (this.state.currentTrick || this.state.rotZ !== 0 || this.state.rotX !== 0 || this.state.rotY !== 0)) {
+    if (
+      wasAirborne &&
+      !airborne &&
+      (this.state.currentTrick ||
+        this.state.rotZ !== 0 ||
+        this.state.rotX !== 0 ||
+        this.state.rotY !== 0)
+    ) {
       const clean = isCleanLanding(this.state.rotZ, this.state.rotX, this.state.rotY);
       if (clean) {
         callbacks.onCleanLanding();

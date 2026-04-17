@@ -18,9 +18,17 @@ const KNIFE_GEO = new THREE.BoxGeometry(0.15, 0.8, 0.05);
 const CANNONBALL_GEO = new THREE.SphereGeometry(0.5, 16, 12);
 const SMOKE_GEO = new THREE.SphereGeometry(0.3, 8, 6);
 
-const KNIFE_MAT = new THREE.MeshStandardMaterial({ color: '#bfbfbf', metalness: 0.9, roughness: 0.1 });
+const KNIFE_MAT = new THREE.MeshStandardMaterial({
+  color: '#bfbfbf',
+  metalness: 0.9,
+  roughness: 0.1,
+});
 const CANNONBALL_MAT = new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.7 });
-const SMOKE_MAT = new THREE.MeshStandardMaterial({ color: '#4a4a4a', transparent: true, opacity: 0.5 });
+const SMOKE_MAT = new THREE.MeshStandardMaterial({
+  color: '#4a4a4a',
+  transparent: true,
+  opacity: 0.5,
+});
 const TIGER_MAT = new THREE.MeshStandardMaterial({ color: '#f36f21', roughness: 0.6 });
 
 export function RaidLayer() {

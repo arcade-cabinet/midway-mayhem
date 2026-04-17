@@ -9,7 +9,7 @@
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
@@ -48,9 +48,7 @@ function percentile(sorted: number[], p: number): number {
   return sorted[idx] ?? 0;
 }
 
-async function runOnce(
-  runIndex: number,
-): Promise<RunStats> {
+async function runOnce(runIndex: number): Promise<RunStats> {
   const browser = await chromium.launch({
     headless: true,
     args: [
@@ -114,9 +112,7 @@ async function runOnce(
 
     const durationMs = Date.now() - start;
     const avgSpeed =
-      speedSamples.length > 0
-        ? speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length
-        : 0;
+      speedSamples.length > 0 ? speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length : 0;
 
     let gameOverReason: RunStats['gameOverReason'] = 'timeout';
     if (last.gameOver) {
@@ -157,7 +153,10 @@ async function main(): Promise<void> {
   }
 
   // Aggregate p50 / p95
-  function agg(key: keyof Omit<RunStats, 'runIndex' | 'gameOverReason'>): { p50: number; p95: number } {
+  function agg(key: keyof Omit<RunStats, 'runIndex' | 'gameOverReason'>): {
+    p50: number;
+    p95: number;
+  } {
     const sorted = runs.map((r) => r[key] as number).sort((a, b) => a - b);
     return { p50: percentile(sorted, 50), p95: percentile(sorted, 95) };
   }
@@ -209,7 +208,7 @@ async function main(): Promise<void> {
   );
   // biome-ignore lint/suspicious/noConsole: CLI script
   console.log(
-    `  reasons   sanity=${report.gameOverReasons['sanity']}  plunge=${report.gameOverReasons['plunge']}  timeout=${report.gameOverReasons['timeout']}`,
+    `  reasons   sanity=${report.gameOverReasons.sanity}  plunge=${report.gameOverReasons.plunge}  timeout=${report.gameOverReasons.timeout}`,
   );
   // biome-ignore lint/suspicious/noConsole: CLI script
   console.log(`\nReport written → ${outPath}`);

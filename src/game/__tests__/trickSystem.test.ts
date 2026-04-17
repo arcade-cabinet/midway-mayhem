@@ -2,55 +2,55 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CLEAN_CROWD_REWARD,
   CLEAN_SANITY_REWARD,
-  TrickSystem,
   isCleanLanding,
   recognizeTrick,
+  TrickSystem,
 } from '@/game/trickSystem';
 
 describe('recognizeTrick', () => {
   it('recognizes BARREL_ROLL from right-right', () => {
     const result = recognizeTrick(['right', 'right']);
     expect(result).not.toBeNull();
-    expect(result!.kind).toBe('BARREL_ROLL');
-    expect(result!.axis).toBe('z');
-    expect(Math.abs(result!.totalAngle)).toBeCloseTo(Math.PI * 2, 4);
+    expect(result?.kind).toBe('BARREL_ROLL');
+    expect(result?.axis).toBe('z');
+    expect(Math.abs(result?.totalAngle ?? 0)).toBeCloseTo(Math.PI * 2, 4);
   });
 
   it('recognizes BARREL_ROLL from left-left (negative Z)', () => {
     const result = recognizeTrick(['left', 'left']);
     expect(result).not.toBeNull();
-    expect(result!.kind).toBe('BARREL_ROLL');
-    expect(result!.totalAngle).toBeLessThan(0);
+    expect(result?.kind).toBe('BARREL_ROLL');
+    expect(result?.totalAngle).toBeLessThan(0);
   });
 
   it('recognizes WHEELIE from up-up', () => {
     const result = recognizeTrick(['up', 'up']);
     expect(result).not.toBeNull();
-    expect(result!.kind).toBe('WHEELIE');
-    expect(result!.axis).toBe('x');
+    expect(result?.kind).toBe('WHEELIE');
+    expect(result?.axis).toBe('x');
   });
 
   it('recognizes HANDSTAND from down-down', () => {
     const result = recognizeTrick(['down', 'down']);
     expect(result).not.toBeNull();
-    expect(result!.kind).toBe('HANDSTAND');
-    expect(result!.axis).toBe('x');
-    expect(result!.totalAngle).toBeCloseTo(Math.PI, 4);
+    expect(result?.kind).toBe('HANDSTAND');
+    expect(result?.axis).toBe('x');
+    expect(result?.totalAngle).toBeCloseTo(Math.PI, 4);
   });
 
   it('recognizes SPIN_180 from left-right', () => {
     const result = recognizeTrick(['left', 'right']);
     expect(result).not.toBeNull();
-    expect(result!.kind).toBe('SPIN_180');
-    expect(result!.axis).toBe('y');
-    expect(result!.totalAngle).toBeCloseTo(Math.PI, 4);
+    expect(result?.kind).toBe('SPIN_180');
+    expect(result?.axis).toBe('y');
+    expect(result?.totalAngle).toBeCloseTo(Math.PI, 4);
   });
 
   it('recognizes SPIN_180 from right-left (negative Y)', () => {
     const result = recognizeTrick(['right', 'left']);
     expect(result).not.toBeNull();
-    expect(result!.kind).toBe('SPIN_180');
-    expect(result!.totalAngle).toBeLessThan(0);
+    expect(result?.kind).toBe('SPIN_180');
+    expect(result?.totalAngle).toBeLessThan(0);
   });
 
   it('returns null for unrecognized sequence', () => {
@@ -62,7 +62,7 @@ describe('recognizeTrick', () => {
   it('uses last 2 inputs from a longer buffer', () => {
     const result = recognizeTrick(['up', 'down', 'right', 'right']);
     expect(result).not.toBeNull();
-    expect(result!.kind).toBe('BARREL_ROLL');
+    expect(result?.kind).toBe('BARREL_ROLL');
   });
 });
 
@@ -114,7 +114,7 @@ describe('TrickSystem', () => {
     ts.pushInput('right', t0);
     ts.pushInput('right', t0);
     expect(ts.getState().currentTrick).not.toBeNull();
-    expect(ts.getState().currentTrick!.kind).toBe('BARREL_ROLL');
+    expect(ts.getState().currentTrick?.kind).toBe('BARREL_ROLL');
   });
 
   it('animates rotation toward totalAngle over duration', () => {

@@ -1,0 +1,9 @@
+[     171ms] [LOG] %c * Tone.js v15.1.22 *  background: #000; color: #fff @ http://localhost:4176/midway-mayhem/assets/audio-vendor-dgqtLmY6.js:18
+[     380ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://localhost:4176/midway-mayhem/assets/audio-vendor-dgqtLmY6.js:3
+[     381ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://localhost:4176/midway-mayhem/assets/audio-vendor-dgqtLmY6.js:3
+[     459ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4176/favicon.svg:0
+[     459ms] [ERROR] THREE.GLTFLoader: Couldn't load texture Textures/colormap.png @ http://localhost:4176/midway-mayhem/assets/r3f-vendor-C7yU4Txw.js:4140
+[     514ms] [ERROR] [mm:halt] unhandledrejection: "Preferences.then()" is not implemented on web t: "Preferences.then()" is not implemented on web
+    at http://localhost:4176/midway-mayhem/assets/dist-VLZ2W15F.js:1:1352 @ http://localhost:4176/midway-mayhem/assets/index-Gd4HWXnm.js:10
+[     516ms] t: "Preferences.then()" is not implemented on web
+    at http://localhost:4176/midway-mayhem/assets/dist-VLZ2W15F.js:1:1352

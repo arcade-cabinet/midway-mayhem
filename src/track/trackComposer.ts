@@ -210,6 +210,54 @@ export function composeTrack(kinds: readonly PieceKind[], worldScale = 10): Comp
 }
 
 /**
+ * Compute the world-space cursor position RIGHT AFTER a placed piece is consumed.
+ * This is the position where the next piece's START anchor should land.
+ *
+ * Mirrors the cursor-advance logic in composeTrack exactly:
+ *   1. cursor starts at pieceOrigin + rot(heading) * anchor
+ *   2. advance by length along heading
+ *   3. rotate heading by headingChangeDeg
+ *   4. apply lateral offset in NEW heading (for corners)
+ *
+ * Exposed for seam-alignment tests.
+ */
+export function seamEndOf(p: PiecePlacement, worldScale = 10): { x: number; y: number; z: number } {
+  const spec = PIECE_SPECS[p.kind];
+  // Reconstruct the heading from stored rotationY = -headingRad
+  const headingRad = -p.rotationY;
+  const dirX = Math.sin(headingRad);
+  const dirZ = Math.cos(headingRad);
+
+  const anchorLocalForward = LOCAL_ANCHOR.y * worldScale;
+  const anchorLocalRight = LOCAL_ANCHOR.x * worldScale;
+  const rotatedAnchorX = dirX * anchorLocalForward + dirZ * anchorLocalRight;
+  const rotatedAnchorZ = dirZ * anchorLocalForward - dirX * anchorLocalRight;
+
+  // Piece origin is placementOrigin; cursor was at origin + anchor at placement time.
+  // Cursor after piece = cursor at placement + length along heading.
+  const cursorAtPlacementX = p.position[0] + rotatedAnchorX;
+  const cursorAtPlacementZ = p.position[2] + rotatedAnchorZ;
+  const cursorAtPlacementY = p.position[1];
+
+  const lengthWorld = spec.length * worldScale;
+  let endX = cursorAtPlacementX + dirX * lengthWorld;
+  let endZ = cursorAtPlacementZ + dirZ * lengthWorld;
+  const endY = cursorAtPlacementY + spec.zRise * worldScale;
+
+  // Apply heading change + lateral offset in NEW heading (same as composeTrack step 4)
+  if (spec.lateral !== 0) {
+    const newHeadingRad = (headingRad + (spec.headingChangeDeg * Math.PI) / 180) % (Math.PI * 2);
+    const dirX2 = Math.sin(newHeadingRad);
+    const dirZ2 = Math.cos(newHeadingRad);
+    const latWorld = spec.lateral * worldScale;
+    endX += dirX2 * latWorld;
+    endZ += dirZ2 * latWorld;
+  }
+
+  return { x: endX, y: endY, z: endZ };
+}
+
+/**
  * Winding Hot Wheels course. Corners + ramps + straights. The WorldScroller's
  * follow-camera rotation aligns the player's track heading with world -Z so
  * corners feel natural from the cockpit.

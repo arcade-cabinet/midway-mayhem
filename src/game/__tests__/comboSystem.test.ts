@@ -9,8 +9,12 @@ function makeCombo() {
   let nowMs = 0;
   const clock = () => nowMs;
   const combo = new ComboSystem(clock);
-  const tick = (ms: number) => { nowMs += ms; };
-  const setTime = (ms: number) => { nowMs = ms; };
+  const tick = (ms: number) => {
+    nowMs += ms;
+  };
+  const setTime = (ms: number) => {
+    nowMs = ms;
+  };
   return { combo, tick, setTime };
 }
 

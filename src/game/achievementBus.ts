@@ -22,7 +22,9 @@ const _listeners = new Set<Listener>();
 
 export function subscribeAchievements(fn: Listener): () => void {
   _listeners.add(fn);
-  return () => { _listeners.delete(fn); };
+  return () => {
+    _listeners.delete(fn);
+  };
 }
 
 export function publishAchievement(event: AchievementGrantedEvent): void {

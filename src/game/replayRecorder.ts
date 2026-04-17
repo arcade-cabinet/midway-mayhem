@@ -8,8 +8,9 @@
  * Ring buffer capacity: 60 seconds × 30Hz = 1800 samples max.
  * Before saving, the trace is downsampled to ≤900 samples to limit blob size.
  */
+
+import { getBestReplayForDate, type ReplaySample, saveReplay } from '@/persistence/replay';
 import { utcDateString } from '@/track/dailyRoute';
-import { getBestReplayForDate, saveReplay, type ReplaySample } from '@/persistence/replay';
 import { reportError } from './errorBus';
 
 const SAMPLE_HZ = 30;
@@ -40,12 +41,7 @@ export function stopRecording(): void {
  * Sample the current game state. Call this every frame (or from the GameLoop).
  * Internally throttles to ~30Hz.
  */
-export function sampleFrame(
-  nowMs: number,
-  lateral: number,
-  speedMps: number,
-  steer: number,
-): void {
+export function sampleFrame(nowMs: number, lateral: number, speedMps: number, steer: number): void {
   if (!_recording) return;
 
   const elapsedS = (nowMs - _runStartedAt) / 1000;

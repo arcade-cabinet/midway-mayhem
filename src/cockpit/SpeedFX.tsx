@@ -8,13 +8,10 @@
  * Uses @react-three/postprocessing Vignette + ChromaticAberration.
  */
 
-import {
-  ChromaticAberration,
-  Vignette,
-} from '@react-three/postprocessing';
+import { useFrame } from '@react-three/fiber';
+import { ChromaticAberration, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import { Vector2 } from 'three';
 import { useGameStore } from '@/game/gameState';
 
@@ -72,7 +69,11 @@ export function SpeedFX() {
       <ChromaticAberration
         // biome-ignore lint/suspicious/noExplicitAny: ref callback pattern for postprocessing effects
         ref={aberrationRef as any}
-        offset={aberrationOffset.current}
+        // Pass a plain tuple (not Vector2) — @react-three/postprocessing
+        // JSON.stringifies this prop for useMemo invalidation and chokes on
+        // Vector2's Object3D-backed structure. The real offset is driven via
+        // the useFrame ref mutation above.
+        offset={[BASE_ABERRATION, BASE_ABERRATION]}
         radialModulation={true}
         modulationOffset={0.5}
         blendFunction={BlendFunction.NORMAL}

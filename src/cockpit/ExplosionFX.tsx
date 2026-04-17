@@ -12,7 +12,7 @@
  */
 
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useGameStore } from '@/game/gameState';
 
@@ -30,6 +30,7 @@ const BRAND_COLORS = [
 ] as const;
 
 interface Particle {
+  id: string;
   position: THREE.Vector3;
   velocity: THREE.Vector3;
   color: number;
@@ -51,56 +52,77 @@ function randomVelocity(speed: number): THREE.Vector3 {
   );
 }
 
+/** Build a fresh particle set with random positions + velocities + colors. */
+function buildConfettiParticles(): Particle[] {
+  return Array.from({ length: 30 }, (_, i) => ({
+    id: `confetti-${Date.now()}-${i}`,
+    position: new THREE.Vector3(
+      (Math.random() - 0.5) * 0.5,
+      0.2,
+      -1.8 + (Math.random() - 0.5) * 0.5,
+    ),
+    velocity: randomVelocity(3 + Math.random() * 4),
+    color: randomBrandColor(),
+    scale: new THREE.Vector3(
+      0.06 + Math.random() * 0.08,
+      0.06 + Math.random() * 0.08,
+      0.06 + Math.random() * 0.08,
+    ),
+  }));
+}
+
+function buildHeartParticles(): Particle[] {
+  return Array.from({ length: 5 }, (_, i) => ({
+    id: `heart-${Date.now()}-${i}`,
+    position: new THREE.Vector3(
+      (Math.random() - 0.5) * 0.4,
+      0.3,
+      -1.8 + (Math.random() - 0.5) * 0.3,
+    ),
+    velocity: randomVelocity(2.5 + Math.random() * 3),
+    color: randomBrandColor(),
+    scale: new THREE.Vector3(0.12, 0.12, 0.12),
+  }));
+}
+
 export function ExplosionFX() {
   const gameOver = useGameStore((s) => s.gameOver);
-  const [startTime] = useState(() => (gameOver ? performance.now() : 0));
-  const [visible, setVisible] = useState(true);
+  // Rebuild startTime + particles on EVERY gameOver transition, not just first
+  // mount — the original `useState(() => gameOver ? now() : 0)` only ran on
+  // mount and broke every subsequent run's explosion (CodeRabbit 🔴 critical).
+  const [startTime, setStartTime] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const [confettiParticles, setConfettiParticles] = useState<Particle[]>([]);
+  const [heartParticles, setHeartParticles] = useState<Particle[]>([]);
 
-  // Confetti boxes: 30
-  const confettiParticles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 30 }, () => ({
-      position: new THREE.Vector3(
-        (Math.random() - 0.5) * 0.5,
-        0.2,
-        -1.8 + (Math.random() - 0.5) * 0.5,
-      ),
-      velocity: randomVelocity(3 + Math.random() * 4),
-      color: randomBrandColor(),
-      scale: new THREE.Vector3(
-        0.06 + Math.random() * 0.08,
-        0.06 + Math.random() * 0.08,
-        0.06 + Math.random() * 0.08,
-      ),
-    }));
-  }, []);
+  useEffect(() => {
+    if (!gameOver) {
+      setVisible(false);
+      return;
+    }
+    setStartTime(performance.now());
+    setVisible(true);
+    setConfettiParticles(buildConfettiParticles());
+    setHeartParticles(buildHeartParticles());
+  }, [gameOver]);
 
-  // Heart spheres: 5
-  const heartParticles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 5 }, () => ({
-      position: new THREE.Vector3(
-        (Math.random() - 0.5) * 0.4,
-        0.3,
-        -1.8 + (Math.random() - 0.5) * 0.3,
-      ),
-      velocity: randomVelocity(2.5 + Math.random() * 3),
-      color: randomBrandColor(),
-      scale: new THREE.Vector3(0.12, 0.12, 0.12),
-    }));
-  }, []);
-
-  // Star icosahedra: 5
-  const starParticles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 5 }, () => ({
-      position: new THREE.Vector3(
-        (Math.random() - 0.5) * 0.4,
-        0.3,
-        -1.8 + (Math.random() - 0.5) * 0.3,
-      ),
-      velocity: randomVelocity(3 + Math.random() * 3.5),
-      color: randomBrandColor(),
-      scale: new THREE.Vector3(0.1, 0.1, 0.1),
-    }));
-  }, []);
+  const [starParticles, setStarParticles] = useState<Particle[]>([]);
+  useEffect(() => {
+    if (!gameOver) return;
+    setStarParticles(
+      Array.from({ length: 5 }, (_, i) => ({
+        id: `star-${Date.now()}-${i}`,
+        position: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.4,
+          0.3,
+          -1.8 + (Math.random() - 0.5) * 0.3,
+        ),
+        velocity: randomVelocity(3 + Math.random() * 3.5),
+        color: randomBrandColor(),
+        scale: new THREE.Vector3(0.1, 0.1, 0.1),
+      })),
+    );
+  }, [gameOver]);
 
   // Refs to particle mesh groups for animation
   const confettiRefs = useRef<(THREE.Mesh | null)[]>(Array(30).fill(null));
@@ -183,9 +205,10 @@ export function ExplosionFX() {
       {/* Confetti boxes */}
       {confettiParticles.map((p, i) => (
         <mesh
-          key={`confetti-${i}`}
-          // biome-ignore lint/suspicious/noAssignInExpressions: three ref array pattern
-          ref={(el) => { confettiRefs.current[i] = el; }}
+          key={p.id}
+          ref={(el) => {
+            confettiRefs.current[i] = el;
+          }}
           position={p.position.toArray() as [number, number, number]}
           scale={p.scale.toArray() as [number, number, number]}
         >
@@ -197,28 +220,36 @@ export function ExplosionFX() {
       {/* Heart spheres */}
       {heartParticles.map((p, i) => (
         <mesh
-          key={`heart-${i}`}
-          // biome-ignore lint/suspicious/noAssignInExpressions: three ref array pattern
-          ref={(el) => { heartRefs.current[i] = el; }}
+          key={p.id}
+          ref={(el) => {
+            heartRefs.current[i] = el;
+          }}
           position={p.position.toArray() as [number, number, number]}
           scale={p.scale.toArray() as [number, number, number]}
         >
           <sphereGeometry args={[1, 10, 8]} />
-          <meshStandardMaterial color={p.color} emissive={new THREE.Color(p.color).multiplyScalar(0.3)} />
+          <meshStandardMaterial
+            color={p.color}
+            emissive={new THREE.Color(p.color).multiplyScalar(0.3)}
+          />
         </mesh>
       ))}
 
       {/* Star icosahedra */}
       {starParticles.map((p, i) => (
         <mesh
-          key={`star-${i}`}
-          // biome-ignore lint/suspicious/noAssignInExpressions: three ref array pattern
-          ref={(el) => { starRefs.current[i] = el; }}
+          key={p.id}
+          ref={(el) => {
+            starRefs.current[i] = el;
+          }}
           position={p.position.toArray() as [number, number, number]}
           scale={p.scale.toArray() as [number, number, number]}
         >
           <icosahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={p.color} emissive={new THREE.Color(p.color).multiplyScalar(0.4)} />
+          <meshStandardMaterial
+            color={p.color}
+            emissive={new THREE.Color(p.color).multiplyScalar(0.4)}
+          />
         </mesh>
       ))}
     </group>

@@ -1,5 +1,5 @@
 import { reportError } from '@/game/errorBus';
-import { type Tunables, parseTunables } from './schema';
+import { parseTunables, type Tunables } from './schema';
 
 /**
  * loadTunables — fetch public/config/tunables.json (or override via ?config=<url>),

@@ -6,9 +6,15 @@ const _store = new Map<string, string>();
 vi.mock('@capacitor/preferences', () => ({
   Preferences: {
     get: async ({ key }: { key: string }) => ({ value: _store.get(key) ?? null }),
-    set: async ({ key, value }: { key: string; value: string }) => { _store.set(key, value); },
-    remove: async ({ key }: { key: string }) => { _store.delete(key); },
-    clear: async () => { _store.clear(); },
+    set: async ({ key, value }: { key: string; value: string }) => {
+      _store.set(key, value);
+    },
+    remove: async ({ key }: { key: string }) => {
+      _store.delete(key);
+    },
+    clear: async () => {
+      _store.clear();
+    },
   },
 }));
 
@@ -17,9 +23,9 @@ vi.mock('@/game/hapticsBus', () => ({
   hapticsBus: { setEnabled: vi.fn() },
 }));
 
+import type { GameSettings } from '../settings';
 // Import AFTER mocks are set up
 import { getSettings, updateSettings } from '../settings';
-import type { GameSettings } from '../settings';
 
 beforeEach(() => {
   _store.clear();
@@ -40,6 +46,7 @@ describe('getSettings — defaults', () => {
     expect(s.showFps).toBe(false);
     expect(s.showZoneBanner).toBe(true);
     expect(s.subtitles).toBe(false);
+    expect(s.showRacingLine).toBe(true);
   });
 });
 
@@ -54,8 +61,8 @@ describe('updateSettings — round-trip', () => {
     await updateSettings({ audioEnabled: false });
     await updateSettings({ reducedMotion: true });
     const s = await getSettings();
-    expect(s.audioEnabled).toBe(false);   // still false
-    expect(s.reducedMotion).toBe(true);   // newly set
+    expect(s.audioEnabled).toBe(false); // still false
+    expect(s.reducedMotion).toBe(true); // newly set
   });
 
   it('ui_scale_multiplier round-trips correctly', async () => {
@@ -89,6 +96,7 @@ describe('singleton behavior', () => {
       showFps: true,
       showZoneBanner: false,
       subtitles: true,
+      showRacingLine: false,
     };
     await updateSettings(full);
     const result = await getSettings();

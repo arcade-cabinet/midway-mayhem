@@ -24,12 +24,45 @@ const state = {
   halted: false,
 };
 
+/**
+ * Safely stringify a non-Error payload. Three.js objects, DOM nodes, React
+ * fibers, etc. contain circular back-refs (parent, children, _owner) that
+ * crash a naive JSON.stringify. The WeakSet skips any object we've already
+ * visited along the current branch.
+ */
+function safeStringify(value: unknown): string {
+  if (value == null) return '(null)';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  const seen = new WeakSet();
+  try {
+    return JSON.stringify(value, (_k, v) => {
+      if (typeof v === 'object' && v !== null) {
+        if (seen.has(v as object)) return '[Circular]';
+        seen.add(v as object);
+        // three.Object3D / scene graph nodes are the usual offender — summarize.
+        const type = (v as { type?: unknown }).type;
+        const name = (v as { name?: unknown }).name;
+        if (
+          typeof type === 'string' &&
+          (type.endsWith('Object3D') || type === 'Group' || type === 'Scene' || type === 'Mesh')
+        ) {
+          return `[three.${type}${name ? `:${String(name)}` : ''}]`;
+        }
+      }
+      return v;
+    });
+  } catch {
+    return '(unstringifiable)';
+  }
+}
+
 export function reportError(error: unknown, context: string): void {
   const now = Date.now();
   const e =
     error instanceof Error
       ? error
-      : new Error(typeof error === 'string' ? error : JSON.stringify(error));
+      : new Error(typeof error === 'string' ? error : safeStringify(error));
 
   const gameErr: GameError = {
     id: state.nextId++,

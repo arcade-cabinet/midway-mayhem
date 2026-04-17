@@ -116,7 +116,7 @@ export const ACHIEVEMENT_CATALOG: readonly AchievementDef[] = [
   },
   {
     slug: 'survive-3-raids',
-    title: 'Ringmaster\'s Nightmare',
+    title: "Ringmaster's Nightmare",
     description: 'Survive 3 raids in a single run.',
     targetValue: 3,
     predicate: (run) => run.raidsSurvived >= 3,
@@ -223,7 +223,15 @@ export interface AchievementStatus extends AchievementDef {
 export async function listAll(): Promise<AchievementStatus[]> {
   const rows = await db().select().from(achievements).all();
   const bySlug = new Map<string, AchievementRow>(
-    rows.map((r) => [r.slug, { slug: r.slug, unlockedAt: r.unlockedAt ?? null, progressValue: r.progressValue, targetValue: r.targetValue }]),
+    rows.map((r) => [
+      r.slug,
+      {
+        slug: r.slug,
+        unlockedAt: r.unlockedAt ?? null,
+        progressValue: r.progressValue,
+        targetValue: r.targetValue,
+      },
+    ]),
   );
 
   return ACHIEVEMENT_CATALOG.map((def) => {

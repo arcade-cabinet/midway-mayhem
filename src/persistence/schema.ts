@@ -14,12 +14,7 @@
  *
  * Settings and tutorial flags live in @capacitor/preferences (KV).
  */
-import {
-  index,
-  integer,
-  sqliteTable,
-  text,
-} from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export type UnlockKind =
   | 'palette'

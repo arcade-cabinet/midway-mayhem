@@ -1,6 +1,6 @@
 import * as Tone from 'tone';
-import type { ZoneId } from '@/utils/constants';
 import { tunables } from '@/config/index';
+import type { ZoneId } from '@/utils/constants';
 import { getBuses } from './buses';
 
 /**

@@ -1,10 +1,23 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { useGameStore } from '@/game/gameState';
+import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { laneCenterX } from '@/utils/constants';
 import { trackToWorld } from './ObstacleSystem';
+
+/**
+ * Pickup visuals. Consumes pre-baked `state.plan.pickups` when available
+ * (pickups within the forward render window are drawn as spinning tokens),
+ * falling back to the legacy streaming spawner (exposed on
+ * `window.__mmSpawner`) only when no run plan exists. The crash-and-score
+ * lane collision is handled inside ObstacleSystem; this layer only renders.
+ */
+
+/** Render plan pickups within this forward window (metres). */
+const FORWARD_RENDER_M = 500;
+/** Render plan pickups within this behind window (metres). */
+const BEHIND_RENDER_M = 8;
 
 export function PickupSystem() {
   const ringsRef = useRef<THREE.InstancedMesh>(null);
@@ -20,29 +33,53 @@ export function PickupSystem() {
   useFrame(({ clock }) => {
     const s = useGameStore.getState();
     if (!s.running) return;
-    // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-    const spawner = (window as any).__mmSpawner;
-    if (!spawner) return;
-    const list = spawner.getPickups();
+
     const refs = { boost: ringsRef.current, ticket: ticketsRef.current, mega: megaRef.current };
     const counts: Record<string, number> = { boost: 0, ticket: 0, mega: 0 };
     const spin = clock.elapsedTime * 2;
+    const plan = s.plan;
 
-    for (const p of list) {
-      if (p.consumed) continue;
-      const m = refs[p.type as keyof typeof refs];
-      if (!m) continue;
-      const i = counts[p.type] ?? 0;
-      if (i >= m.count) continue;
-      const world = trackToWorld(composition, p.d, laneCenterX(p.lane));
-      dummy.position.set(world.x, world.y + 1.8, world.z);
-      dummy.rotation.set(0, spin + world.heading, p.type === 'boost' ? Math.PI / 2 : 0);
-      dummy.scale.set(1, 1, 1);
-      if (p.type === 'mega') dummy.scale.setScalar(1 + Math.sin(spin * 3) * 0.2);
-      dummy.updateMatrix();
-      m.setMatrixAt(i, dummy.matrix);
-      counts[p.type] = i + 1;
+    if (plan) {
+      const playerD = s.distance;
+      const minD = playerD - BEHIND_RENDER_M;
+      const maxD = playerD + FORWARD_RENDER_M;
+      for (const p of plan.pickups) {
+        if (p.d < minD || p.d > maxD) continue;
+        const m = refs[p.type as keyof typeof refs];
+        if (!m) continue;
+        const i = counts[p.type] ?? 0;
+        if (i >= m.count) continue;
+        const world = trackToWorld(composition, p.d, laneCenterX(p.lane));
+        dummy.position.set(world.x, world.y + 1.8, world.z);
+        dummy.rotation.set(0, spin + world.heading + p.yaw, p.type === 'boost' ? Math.PI / 2 : 0);
+        dummy.scale.set(1, 1, 1);
+        if (p.type === 'mega') dummy.scale.setScalar(1 + Math.sin(spin * 3) * 0.2);
+        dummy.updateMatrix();
+        m.setMatrixAt(i, dummy.matrix);
+        counts[p.type] = i + 1;
+      }
+    } else {
+      // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+      const spawner = (window as any).__mmSpawner;
+      if (!spawner) return;
+      const list = spawner.getPickups();
+      for (const p of list) {
+        if (p.consumed) continue;
+        const m = refs[p.type as keyof typeof refs];
+        if (!m) continue;
+        const i = counts[p.type] ?? 0;
+        if (i >= m.count) continue;
+        const world = trackToWorld(composition, p.d, laneCenterX(p.lane));
+        dummy.position.set(world.x, world.y + 1.8, world.z);
+        dummy.rotation.set(0, spin + world.heading, p.type === 'boost' ? Math.PI / 2 : 0);
+        dummy.scale.set(1, 1, 1);
+        if (p.type === 'mega') dummy.scale.setScalar(1 + Math.sin(spin * 3) * 0.2);
+        dummy.updateMatrix();
+        m.setMatrixAt(i, dummy.matrix);
+        counts[p.type] = i + 1;
+      }
     }
+
     for (const [k, m] of Object.entries(refs)) {
       if (!m) continue;
       for (let i = counts[k] ?? 0; i < m.count; i++) {

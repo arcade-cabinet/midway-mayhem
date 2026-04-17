@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { Panel } from '@/design/components/Panel';
 import { color, motion, radius, space, zLayer } from '@/design/tokens';
-import { ui, typeStyle } from '@/design/typography';
+import { typeStyle, ui } from '@/design/typography';
 import { type AchievementGrantedEvent, subscribeAchievements } from '@/game/achievementBus';
 
 interface QueuedToast extends AchievementGrantedEvent {

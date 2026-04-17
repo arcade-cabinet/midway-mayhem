@@ -46,11 +46,7 @@ export interface RunSummary {
  * Creates it via seedDefaults() on DB init; this is a hard fail if missing.
  */
 export async function getStats(): Promise<LifetimeStatsRow> {
-  const row = await db()
-    .select()
-    .from(lifetimeStats)
-    .where(eq(lifetimeStats.id, 1))
-    .get();
+  const row = await db().select().from(lifetimeStats).where(eq(lifetimeStats.id, 1)).get();
 
   if (!row) throw new Error('[lifetimeStats] Row missing — was initDb() called?');
 

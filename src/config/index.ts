@@ -7,13 +7,13 @@
  * module-eval time) will see the live values automatically.
  */
 
+export { DEFAULT_TUNABLES } from './defaults';
 export { loadTunables } from './loader';
 export type { Tunables, ZoneTunable, ZoneWeights } from './schema';
 export { parseTunables } from './schema';
-export { DEFAULT_TUNABLES } from './defaults';
 
-import type { Tunables } from './schema';
 import { DEFAULT_TUNABLES } from './defaults';
+import type { Tunables } from './schema';
 
 // Internal mutable store
 let _current: Tunables = DEFAULT_TUNABLES;

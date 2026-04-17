@@ -8,7 +8,7 @@
  * persistence/profile. On equip, dispatches to the loadout store so Cockpit
  * picks up changes immediately.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DICE,
   HORN_SHAPES,
@@ -18,12 +18,12 @@ import {
   RIMS,
   type ShopItem,
 } from '@/config/shopCatalog';
-import { color, elevation, radius, space, zLayer } from '@/design/tokens';
-import { ui, typeStyle } from '@/design/typography';
 import { BrandButton } from '@/design/components/BrandButton';
-import { grantUnlock, hasUnlock, spendTickets } from '@/persistence/profile';
+import { color, elevation, radius, space, zLayer } from '@/design/tokens';
+import { typeStyle, ui } from '@/design/typography';
 import { reportError } from '@/game/errorBus';
 import { useLoadoutStore } from '@/hooks/useLoadout';
+import { grantUnlock, hasUnlock, spendTickets } from '@/persistence/profile';
 
 // ─── Tab definition ─────────────────────────────────────────────────────────
 
@@ -109,7 +109,8 @@ function ShopRow({ item, tickets, owned, equipped, onBuy, onEquip }: ShopRowProp
 
   const renderPreview = () => {
     const p = item.preview;
-    if ('bg' in p && 'dot1' in p) return <PalettePreview preview={p as { bg: string; dot1: string; dot2: string }} />;
+    if ('bg' in p && 'dot1' in p)
+      return <PalettePreview preview={p as { bg: string; dot1: string; dot2: string }} />;
     if ('emoji' in p) return <EmojiPreview emoji={(p as { emoji: string }).emoji} />;
     if ('color' in p) {
       return (
@@ -175,9 +176,7 @@ function ShopRow({ item, tickets, owned, equipped, onBuy, onEquip }: ShopRowProp
           </div>
         )}
         {owned && !equipped && (
-          <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.85rem' }}>
-            Owned
-          </div>
+          <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.85rem' }}>Owned</div>
         )}
       </div>
       <div style={{ flexShrink: 0 }}>
@@ -223,13 +222,31 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
   const [ownedMap, setOwnedMap] = useState<Map<string, boolean>>(new Map());
   const loadout = useLoadoutStore((s) => s.loadout);
   const equip = useLoadoutStore((s) => s.equip);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Focus close button on mount
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
+  // Esc closes the shop
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   // Resolve which items are owned for the current tab
   const itemsForTab = (): ShopItem[] => {
     switch (activeTab) {
-      case 'palettes': return [...PALETTES, ...RIMS, ...DICE];
-      case 'ornaments': return [...ORNAMENTS, ...HORN_SHAPES];
-      case 'horns': return HORNS;
+      case 'palettes':
+        return [...PALETTES, ...RIMS, ...DICE];
+      case 'ornaments':
+        return [...ORNAMENTS, ...HORN_SHAPES];
+      case 'horns':
+        return HORNS;
     }
   };
 
@@ -242,7 +259,7 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
       }),
     );
     setOwnedMap(new Map(entries));
-  }, [activeTab]); // eslint-disable-line
+  }, [itemsForTab]); // eslint-disable-line
 
   useEffect(() => {
     refreshOwned().catch((err) => reportError(err, 'TicketShop.refreshOwned'));
@@ -272,13 +289,20 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
   const isEquipped = (item: ShopItem): boolean => {
     if (!loadout) return false;
     switch (item.kind) {
-      case 'palette': return loadout.palette === item.slug;
-      case 'ornament': return loadout.ornament === item.slug;
-      case 'horn': return loadout.horn === item.slug;
-      case 'horn_shape': return loadout.hornShape === item.slug;
-      case 'rim': return loadout.rim === item.slug;
-      case 'dice': return loadout.dice === item.slug;
-      default: return false;
+      case 'palette':
+        return loadout.palette === item.slug;
+      case 'ornament':
+        return loadout.ornament === item.slug;
+      case 'horn':
+        return loadout.horn === item.slug;
+      case 'horn_shape':
+        return loadout.hornShape === item.slug;
+      case 'rim':
+        return loadout.rim === item.slug;
+      case 'dice':
+        return loadout.dice === item.slug;
+      default:
+        return false;
     }
   };
 
@@ -287,6 +311,9 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
   return (
     <div
       data-testid="ticket-shop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Ticket Shop"
       style={{
         position: 'fixed',
         inset: 0,
@@ -322,10 +349,14 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
             🎟 TICKET SHOP
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: space.md }}>
-            <div style={{ ...typeStyle(ui.label), color: color.yellow }}>
-              🎟 {tickets}
-            </div>
-            <BrandButton kind="ghost" size="sm" onClick={onClose} testId="shop-close">
+            <div style={{ ...typeStyle(ui.label), color: color.yellow }}>🎟 {tickets}</div>
+            <BrandButton
+              ref={closeButtonRef}
+              kind="ghost"
+              size="sm"
+              onClick={onClose}
+              testId="shop-close"
+            >
               ✕
             </BrandButton>
           </div>

@@ -1,0 +1,20 @@
+- generic [ref=e3]:
+  - generic [ref=e4]: preparing the midway…
+  - alertdialog "Mayhem Halted" [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: MAYHEM HALTED
+        - generic [ref=e9]: 1 error
+      - generic [ref=e10]:
+        - generic [ref=e11]: "Context:"
+        - generic [ref=e12]: unhandledrejection
+      - generic [ref=e13]: "\"Preferences.then()\" is not implemented on web"
+      - group [ref=e14]:
+        - generic "Stack trace" [ref=e15] [cursor=pointer]
+      - generic [ref=e16]:
+        - generic [ref=e17]: "URL: http://localhost:4176/midway-mayhem/?skip=1&governor=1&diag=1"
+        - generic [ref=e18]: "When: 10:48:59 PM"
+      - generic [ref=e19]:
+        - button "Copy report" [ref=e20] [cursor=pointer]
+        - button "Reload" [ref=e21] [cursor=pointer]
+        - button "Dismiss" [ref=e22] [cursor=pointer]

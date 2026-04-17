@@ -1,0 +1,4351 @@
+{
+  "generatedAt": "2026-04-17T05:27:14.733Z",
+  "seedCount": 100,
+  "passThreshold": 1,
+  "tiers": {
+    "silly": {
+      "difficulty": "silly",
+      "targetSpeedMps": 20,
+      "seedCount": 100,
+      "solvableSeeds": 100,
+      "passRate": 1,
+      "passes": true,
+      "results": [
+        {
+          "seed": 1246312147,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 3381900008,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 1222520573,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 3358108434,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 1198728999,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 3334316860,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 1174937425,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 3310525286,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 1151145851,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3286733712,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 1127354277,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3262942138,
+          "obstaclesHit": 0,
+          "laneSwitches": 69,
+          "deviationDensityPer100m": 1.725,
+          "solvable": true
+        },
+        {
+          "seed": 1103562703,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3239150564,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 1079771129,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 3215358990,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 1055979555,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 3191567416,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 1032187981,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3167775842,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 1008396407,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3143984268,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 984604833,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3120192694,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 960813259,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 3096401120,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 937021685,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 3072609546,
+          "obstaclesHit": 0,
+          "laneSwitches": 95,
+          "deviationDensityPer100m": 2.375,
+          "solvable": true
+        },
+        {
+          "seed": 913230111,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 3048817972,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 889438537,
+          "obstaclesHit": 0,
+          "laneSwitches": 75,
+          "deviationDensityPer100m": 1.875,
+          "solvable": true
+        },
+        {
+          "seed": 3025026398,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 865646963,
+          "obstaclesHit": 0,
+          "laneSwitches": 66,
+          "deviationDensityPer100m": 1.6500000000000001,
+          "solvable": true
+        },
+        {
+          "seed": 3001234824,
+          "obstaclesHit": 0,
+          "laneSwitches": 72,
+          "deviationDensityPer100m": 1.7999999999999998,
+          "solvable": true
+        },
+        {
+          "seed": 841855389,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 2977443250,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 818063815,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2953651676,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 794272241,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2929860102,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 770480667,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2906068528,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 746689093,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2882276954,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 722897519,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2858485380,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 699105945,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2834693806,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 675314371,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2810902232,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 651522797,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2787110658,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 627731223,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2763319084,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 603939649,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 2739527510,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 580148075,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2715735936,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 556356501,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2691944362,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 532564927,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2668152788,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 508773353,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2644361214,
+          "obstaclesHit": 0,
+          "laneSwitches": 102,
+          "deviationDensityPer100m": 2.55,
+          "solvable": true
+        },
+        {
+          "seed": 484981779,
+          "obstaclesHit": 0,
+          "laneSwitches": 96,
+          "deviationDensityPer100m": 2.4,
+          "solvable": true
+        },
+        {
+          "seed": 2620569640,
+          "obstaclesHit": 0,
+          "laneSwitches": 93,
+          "deviationDensityPer100m": 2.325,
+          "solvable": true
+        },
+        {
+          "seed": 461190205,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2596778066,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 437398631,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2572986492,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 413607057,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2549194918,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 389815483,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2525403344,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 366023909,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 2501611770,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 342232335,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2477820196,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 318440761,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2454028622,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 294649187,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 2430237048,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 270857613,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2406445474,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 247066039,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2382653900,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 223274465,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2358862326,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 199482891,
+          "obstaclesHit": 0,
+          "laneSwitches": 71,
+          "deviationDensityPer100m": 1.775,
+          "solvable": true
+        },
+        {
+          "seed": 2335070752,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 175691317,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2311279178,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 151899743,
+          "obstaclesHit": 0,
+          "laneSwitches": 97,
+          "deviationDensityPer100m": 2.4250000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2287487604,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 128108169,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2263696030,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 104316595,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2239904456,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 80525021,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2216112882,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        }
+      ],
+      "aggregated": {
+        "obstaclesHit": {
+          "mean": 0,
+          "max": 0
+        },
+        "laneSwitches": {
+          "mean": 82.09,
+          "max": 102
+        },
+        "deviationDensityPer100m": {
+          "mean": 2.0522499999999995,
+          "max": 2.55
+        }
+      }
+    },
+    "kazoo": {
+      "difficulty": "kazoo",
+      "targetSpeedMps": 28,
+      "seedCount": 100,
+      "solvableSeeds": 100,
+      "passRate": 1,
+      "passes": true,
+      "results": [
+        {
+          "seed": 1246312147,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 3381900008,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 1222520573,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 3358108434,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 1198728999,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 3334316860,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 1174937425,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 3310525286,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 1151145851,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3286733712,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 1127354277,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3262942138,
+          "obstaclesHit": 0,
+          "laneSwitches": 69,
+          "deviationDensityPer100m": 1.725,
+          "solvable": true
+        },
+        {
+          "seed": 1103562703,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3239150564,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 1079771129,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 3215358990,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 1055979555,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 3191567416,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 1032187981,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3167775842,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 1008396407,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3143984268,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 984604833,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3120192694,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 960813259,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 3096401120,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 937021685,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 3072609546,
+          "obstaclesHit": 0,
+          "laneSwitches": 95,
+          "deviationDensityPer100m": 2.375,
+          "solvable": true
+        },
+        {
+          "seed": 913230111,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 3048817972,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 889438537,
+          "obstaclesHit": 0,
+          "laneSwitches": 75,
+          "deviationDensityPer100m": 1.875,
+          "solvable": true
+        },
+        {
+          "seed": 3025026398,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 865646963,
+          "obstaclesHit": 0,
+          "laneSwitches": 66,
+          "deviationDensityPer100m": 1.6500000000000001,
+          "solvable": true
+        },
+        {
+          "seed": 3001234824,
+          "obstaclesHit": 0,
+          "laneSwitches": 72,
+          "deviationDensityPer100m": 1.7999999999999998,
+          "solvable": true
+        },
+        {
+          "seed": 841855389,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 2977443250,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 818063815,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2953651676,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 794272241,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2929860102,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 770480667,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2906068528,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 746689093,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2882276954,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 722897519,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2858485380,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 699105945,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2834693806,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 675314371,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2810902232,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 651522797,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2787110658,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 627731223,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2763319084,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 603939649,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 2739527510,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 580148075,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2715735936,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 556356501,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2691944362,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 532564927,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2668152788,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 508773353,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2644361214,
+          "obstaclesHit": 0,
+          "laneSwitches": 102,
+          "deviationDensityPer100m": 2.55,
+          "solvable": true
+        },
+        {
+          "seed": 484981779,
+          "obstaclesHit": 0,
+          "laneSwitches": 96,
+          "deviationDensityPer100m": 2.4,
+          "solvable": true
+        },
+        {
+          "seed": 2620569640,
+          "obstaclesHit": 0,
+          "laneSwitches": 93,
+          "deviationDensityPer100m": 2.325,
+          "solvable": true
+        },
+        {
+          "seed": 461190205,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2596778066,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 437398631,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2572986492,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 413607057,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2549194918,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 389815483,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2525403344,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 366023909,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 2501611770,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 342232335,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2477820196,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 318440761,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2454028622,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 294649187,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 2430237048,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 270857613,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2406445474,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 247066039,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2382653900,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 223274465,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2358862326,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 199482891,
+          "obstaclesHit": 0,
+          "laneSwitches": 71,
+          "deviationDensityPer100m": 1.775,
+          "solvable": true
+        },
+        {
+          "seed": 2335070752,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 175691317,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2311279178,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 151899743,
+          "obstaclesHit": 0,
+          "laneSwitches": 97,
+          "deviationDensityPer100m": 2.4250000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2287487604,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 128108169,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2263696030,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 104316595,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2239904456,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 80525021,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2216112882,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        }
+      ],
+      "aggregated": {
+        "obstaclesHit": {
+          "mean": 0,
+          "max": 0
+        },
+        "laneSwitches": {
+          "mean": 82.09,
+          "max": 102
+        },
+        "deviationDensityPer100m": {
+          "mean": 2.0522499999999995,
+          "max": 2.55
+        }
+      }
+    },
+    "plenty": {
+      "difficulty": "plenty",
+      "targetSpeedMps": 36,
+      "seedCount": 100,
+      "solvableSeeds": 100,
+      "passRate": 1,
+      "passes": true,
+      "results": [
+        {
+          "seed": 1246312147,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 3381900008,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 1222520573,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 3358108434,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 1198728999,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 3334316860,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 1174937425,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 3310525286,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 1151145851,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3286733712,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 1127354277,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3262942138,
+          "obstaclesHit": 0,
+          "laneSwitches": 69,
+          "deviationDensityPer100m": 1.725,
+          "solvable": true
+        },
+        {
+          "seed": 1103562703,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3239150564,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 1079771129,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 3215358990,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 1055979555,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 3191567416,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 1032187981,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3167775842,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 1008396407,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3143984268,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 984604833,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3120192694,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 960813259,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 3096401120,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 937021685,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 3072609546,
+          "obstaclesHit": 0,
+          "laneSwitches": 95,
+          "deviationDensityPer100m": 2.375,
+          "solvable": true
+        },
+        {
+          "seed": 913230111,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 3048817972,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 889438537,
+          "obstaclesHit": 0,
+          "laneSwitches": 75,
+          "deviationDensityPer100m": 1.875,
+          "solvable": true
+        },
+        {
+          "seed": 3025026398,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 865646963,
+          "obstaclesHit": 0,
+          "laneSwitches": 66,
+          "deviationDensityPer100m": 1.6500000000000001,
+          "solvable": true
+        },
+        {
+          "seed": 3001234824,
+          "obstaclesHit": 0,
+          "laneSwitches": 72,
+          "deviationDensityPer100m": 1.7999999999999998,
+          "solvable": true
+        },
+        {
+          "seed": 841855389,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 2977443250,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 818063815,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2953651676,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 794272241,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2929860102,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 770480667,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2906068528,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 746689093,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2882276954,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 722897519,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2858485380,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 699105945,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2834693806,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 675314371,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2810902232,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 651522797,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2787110658,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 627731223,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2763319084,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 603939649,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 2739527510,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 580148075,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2715735936,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 556356501,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2691944362,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 532564927,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2668152788,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 508773353,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2644361214,
+          "obstaclesHit": 0,
+          "laneSwitches": 102,
+          "deviationDensityPer100m": 2.55,
+          "solvable": true
+        },
+        {
+          "seed": 484981779,
+          "obstaclesHit": 0,
+          "laneSwitches": 96,
+          "deviationDensityPer100m": 2.4,
+          "solvable": true
+        },
+        {
+          "seed": 2620569640,
+          "obstaclesHit": 0,
+          "laneSwitches": 93,
+          "deviationDensityPer100m": 2.325,
+          "solvable": true
+        },
+        {
+          "seed": 461190205,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2596778066,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 437398631,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2572986492,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 413607057,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2549194918,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 389815483,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2525403344,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 366023909,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 2501611770,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 342232335,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2477820196,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 318440761,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2454028622,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 294649187,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 2430237048,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 270857613,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2406445474,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 247066039,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2382653900,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 223274465,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2358862326,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 199482891,
+          "obstaclesHit": 0,
+          "laneSwitches": 71,
+          "deviationDensityPer100m": 1.775,
+          "solvable": true
+        },
+        {
+          "seed": 2335070752,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 175691317,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2311279178,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 151899743,
+          "obstaclesHit": 0,
+          "laneSwitches": 97,
+          "deviationDensityPer100m": 2.4250000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2287487604,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 128108169,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2263696030,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 104316595,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2239904456,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 80525021,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2216112882,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        }
+      ],
+      "aggregated": {
+        "obstaclesHit": {
+          "mean": 0,
+          "max": 0
+        },
+        "laneSwitches": {
+          "mean": 82.09,
+          "max": 102
+        },
+        "deviationDensityPer100m": {
+          "mean": 2.0522499999999995,
+          "max": 2.55
+        }
+      }
+    },
+    "ultra-honk": {
+      "difficulty": "ultra-honk",
+      "targetSpeedMps": 44,
+      "seedCount": 100,
+      "solvableSeeds": 100,
+      "passRate": 1,
+      "passes": true,
+      "results": [
+        {
+          "seed": 1246312147,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 3381900008,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 1222520573,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 3358108434,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 1198728999,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 3334316860,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 1174937425,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 3310525286,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 1151145851,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3286733712,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 1127354277,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3262942138,
+          "obstaclesHit": 0,
+          "laneSwitches": 69,
+          "deviationDensityPer100m": 1.725,
+          "solvable": true
+        },
+        {
+          "seed": 1103562703,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3239150564,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 1079771129,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 3215358990,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 1055979555,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 3191567416,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 1032187981,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3167775842,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 1008396407,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3143984268,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 984604833,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3120192694,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 960813259,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 3096401120,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 937021685,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 3072609546,
+          "obstaclesHit": 0,
+          "laneSwitches": 95,
+          "deviationDensityPer100m": 2.375,
+          "solvable": true
+        },
+        {
+          "seed": 913230111,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 3048817972,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 889438537,
+          "obstaclesHit": 0,
+          "laneSwitches": 75,
+          "deviationDensityPer100m": 1.875,
+          "solvable": true
+        },
+        {
+          "seed": 3025026398,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 865646963,
+          "obstaclesHit": 0,
+          "laneSwitches": 66,
+          "deviationDensityPer100m": 1.6500000000000001,
+          "solvable": true
+        },
+        {
+          "seed": 3001234824,
+          "obstaclesHit": 0,
+          "laneSwitches": 72,
+          "deviationDensityPer100m": 1.7999999999999998,
+          "solvable": true
+        },
+        {
+          "seed": 841855389,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 2977443250,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 818063815,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2953651676,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 794272241,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2929860102,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 770480667,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2906068528,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 746689093,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2882276954,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 722897519,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2858485380,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 699105945,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2834693806,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 675314371,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2810902232,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 651522797,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2787110658,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 627731223,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2763319084,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 603939649,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 2739527510,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 580148075,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2715735936,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 556356501,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2691944362,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 532564927,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2668152788,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 508773353,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2644361214,
+          "obstaclesHit": 0,
+          "laneSwitches": 102,
+          "deviationDensityPer100m": 2.55,
+          "solvable": true
+        },
+        {
+          "seed": 484981779,
+          "obstaclesHit": 0,
+          "laneSwitches": 96,
+          "deviationDensityPer100m": 2.4,
+          "solvable": true
+        },
+        {
+          "seed": 2620569640,
+          "obstaclesHit": 0,
+          "laneSwitches": 93,
+          "deviationDensityPer100m": 2.325,
+          "solvable": true
+        },
+        {
+          "seed": 461190205,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2596778066,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 437398631,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2572986492,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 413607057,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2549194918,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 389815483,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2525403344,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 366023909,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 2501611770,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 342232335,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2477820196,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 318440761,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2454028622,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 294649187,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 2430237048,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 270857613,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2406445474,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 247066039,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2382653900,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 223274465,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2358862326,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 199482891,
+          "obstaclesHit": 0,
+          "laneSwitches": 71,
+          "deviationDensityPer100m": 1.775,
+          "solvable": true
+        },
+        {
+          "seed": 2335070752,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 175691317,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2311279178,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 151899743,
+          "obstaclesHit": 0,
+          "laneSwitches": 97,
+          "deviationDensityPer100m": 2.4250000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2287487604,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 128108169,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2263696030,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 104316595,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2239904456,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 80525021,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2216112882,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        }
+      ],
+      "aggregated": {
+        "obstaclesHit": {
+          "mean": 0,
+          "max": 0
+        },
+        "laneSwitches": {
+          "mean": 82.09,
+          "max": 102
+        },
+        "deviationDensityPer100m": {
+          "mean": 2.0522499999999995,
+          "max": 2.55
+        }
+      }
+    },
+    "nightmare": {
+      "difficulty": "nightmare",
+      "targetSpeedMps": 52,
+      "seedCount": 100,
+      "solvableSeeds": 100,
+      "passRate": 1,
+      "passes": true,
+      "results": [
+        {
+          "seed": 1246312147,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 3381900008,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 1222520573,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 3358108434,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 1198728999,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 3334316860,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 1174937425,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 3310525286,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 1151145851,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3286733712,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 1127354277,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3262942138,
+          "obstaclesHit": 0,
+          "laneSwitches": 69,
+          "deviationDensityPer100m": 1.725,
+          "solvable": true
+        },
+        {
+          "seed": 1103562703,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3239150564,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 1079771129,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 3215358990,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 1055979555,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 3191567416,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 1032187981,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3167775842,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 1008396407,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3143984268,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 984604833,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3120192694,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 960813259,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 3096401120,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 937021685,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 3072609546,
+          "obstaclesHit": 0,
+          "laneSwitches": 95,
+          "deviationDensityPer100m": 2.375,
+          "solvable": true
+        },
+        {
+          "seed": 913230111,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 3048817972,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 889438537,
+          "obstaclesHit": 0,
+          "laneSwitches": 75,
+          "deviationDensityPer100m": 1.875,
+          "solvable": true
+        },
+        {
+          "seed": 3025026398,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 865646963,
+          "obstaclesHit": 0,
+          "laneSwitches": 66,
+          "deviationDensityPer100m": 1.6500000000000001,
+          "solvable": true
+        },
+        {
+          "seed": 3001234824,
+          "obstaclesHit": 0,
+          "laneSwitches": 72,
+          "deviationDensityPer100m": 1.7999999999999998,
+          "solvable": true
+        },
+        {
+          "seed": 841855389,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 2977443250,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 818063815,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2953651676,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 794272241,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2929860102,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 770480667,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2906068528,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 746689093,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2882276954,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 722897519,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2858485380,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 699105945,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2834693806,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 675314371,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2810902232,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 651522797,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2787110658,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 627731223,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2763319084,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 603939649,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 2739527510,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 580148075,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2715735936,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 556356501,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2691944362,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 532564927,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2668152788,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 508773353,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2644361214,
+          "obstaclesHit": 0,
+          "laneSwitches": 102,
+          "deviationDensityPer100m": 2.55,
+          "solvable": true
+        },
+        {
+          "seed": 484981779,
+          "obstaclesHit": 0,
+          "laneSwitches": 96,
+          "deviationDensityPer100m": 2.4,
+          "solvable": true
+        },
+        {
+          "seed": 2620569640,
+          "obstaclesHit": 0,
+          "laneSwitches": 93,
+          "deviationDensityPer100m": 2.325,
+          "solvable": true
+        },
+        {
+          "seed": 461190205,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2596778066,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 437398631,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2572986492,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 413607057,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2549194918,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 389815483,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2525403344,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 366023909,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 2501611770,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 342232335,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2477820196,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 318440761,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2454028622,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 294649187,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 2430237048,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 270857613,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2406445474,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 247066039,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2382653900,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 223274465,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2358862326,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 199482891,
+          "obstaclesHit": 0,
+          "laneSwitches": 71,
+          "deviationDensityPer100m": 1.775,
+          "solvable": true
+        },
+        {
+          "seed": 2335070752,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 175691317,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2311279178,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 151899743,
+          "obstaclesHit": 0,
+          "laneSwitches": 97,
+          "deviationDensityPer100m": 2.4250000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2287487604,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 128108169,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2263696030,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 104316595,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2239904456,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 80525021,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2216112882,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        }
+      ],
+      "aggregated": {
+        "obstaclesHit": {
+          "mean": 0,
+          "max": 0
+        },
+        "laneSwitches": {
+          "mean": 82.09,
+          "max": 102
+        },
+        "deviationDensityPer100m": {
+          "mean": 2.0522499999999995,
+          "max": 2.55
+        }
+      }
+    },
+    "ultra-nightmare": {
+      "difficulty": "ultra-nightmare",
+      "targetSpeedMps": 58,
+      "seedCount": 100,
+      "solvableSeeds": 100,
+      "passRate": 1,
+      "passes": true,
+      "results": [
+        {
+          "seed": 1246312147,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 3381900008,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 1222520573,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 3358108434,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 1198728999,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 3334316860,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 1174937425,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 3310525286,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 1151145851,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3286733712,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 1127354277,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3262942138,
+          "obstaclesHit": 0,
+          "laneSwitches": 69,
+          "deviationDensityPer100m": 1.725,
+          "solvable": true
+        },
+        {
+          "seed": 1103562703,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3239150564,
+          "obstaclesHit": 0,
+          "laneSwitches": 81,
+          "deviationDensityPer100m": 2.025,
+          "solvable": true
+        },
+        {
+          "seed": 1079771129,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 3215358990,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 1055979555,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 3191567416,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 1032187981,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 3167775842,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 1008396407,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 3143984268,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 984604833,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 3120192694,
+          "obstaclesHit": 0,
+          "laneSwitches": 73,
+          "deviationDensityPer100m": 1.825,
+          "solvable": true
+        },
+        {
+          "seed": 960813259,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 3096401120,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 937021685,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 3072609546,
+          "obstaclesHit": 0,
+          "laneSwitches": 95,
+          "deviationDensityPer100m": 2.375,
+          "solvable": true
+        },
+        {
+          "seed": 913230111,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 3048817972,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 889438537,
+          "obstaclesHit": 0,
+          "laneSwitches": 75,
+          "deviationDensityPer100m": 1.875,
+          "solvable": true
+        },
+        {
+          "seed": 3025026398,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 865646963,
+          "obstaclesHit": 0,
+          "laneSwitches": 66,
+          "deviationDensityPer100m": 1.6500000000000001,
+          "solvable": true
+        },
+        {
+          "seed": 3001234824,
+          "obstaclesHit": 0,
+          "laneSwitches": 72,
+          "deviationDensityPer100m": 1.7999999999999998,
+          "solvable": true
+        },
+        {
+          "seed": 841855389,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 2977443250,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 818063815,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2953651676,
+          "obstaclesHit": 0,
+          "laneSwitches": 76,
+          "deviationDensityPer100m": 1.9,
+          "solvable": true
+        },
+        {
+          "seed": 794272241,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2929860102,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 770480667,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2906068528,
+          "obstaclesHit": 0,
+          "laneSwitches": 74,
+          "deviationDensityPer100m": 1.8499999999999999,
+          "solvable": true
+        },
+        {
+          "seed": 746689093,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2882276954,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 722897519,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2858485380,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 699105945,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2834693806,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 675314371,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2810902232,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 651522797,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2787110658,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 627731223,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2763319084,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 603939649,
+          "obstaclesHit": 0,
+          "laneSwitches": 90,
+          "deviationDensityPer100m": 2.25,
+          "solvable": true
+        },
+        {
+          "seed": 2739527510,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 580148075,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 2715735936,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 556356501,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2691944362,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 532564927,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2668152788,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 508773353,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2644361214,
+          "obstaclesHit": 0,
+          "laneSwitches": 102,
+          "deviationDensityPer100m": 2.55,
+          "solvable": true
+        },
+        {
+          "seed": 484981779,
+          "obstaclesHit": 0,
+          "laneSwitches": 96,
+          "deviationDensityPer100m": 2.4,
+          "solvable": true
+        },
+        {
+          "seed": 2620569640,
+          "obstaclesHit": 0,
+          "laneSwitches": 93,
+          "deviationDensityPer100m": 2.325,
+          "solvable": true
+        },
+        {
+          "seed": 461190205,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2596778066,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 437398631,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2572986492,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 413607057,
+          "obstaclesHit": 0,
+          "laneSwitches": 79,
+          "deviationDensityPer100m": 1.975,
+          "solvable": true
+        },
+        {
+          "seed": 2549194918,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 389815483,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 2525403344,
+          "obstaclesHit": 0,
+          "laneSwitches": 86,
+          "deviationDensityPer100m": 2.15,
+          "solvable": true
+        },
+        {
+          "seed": 366023909,
+          "obstaclesHit": 0,
+          "laneSwitches": 70,
+          "deviationDensityPer100m": 1.7500000000000002,
+          "solvable": true
+        },
+        {
+          "seed": 2501611770,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 342232335,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2477820196,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 318440761,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2454028622,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 294649187,
+          "obstaclesHit": 0,
+          "laneSwitches": 91,
+          "deviationDensityPer100m": 2.275,
+          "solvable": true
+        },
+        {
+          "seed": 2430237048,
+          "obstaclesHit": 0,
+          "laneSwitches": 78,
+          "deviationDensityPer100m": 1.95,
+          "solvable": true
+        },
+        {
+          "seed": 270857613,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2406445474,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 247066039,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 2382653900,
+          "obstaclesHit": 0,
+          "laneSwitches": 83,
+          "deviationDensityPer100m": 2.075,
+          "solvable": true
+        },
+        {
+          "seed": 223274465,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 2358862326,
+          "obstaclesHit": 0,
+          "laneSwitches": 85,
+          "deviationDensityPer100m": 2.125,
+          "solvable": true
+        },
+        {
+          "seed": 199482891,
+          "obstaclesHit": 0,
+          "laneSwitches": 71,
+          "deviationDensityPer100m": 1.775,
+          "solvable": true
+        },
+        {
+          "seed": 2335070752,
+          "obstaclesHit": 0,
+          "laneSwitches": 80,
+          "deviationDensityPer100m": 2,
+          "solvable": true
+        },
+        {
+          "seed": 175691317,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 2311279178,
+          "obstaclesHit": 0,
+          "laneSwitches": 87,
+          "deviationDensityPer100m": 2.175,
+          "solvable": true
+        },
+        {
+          "seed": 151899743,
+          "obstaclesHit": 0,
+          "laneSwitches": 97,
+          "deviationDensityPer100m": 2.4250000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2287487604,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        },
+        {
+          "seed": 128108169,
+          "obstaclesHit": 0,
+          "laneSwitches": 77,
+          "deviationDensityPer100m": 1.925,
+          "solvable": true
+        },
+        {
+          "seed": 2263696030,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 104316595,
+          "obstaclesHit": 0,
+          "laneSwitches": 82,
+          "deviationDensityPer100m": 2.0500000000000003,
+          "solvable": true
+        },
+        {
+          "seed": 2239904456,
+          "obstaclesHit": 0,
+          "laneSwitches": 89,
+          "deviationDensityPer100m": 2.225,
+          "solvable": true
+        },
+        {
+          "seed": 80525021,
+          "obstaclesHit": 0,
+          "laneSwitches": 84,
+          "deviationDensityPer100m": 2.1,
+          "solvable": true
+        },
+        {
+          "seed": 2216112882,
+          "obstaclesHit": 0,
+          "laneSwitches": 88,
+          "deviationDensityPer100m": 2.1999999999999997,
+          "solvable": true
+        }
+      ],
+      "aggregated": {
+        "obstaclesHit": {
+          "mean": 0,
+          "max": 0
+        },
+        "laneSwitches": {
+          "mean": 82.09,
+          "max": 102
+        },
+        "deviationDensityPer100m": {
+          "mean": 2.0522499999999995,
+          "max": 2.55
+        }
+      }
+    }
+  }
+}

@@ -7,12 +7,17 @@
  * Radio: preferred_control ('pointer' | 'keyboard' | 'touch' | 'gamepad').
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BrandButton } from '@/design/components/BrandButton';
 import { Dialog } from '@/design/components/Dialog';
 import { color, space } from '@/design/tokens';
-import { ui, typeStyle } from '@/design/typography';
-import { type GameSettings, type PreferredControl, getSettings, updateSettings } from '@/persistence/settings';
+import { typeStyle, ui } from '@/design/typography';
+import {
+  type GameSettings,
+  getSettings,
+  type PreferredControl,
+  updateSettings,
+} from '@/persistence/settings';
 
 interface Props {
   onClose: () => void;
@@ -20,10 +25,25 @@ interface Props {
 
 export function SettingsPanel({ onClose }: Props) {
   const [settings, setSettings] = useState<GameSettings | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     getSettings().then(setSettings);
   }, []);
+
+  // Focus close button on mount
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
+  // Esc closes the panel
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   async function patch(partial: Partial<GameSettings>) {
     if (!settings) return;
@@ -35,7 +55,14 @@ export function SettingsPanel({ onClose }: Props) {
   if (!settings) {
     return (
       <Dialog tone="info" testId="settings-panel" ariaLabel="Settings">
-        <div style={{ ...typeStyle(ui.body), color: color.dim, textAlign: 'center', padding: space.xl }}>
+        <div
+          style={{
+            ...typeStyle(ui.body),
+            color: color.dim,
+            textAlign: 'center',
+            padding: space.xl,
+          }}
+        >
           Loading…
         </div>
       </Dialog>
@@ -70,7 +97,13 @@ export function SettingsPanel({ onClose }: Props) {
         >
           SETTINGS
         </div>
-        <BrandButton kind="ghost" size="sm" onClick={onClose} testId="settings-close">
+        <BrandButton
+          ref={closeButtonRef}
+          kind="ghost"
+          size="sm"
+          onClick={onClose}
+          testId="settings-close"
+        >
           CLOSE
         </BrandButton>
       </div>
@@ -116,12 +149,23 @@ export function SettingsPanel({ onClose }: Props) {
           testId="setting-zone-banner"
           onChange={(v) => patch({ showZoneBanner: v })}
         />
+        <ToggleRow
+          label="Show racing line"
+          checked={settings.showRacingLine}
+          testId="setting-racing-line"
+          onChange={(v) => patch({ showRacingLine: v })}
+        />
 
         {/* UI Scale slider */}
         <SectionLabel>Interface Scale</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: space.xs }}>
           <div
-            style={{ display: 'flex', justifyContent: 'space-between', ...typeStyle(ui.body), color: color.white }}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              ...typeStyle(ui.body),
+              color: color.white,
+            }}
           >
             <span>UI Scale</span>
             <span style={{ color: color.yellow }}>{settings.uiScaleMultiplier.toFixed(1)}×</span>

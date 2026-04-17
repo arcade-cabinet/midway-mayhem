@@ -6,9 +6,15 @@ const _store = new Map<string, string>();
 vi.mock('@capacitor/preferences', () => ({
   Preferences: {
     get: async ({ key }: { key: string }) => ({ value: _store.get(key) ?? null }),
-    set: async ({ key, value }: { key: string; value: string }) => { _store.set(key, value); },
-    remove: async ({ key }: { key: string }) => { _store.delete(key); },
-    clear: async () => { _store.clear(); },
+    set: async ({ key, value }: { key: string; value: string }) => {
+      _store.set(key, value);
+    },
+    remove: async ({ key }: { key: string }) => {
+      _store.delete(key);
+    },
+    clear: async () => {
+      _store.clear();
+    },
   },
 }));
 

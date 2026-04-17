@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { PLUNGE_DURATION_S, DROP_DURATION_MS, resetGameState, useGameStore } from '@/game/gameState';
+import {
+  DROP_DURATION_MS,
+  PLUNGE_DURATION_S,
+  resetGameState,
+  useGameStore,
+} from '@/game/gameState';
 import { TRACK } from '@/utils/constants';
 
 // Jump past the drop-in animation so distance-based tests can tick gameplay
@@ -21,7 +26,7 @@ describe('gameState store', () => {
   });
 
   it('startRun flips running=true and seeds the run', () => {
-    useGameStore.getState().startRun(12345);
+    useGameStore.getState().startRun({ seed: 12345 });
     const s = useGameStore.getState();
     expect(s.running).toBe(true);
     expect(s.seed).toBe(12345);
@@ -29,7 +34,7 @@ describe('gameState store', () => {
   });
 
   it('tick advances distance when running', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     skipDropIn();
     const before = useGameStore.getState().distance;
     useGameStore.getState().tick(0.5, performance.now());
@@ -38,7 +43,7 @@ describe('gameState store', () => {
   });
 
   it('tick is no-op when paused', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     skipDropIn();
     useGameStore.getState().pause();
     const before = useGameStore.getState().distance;
@@ -47,7 +52,7 @@ describe('gameState store', () => {
   });
 
   it('drop-in freezes distance for first ~1.8s', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     const t0 = useGameStore.getState().dropStartedAt;
     useGameStore.getState().tick(0.5, t0 + 500);
     expect(useGameStore.getState().distance).toBe(0);
@@ -61,7 +66,7 @@ describe('gameState store', () => {
   });
 
   it('applyCrash reduces sanity and increments crash counter', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     const before = useGameStore.getState().sanity;
     useGameStore.getState().applyCrash(false);
     const after = useGameStore.getState().sanity;
@@ -70,18 +75,18 @@ describe('gameState store', () => {
   });
 
   it('heavy crash reduces sanity more than light', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     useGameStore.getState().applyCrash(false);
     const afterLight = useGameStore.getState().sanity;
     resetGameState();
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     useGameStore.getState().applyCrash(true);
     const afterHeavy = useGameStore.getState().sanity;
     expect(afterHeavy).toBeLessThan(afterLight);
   });
 
   it('gameOver becomes true when sanity hits zero', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     // Pound with heavy crashes
     for (let i = 0; i < 10; i++) useGameStore.getState().applyCrash(true);
     expect(useGameStore.getState().gameOver).toBe(true);
@@ -89,7 +94,7 @@ describe('gameState store', () => {
   });
 
   it('applyPickup rewards crowd reaction', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     useGameStore.getState().applyPickup('ticket');
     expect(useGameStore.getState().crowdReaction).toBeGreaterThan(0);
     const afterTicket = useGameStore.getState().crowdReaction;
@@ -98,7 +103,7 @@ describe('gameState store', () => {
   });
 
   it('boost pickup sets boostUntil in the future', () => {
-    useGameStore.getState().startRun(1);
+    useGameStore.getState().startRun({ seed: 1 });
     const now = performance.now();
     useGameStore.getState().applyPickup('boost');
     expect(useGameStore.getState().boostUntil).toBeGreaterThan(now);
@@ -115,7 +120,7 @@ describe('gameState store', () => {
 
   describe('plunge detection', () => {
     it('does not plunge on a non-ramp piece even when lateral exceeds clamp', () => {
-      useGameStore.getState().startRun(1);
+      useGameStore.getState().startRun({ seed: 1 });
       skipDropIn();
       // Drive player off-side on a straight piece — should NOT plunge
       useGameStore.getState().setCurrentPieceKind('straight');
@@ -125,7 +130,7 @@ describe('gameState store', () => {
     });
 
     it('triggers plunge when lateral exceeds clamp+0.5 on a rampLong piece', () => {
-      useGameStore.getState().startRun(1);
+      useGameStore.getState().startRun({ seed: 1 });
       skipDropIn();
       useGameStore.getState().setCurrentPieceKind('rampLong');
       // Place player just past the plunge threshold
@@ -140,7 +145,7 @@ describe('gameState store', () => {
     });
 
     it('triggers plunge on ramp piece', () => {
-      useGameStore.getState().startRun(1);
+      useGameStore.getState().startRun({ seed: 1 });
       skipDropIn();
       useGameStore.getState().setCurrentPieceKind('ramp');
       useGameStore.getState().setLateral(-(TRACK.LATERAL_CLAMP + 0.6));
@@ -151,7 +156,7 @@ describe('gameState store', () => {
     });
 
     it('triggers plunge on rampLongCurved piece', () => {
-      useGameStore.getState().startRun(1);
+      useGameStore.getState().startRun({ seed: 1 });
       skipDropIn();
       useGameStore.getState().setCurrentPieceKind('rampLongCurved');
       useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP + 0.6);
@@ -160,7 +165,7 @@ describe('gameState store', () => {
     });
 
     it('does not plunge when lateral is within safe bounds on a ramp', () => {
-      useGameStore.getState().startRun(1);
+      useGameStore.getState().startRun({ seed: 1 });
       skipDropIn();
       useGameStore.getState().setCurrentPieceKind('rampLong');
       // Stay just inside the threshold
@@ -170,7 +175,7 @@ describe('gameState store', () => {
     });
 
     it('freezes gameplay while plunging', () => {
-      useGameStore.getState().startRun(1);
+      useGameStore.getState().startRun({ seed: 1 });
       skipDropIn();
       useGameStore.getState().setCurrentPieceKind('rampLong');
       useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP + 0.6);
@@ -184,7 +189,7 @@ describe('gameState store', () => {
     });
 
     it('ends run with gameOver after plunge duration elapses', () => {
-      useGameStore.getState().startRun(1);
+      useGameStore.getState().startRun({ seed: 1 });
       skipDropIn();
       useGameStore.getState().setCurrentPieceKind('rampLong');
       useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP + 0.6);

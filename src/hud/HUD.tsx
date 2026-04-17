@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { honk } from '@/audio';
+import { onHonk } from '@/audio/honkBus';
 import { Banner } from '@/design/components/Banner';
 import { BrandButton } from '@/design/components/BrandButton';
 import { HUDFrame } from '@/design/components/HUDFrame';
@@ -6,14 +8,13 @@ import { Panel } from '@/design/components/Panel';
 import { Stat } from '@/design/components/Stat';
 import { color, motion, safeArea, space } from '@/design/tokens';
 import { display, typeStyle, ui } from '@/design/typography';
-import { useFormFactor } from '@/hooks/useFormFactor';
-import { markShown, shouldShow } from '@/persistence/tutorial';
 import { combo } from '@/game/comboSystem';
 import { useGameStore } from '@/game/gameState';
-import { honk } from '@/audio';
-import { onHonk } from '@/audio/honkBus';
-import type { RaidKind } from '@/obstacles/raidDirector';
 import type { TrickInput, TrickKind } from '@/game/trickSystem';
+import { useFormFactor } from '@/hooks/useFormFactor';
+import type { RaidKind } from '@/obstacles/raidDirector';
+import { markShown, shouldShow } from '@/persistence/tutorial';
+import { RacingLineMeter } from './RacingLineMeter';
 
 export function HUD() {
   const hype = useGameStore((s) => s.hype);
@@ -69,7 +70,7 @@ export function HUD() {
             left: `calc(${space.md}px + ${safeArea.left})`,
             right: `calc(${space.md}px + ${safeArea.right})`,
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: '1fr 1fr 1fr',
             gap: space.md,
             marginBottom: 80,
           }}
@@ -84,6 +85,9 @@ export function HUD() {
           </Panel>
           <Panel variant="dark" testId="hud-crowd">
             <Stat label="CROWD" value={crowd.toFixed(0)} valueColor={color.blue} />
+          </Panel>
+          <Panel variant="dark">
+            <RacingLineMeter />
           </Panel>
         </div>
 
@@ -126,6 +130,9 @@ export function HUD() {
           bar={{ value: sanity, tone: 'red' }}
           labelColor={color.red}
         />
+        <div style={{ marginTop: space.sm }}>
+          <RacingLineMeter />
+        </div>
       </Panel>
 
       <Panel corner="br" variant="dark" testId="hud-crowd">
@@ -181,7 +188,9 @@ function HonkButton() {
     return onHonk(() => {
       if (shouldShow('first-honk')) {
         setShowHonkHint(false);
-        markShown('first-honk').catch(() => { /* non-critical */ });
+        markShown('first-honk').catch(() => {
+          /* non-critical */
+        });
       }
     });
   }, []);
@@ -193,6 +202,7 @@ function HonkButton() {
         bottom: `calc(${space.lg}px + ${safeArea.bottom})`,
         left: '50%',
         transform: 'translateX(-50%)',
+        touchAction: 'manipulation',
       }}
     >
       {/* First-honk tutorial hint */}
@@ -219,6 +229,7 @@ function HonkButton() {
       {ringVisible && (
         <div
           data-testid="combo-ring"
+          role="img"
           aria-label={`Combo ${mult}×`}
           style={{
             position: 'absolute',
@@ -251,12 +262,7 @@ function HonkButton() {
           {mult}×
         </div>
       )}
-      <BrandButton
-        kind="primary"
-        size="md"
-        onClick={() => honk()}
-        testId="honk-button"
-      >
+      <BrandButton kind="primary" size="md" onClick={() => honk()} testId="honk-button">
         HONK
       </BrandButton>
     </div>
@@ -273,10 +279,19 @@ function GameOverOverlay({
   onRestart: () => void;
 }) {
   const setPhotoMode = useGameStore((s) => s.setPhotoMode);
+  const restartRef = useRef<HTMLButtonElement | null>(null);
+
+  // Focus RESTART button on mount so keyboard users can press Enter immediately
+  useEffect(() => {
+    restartRef.current?.focus();
+  }, []);
 
   return (
     <div
       data-testid="game-over"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Game Over"
       style={{
         position: 'absolute',
         inset: 0,
@@ -315,8 +330,22 @@ function GameOverOverlay({
         >
           Crowd Reaction: {crowd.toFixed(0)}
         </div>
-        <div style={{ marginTop: space.xl, display: 'flex', gap: space.md, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <BrandButton kind="primary" size="lg" onClick={onRestart} testId="restart-button">
+        <div
+          style={{
+            marginTop: space.xl,
+            display: 'flex',
+            gap: space.md,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <BrandButton
+            ref={restartRef}
+            kind="primary"
+            size="lg"
+            onClick={onRestart}
+            testId="restart-button"
+          >
             AGAIN!
           </BrandButton>
           <BrandButton
@@ -353,7 +382,7 @@ function RaidTelegraphBanner() {
         const s = rd.getState() as { kind: RaidKind; phase: string } | null;
         const show = s !== null && s.phase === 'telegraph';
         setVisible(show);
-        if (show) setLabel(RAID_KIND_LABEL[s!.kind] ?? '');
+        if (show) setLabel(RAID_KIND_LABEL[s?.kind] ?? '');
       }
       rafRef.current = requestAnimationFrame(poll);
     };

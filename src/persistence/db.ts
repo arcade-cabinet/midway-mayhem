@@ -15,8 +15,10 @@
  * Drizzle ORM wraps the async connection through the sqlite-proxy driver.
  * All DDL is run inline via runMigrations() — no separate migration files.
  */
-import { drizzle, type SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
+
 import { sql } from 'drizzle-orm';
+import { drizzle, type SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
+import initSqlJs from 'sql.js';
 import * as schema from './schema';
 
 const DB_NAME = 'midway-mayhem.db';
@@ -27,7 +29,7 @@ const DB_VERSION = 1;
 function isTestEnv(): boolean {
   return (
     typeof process !== 'undefined' &&
-    (process.env['VITEST'] === 'true' || process.env['NODE_ENV'] === 'test')
+    (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test')
   );
 }
 
@@ -38,10 +40,7 @@ function isNativePlatform(): boolean {
 }
 
 function hasOpfsSupport(): boolean {
-  return (
-    typeof navigator !== 'undefined' &&
-    typeof navigator.storage?.getDirectory === 'function'
-  );
+  return typeof navigator !== 'undefined' && typeof navigator.storage?.getDirectory === 'function';
 }
 
 // ─── State ────────────────────────────────────���────────────────────────────
@@ -74,7 +73,6 @@ function rowsToValueArrays(rows: unknown[]): unknown[][] {
 // ─── In-memory sql.js path (tests + fallback) ───────────────────────────────
 
 async function openInMemorySqlJs(): Promise<void> {
-  const initSqlJs = (await import('sql.js')).default;
   _sqlJsMod = await initSqlJs();
   _sqlJsDb = new _sqlJsMod.Database();
   _drizzle = buildSqlJsDrizzle();
@@ -83,8 +81,6 @@ async function openInMemorySqlJs(): Promise<void> {
 // ─── OPFS + sql.js path (web browser with durable persistence) ──────────────
 
 async function openOpfsSqlJs(): Promise<void> {
-  const initSqlJs = (await import('sql.js')).default;
-
   // Locate the WASM binary — Vite copies it to /public/assets via copywasm.ts
   let wasmUrl: string;
   if (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL != null) {
@@ -178,8 +174,7 @@ async function ensureJeepElement(): Promise<void> {
 }
 
 async function openCapacitorConnection(): Promise<void> {
-  const { CapacitorSQLite, SQLiteConnection } =
-    await import('@capacitor-community/sqlite');
+  const { CapacitorSQLite, SQLiteConnection } = await import('@capacitor-community/sqlite');
 
   // On native, jeep-sqlite element is not needed; on web fallback it would be,
   // but we only call this path on native platforms.
@@ -355,13 +350,21 @@ export function db(): SqliteRemoteDatabase<typeof schema> {
  */
 export async function resetDbForTests(): Promise<void> {
   if (_sqlJsDb) {
-    try { _sqlJsDb.close?.(); } catch { /* ignore */ }
+    try {
+      _sqlJsDb.close?.();
+    } catch {
+      /* ignore */
+    }
     _sqlJsDb = null;
     _sqlJsMod = null;
     _opfsFile = null;
   }
   if (_sqliteDb) {
-    try { await _sqliteDb.close(); } catch { /* ignore */ }
+    try {
+      await _sqliteDb.close();
+    } catch {
+      /* ignore */
+    }
     _sqliteDb = null;
   }
   _drizzle = null;

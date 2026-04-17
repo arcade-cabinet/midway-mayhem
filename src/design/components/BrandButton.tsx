@@ -1,13 +1,16 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, forwardRef, type ReactNode } from 'react';
 import { color, elevation, radius, space } from '../tokens';
 import { display, typeStyle } from '../typography';
 
-type Kind = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Kind = 'primary' | 'secondary' | 'ghost' | 'danger' | 'balloon';
 type Size = 'sm' | 'md' | 'lg';
+export type BalloonHue = 'red' | 'yellow' | 'blue' | 'purple' | 'orange' | 'green';
 
 interface Props {
   kind?: Kind;
   size?: Size;
+  /** For kind="balloon" — picks the fill color from the brand palette. */
+  hue?: BalloonHue;
   onClick?: () => void;
   children: ReactNode;
   testId?: string;
@@ -28,16 +31,39 @@ const TYPE_SIZE: Record<Size, string> = {
   lg: '2rem',
 };
 
-export function BrandButton({
-  kind = 'primary',
-  size = 'md',
-  onClick,
-  children,
-  testId,
-  style,
-  disabled,
-  type = 'button',
-}: Props) {
+const BALLOON_FILL: Record<BalloonHue, string> = {
+  red: color.red,
+  yellow: color.yellow,
+  blue: color.blue,
+  purple: color.purple,
+  orange: color.orange,
+  green: '#43a047',
+};
+
+// Text color chosen per fill so contrast stays high and brand reads right.
+const BALLOON_TEXT: Record<BalloonHue, string> = {
+  red: color.white,
+  yellow: color.night,
+  blue: color.white,
+  purple: color.white,
+  orange: color.night,
+  green: color.white,
+};
+
+export const BrandButton = forwardRef<HTMLButtonElement, Props>(function BrandButton(
+  {
+    kind = 'primary',
+    size = 'md',
+    hue,
+    onClick,
+    children,
+    testId,
+    style,
+    disabled,
+    type = 'button',
+  },
+  ref,
+) {
   const scheme = (() => {
     switch (kind) {
       case 'primary':
@@ -47,6 +73,15 @@ export function BrandButton({
           border: color.yellow,
           shadow: elevation.glow,
         };
+      case 'balloon': {
+        const h = hue ?? 'red';
+        return {
+          bg: BALLOON_FILL[h],
+          color: BALLOON_TEXT[h],
+          border: color.yellow,
+          shadow: elevation.glow,
+        };
+      }
       case 'secondary':
         return {
           bg: 'transparent',
@@ -73,6 +108,7 @@ export function BrandButton({
 
   return (
     <button
+      ref={ref}
       data-testid={testId}
       type={type}
       onClick={onClick}
@@ -95,4 +131,4 @@ export function BrandButton({
       {children}
     </button>
   );
-}
+});

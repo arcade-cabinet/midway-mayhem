@@ -6,8 +6,8 @@
  * always steady. Collision only applies to the real obstacle.
  */
 
-import type { Rng } from '@/utils/rng';
 import { TRACK } from '@/utils/constants';
+import type { Rng } from '@/utils/rng';
 
 export interface MirrorEntry {
   realObstacleId: number;

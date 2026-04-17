@@ -7,13 +7,14 @@
  * Data source: SQLite `daily_runs` table via persistence/profile.
  * Falls back to empty state if DB not yet initialized.
  */
+
+import { desc } from 'drizzle-orm';
 import { useEffect, useState } from 'react';
+import { color, elevation, radius, space } from '@/design/tokens';
+import { typeStyle, ui } from '@/design/typography';
 import { db } from '@/persistence/db';
 import { dailyRuns } from '@/persistence/schema';
-import { color, elevation, radius, space } from '@/design/tokens';
-import { ui, typeStyle } from '@/design/typography';
-import { getDailySeed, utcDateString } from '@/track/dailyRoute';
-import { desc } from 'drizzle-orm';
+import { utcDateString } from '@/track/dailyRoute';
 
 interface LeaderboardEntry {
   dateUtc: string;
@@ -32,7 +33,6 @@ function formatDistance(cm: number): string {
 export function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const dailySeed = getDailySeed();
   const today = utcDateString();
 
   useEffect(() => {
@@ -54,7 +54,9 @@ export function Leaderboard() {
       }
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -82,15 +84,10 @@ export function Leaderboard() {
         }}
       >
         <span>🏆 LOCAL BESTS</span>
-        <span style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.75rem' }}>
-          Today: #{dailySeed.toString(16).toUpperCase().slice(0, 6)}
-        </span>
       </div>
 
       {loading ? (
-        <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.85rem' }}>
-          Loading…
-        </div>
+        <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.85rem' }}>Loading…</div>
       ) : entries.length === 0 ? (
         <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.85rem' }}>
           No runs yet — be first!
@@ -124,7 +121,8 @@ export function Leaderboard() {
                     {formatDistance(entry.bestDistanceCm)}
                   </div>
                   <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.75rem' }}>
-                    {entry.dateUtc === today ? 'Today' : entry.dateUtc} · {entry.runCount} run{entry.runCount !== 1 ? 's' : ''}
+                    {entry.dateUtc === today ? 'Today' : entry.dateUtc} · {entry.runCount} run
+                    {entry.runCount !== 1 ? 's' : ''}
                   </div>
                 </div>
               </div>

@@ -1,43 +1,41 @@
 appId: com.midwaymayhem.app
----
-# Midway Mayhem iOS Smoke Test
+# Maestro flow: iOS smoke — boot, title, tap START, confirm HUD, tap HONK.
+# iOS-specific: WKWebView needs extra warm-up time (20 s vs Android 15 s).
 # Preconditions:
-#   - iOS Simulator running (xcrun simctl list shows a booted device)
-#   - App installed via: xcrun simctl install booted <path-to-.app>
-#   - Maestro CLI installed: brew install mobile-dev-inc/tap/maestro
-
+#   xcrun simctl list devices booted — at least one device in Booted state
+#   App installed: xcrun simctl install booted <path/to/App.app>
+# Output screenshot: docs/media/maestro/ios/boot.png
+---
 - launchApp:
-    appId: com.midwaymayhem.app
     clearState: false
 
-# Wait for title screen (iOS may need extra time for WebView warm-up)
-- waitForAnimationToEnd:
-    timeout: 15000
-- assertVisible:
-    id: "start-button"
+# iOS WKWebView warm-up is slower than Android WebView
+- extendedWaitUntil:
+    visible:
+      id: "start-button"
+    timeout: 20000
 
-# Tap START button
+- assertVisible: "MIDWAY"
+
 - tapOn:
     id: "start-button"
 
-# Wait for HUD to appear (game is running)
-- waitForAnimationToEnd:
-    timeout: 20000
-- assertVisible:
-    id: "hud"
+- extendedWaitUntil:
+    visible:
+      id: "hud"
+    timeout: 25000
+
 - assertVisible:
     id: "hud-hype"
+- assertVisible:
+    id: "hud-stats"
+- assertVisible:
+    id: "honk-button"
 
-# Tap HONK button to verify gameplay interaction
+# Tap HONK — iOS-specific: verify audio permission doesn't block the UI
 - tapOn:
     id: "honk-button"
 
-# Take screenshot for verification
-- takeScreenshot: "ios-smoke-gameplay"
+- takeScreenshot: "docs/media/maestro/ios/boot"
 
-# Wait a moment then exit
-- waitForAnimationToEnd:
-    timeout: 3000
-
-- stopApp:
-    appId: com.midwaymayhem.app
+- stopApp

@@ -1,8 +1,8 @@
+import { tunables } from '@/config/index';
+import { laneCenterAt } from '@/track/trackGenerator';
 import type { CritterKind, ObstacleType, PickupType, ZoneId } from '@/utils/constants';
 import { CRITTER_KINDS, HONK, TRACK } from '@/utils/constants';
-import { tunables } from '@/config/index';
 import type { Rng } from '@/utils/rng';
-import { laneCenterAt } from '@/track/trackGenerator';
 
 export interface Obstacle {
   id: number;
@@ -128,7 +128,8 @@ export class ObstacleSpawner {
   private spawnPickup(d: number) {
     const roll = this.rng.next();
     const cr = tunables().critters;
-    const type: PickupType = roll > cr.pickupMegaThreshold ? 'mega' : roll > cr.pickupBoostThreshold ? 'boost' : 'ticket';
+    const type: PickupType =
+      roll > cr.pickupMegaThreshold ? 'mega' : roll > cr.pickupBoostThreshold ? 'boost' : 'ticket';
     const lane = this.rng.int(0, TRACK.LANE_COUNT);
     const pos = laneCenterAt(d, lane);
     this.pickups.push({
@@ -159,5 +160,26 @@ export class ObstacleSpawner {
     this.pickups = [];
     this.nextObstacleD = playerD + 80;
     this.nextPickupD = playerD + 60;
+  }
+
+  /**
+   * Deterministically place one obstacle of `type` at exact distance `d` and
+   * lane `lane`. Used by lane-alignment tests only — not called in production.
+   */
+  spawnAtExact(d: number, lane: number, type: ObstacleType) {
+    const pos = laneCenterAt(d, lane);
+    const critter: CritterKind | undefined = type === 'critter' ? 'cow' : undefined;
+    this.obstacles.push({
+      id: this.nextId++,
+      type,
+      d,
+      lane,
+      x: pos.x,
+      y: pos.y,
+      z: pos.z,
+      swingPhase: 0,
+      radius: type === 'gate' ? 3 : type === 'oil' ? 2.2 : type === 'critter' ? 1.8 : 1.6,
+      ...(critter ? { critter } : {}),
+    });
   }
 }

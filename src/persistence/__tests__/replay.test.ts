@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { initDb, resetDbForTests } from '../db';
-import { type ReplaySample, getBestReplayForDate, listReplaysForDate, replaysEqual, saveReplay } from '../replay';
+import {
+  getBestReplayForDate,
+  listReplaysForDate,
+  type ReplaySample,
+  replaysEqual,
+  saveReplay,
+} from '../replay';
 
 const TODAY = '2026-04-16';
 const TRACE: ReplaySample[] = [
@@ -23,10 +29,10 @@ describe('replay — save + list', () => {
     await saveReplay(TODAY, 500, 200, TRACE);
     const list = await listReplaysForDate(TODAY);
     expect(list.length).toBe(1);
-    expect(list[0]!.distanceCm).toBe(50000);
-    expect(list[0]!.crowd).toBe(200);
-    expect(list[0]!.trace).toHaveLength(3);
-    expect(list[0]!.trace[1]!.steer).toBeCloseTo(0.3);
+    expect(list[0]?.distanceCm).toBe(50000);
+    expect(list[0]?.crowd).toBe(200);
+    expect(list[0]?.trace).toHaveLength(3);
+    expect(list[0]?.trace[1]?.steer).toBeCloseTo(0.3);
   });
 
   it('lists multiple replays ordered by newest first', async () => {
@@ -35,7 +41,7 @@ describe('replay — save + list', () => {
     const list = await listReplaysForDate(TODAY);
     expect(list.length).toBe(2);
     // Newest (distanceCm=300m) first
-    expect(list[0]!.distanceCm).toBe(30000);
+    expect(list[0]?.distanceCm).toBe(30000);
   });
 
   it('returns empty list for date with no replays', async () => {

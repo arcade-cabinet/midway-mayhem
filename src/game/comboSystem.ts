@@ -54,9 +54,7 @@ export class ComboSystem {
   getMultiplier(): number {
     const now = this.clock();
     const expired =
-      this.chain > 0 &&
-      this.lastEventAt !== NO_EVENT &&
-      now - this.lastEventAt > CHAIN_EXPIRY_MS;
+      this.chain > 0 && this.lastEventAt !== NO_EVENT && now - this.lastEventAt > CHAIN_EXPIRY_MS;
     const effectiveChain = expired ? 0 : this.chain;
     for (const [threshold, mult] of CHAIN_THRESHOLDS) {
       if (effectiveChain >= threshold) return mult;

@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { initDb, resetDbForTests } from '@/persistence/db';
-import { getBestReplayForDate, listReplaysForDate } from '@/persistence/replay';
 import {
   finishAndMaybeSave,
   getRingBuffer,
@@ -9,6 +7,8 @@ import {
   startRecording,
   stopRecording,
 } from '@/game/replayRecorder';
+import { initDb, resetDbForTests } from '@/persistence/db';
+import { getBestReplayForDate, listReplaysForDate } from '@/persistence/replay';
 
 beforeEach(async () => {
   await resetDbForTests();

@@ -1,5 +1,4 @@
 import * as Tone from 'tone';
-import type { PickupType, ZoneId } from '@/utils/constants';
 import { getBuses, initBuses } from '@/audio/buses';
 import { conductor } from '@/audio/conductor';
 import { GM, initSF2Safely, sf2Bridge } from '@/audio/sf2';
@@ -11,6 +10,7 @@ import {
   triggerWhipCrack,
 } from '@/audio/sfx';
 import { reportError } from '@/game/errorBus';
+import type { PickupType, ZoneId } from '@/utils/constants';
 
 /**
  * Procedural audio bus — Tone.js only, zero samples.
