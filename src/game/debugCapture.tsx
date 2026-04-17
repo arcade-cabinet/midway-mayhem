@@ -19,7 +19,7 @@
 
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { getReportedErrors } from '@/game/errorBus';
 import { useGameStore } from '@/game/gameState';
 import { useLoadoutStore } from '@/hooks/useLoadout';
@@ -175,8 +175,7 @@ export function buildCapturePayload(
       language: typeof navigator !== 'undefined' ? navigator.language : '',
       platform:
         // biome-ignore lint/suspicious/noExplicitAny: userAgentData is optional in typings
-        (typeof navigator !== 'undefined' &&
-          (navigator as any).userAgentData?.platform) ||
+        (typeof navigator !== 'undefined' && (navigator as any).userAgentData?.platform) ||
         (typeof navigator !== 'undefined' ? navigator.platform : ''),
     },
     overlays: scanOverlays(),
@@ -203,7 +202,7 @@ export function DebugCaptureBridge() {
     };
     return () => {
       // biome-ignore lint/suspicious/noExplicitAny: debug hook
-      delete (window as any).__mmCapture;
+      (window as any).__mmCapture = undefined;
     };
   }, [gl, scene, camera]);
   return null;

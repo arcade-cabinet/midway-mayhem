@@ -28,13 +28,7 @@ interface HeroProps {
   children: React.ReactNode;
 }
 
-export function TitleHeroLayout({
-  tickets,
-  onStart,
-  onOpen,
-  startButtonRef,
-  children,
-}: HeroProps) {
+export function TitleHeroLayout({ tickets, onStart, onOpen, startButtonRef, children }: HeroProps) {
   return (
     <div
       data-testid="title-screen"

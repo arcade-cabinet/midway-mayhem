@@ -33,9 +33,7 @@ function triggerCapture(): void {
   // coming to rest; the capture itself then snapshots the frame + state.
   useGameStore.getState().setThrottle(0);
   // biome-ignore lint/suspicious/noExplicitAny: registered by DebugCaptureBridge
-  const fn = (window as any).__mmCapture as
-    | ((label?: string) => Promise<unknown>)
-    | undefined;
+  const fn = (window as any).__mmCapture as ((label?: string) => Promise<unknown>) | undefined;
   if (fn) {
     void fn('space-pause');
   }

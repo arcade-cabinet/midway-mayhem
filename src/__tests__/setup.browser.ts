@@ -12,7 +12,7 @@ function isKnownNoise(msg: string): boolean {
     msg.includes('EXT_color_buffer_float') ||
     msg.includes('THREE.Clock') ||
     msg.includes('THREE.WebGLShadowMap') ||
-    msg.includes('THREE.GLTFLoader: Couldn\'t load texture') ||
+    msg.includes("THREE.GLTFLoader: Couldn't load texture") ||
     msg.includes('not wrapped in act')
   );
 }

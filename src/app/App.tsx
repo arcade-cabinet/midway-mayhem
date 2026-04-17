@@ -19,8 +19,7 @@ import { initDailyRouteFromUrl } from '@/track/dailyRoute';
 type Scene = 'title' | 'play';
 
 export function App() {
-  const params =
-    typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const [scene, setScene] = useState<Scene>(params?.get('skip') === '1' ? 'play' : 'title');
   const initLoadout = useLoadoutStore((s) => s.initLoadout);
 

@@ -79,7 +79,6 @@ export function reportError(error: unknown, context: string): void {
 
   if (!state.halted) {
     state.halted = true;
-    // biome-ignore lint/suspicious/noConsole: intentional hard-fail signal
     console.error(`[mm:halt] ${context}: ${gameErr.message}`, e);
   }
 
