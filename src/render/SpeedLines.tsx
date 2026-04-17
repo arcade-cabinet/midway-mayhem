@@ -51,14 +51,19 @@ export function SpeedLines() {
       g.position.set(0, 0, 0);
       g.rotation.set(0, 0, 0);
     }
-    const playerSpeed = world.query(Player, Speed, Score)[0];
-    if (!playerSpeed) return;
-    const s = playerSpeed.get(Speed);
-    if (!s) return;
+    const player = world.query(Player, Speed, Score)[0];
+    if (!player) return;
+    const s = player.get(Speed);
+    const sc = player.get(Score);
+    if (!s || !sc) return;
     const norm = Math.min(1, s.value / tunables.cruiseMps);
     // Kick in past 0.6 of cruise, saturates at 1.0; boost pushes past 1.
     const vis = Math.max(0, (norm - 0.6) / 0.4);
-    m.opacity = Math.min(0.55, vis * 0.55);
+    // Boost-window amplification: during boost, opacity nearly doubles
+    // and stays saturated even if the player briefly lifts off throttle.
+    const boosting = sc.boostRemaining > 0;
+    const base = boosting ? 1.0 : vis;
+    m.opacity = Math.min(0.85, base * 0.55 + (boosting ? 0.25 : 0));
   });
 
   return (
