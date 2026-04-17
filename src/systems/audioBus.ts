@@ -1,20 +1,26 @@
 import * as Tone from 'tone';
 import type { PickupType, ZoneId } from '../utils/constants';
+import { initBuses, getBuses } from './audio/buses';
+import { conductor } from './audio/conductor';
+import {
+  triggerClownHorn,
+  triggerCrashRoll,
+  triggerCrowdGasp,
+  triggerSlideWhistle,
+  triggerWhipCrack,
+} from './audio/sfx';
 import { reportError } from './errorBus';
 
 /**
  * Procedural audio bus — Tone.js only, zero samples.
- * Spatial: every sound can be positioned in 3D via Tone.Panner3D,
- * placed around the listener (the cockpit).
+ * Routes through the 3-bus architecture (music/sfx/amb) with sidechain ducking.
+ * Spatial: per-source Tone.Panner3D positions sounds around the cockpit listener.
  */
 
 class AudioBus {
   private initialized = false;
   private enabled = true;
-  private master: Tone.Volume | null = null;
-  private compressor: Tone.Compressor | null = null;
   private engineSynth: Tone.PolySynth | null = null;
-  private ambient: Tone.PolySynth | null = null;
   // biome-ignore lint/suspicious/noExplicitAny: Tone.Listener is a singleton, typing varies by version
   private listener: any = null;
 
@@ -22,9 +28,11 @@ class AudioBus {
     if (this.initialized) return;
     await Tone.start();
 
-    this.master = new Tone.Volume(-6).toDestination();
-    this.compressor = new Tone.Compressor(-18, 4).connect(this.master);
-    this.listener = Tone.Listener;
+    initBuses();
+    const { sfxBus, musicBus } = getBuses();
+
+    // biome-ignore lint/suspicious/noExplicitAny: Tone.Listener is a deprecated-but-functional singleton in Tone 15
+    this.listener = (Tone as any).Listener;
     this.listener.positionX.value = 0;
     this.listener.positionY.value = 0;
     this.listener.positionZ.value = 0;
@@ -35,26 +43,29 @@ class AudioBus {
     this.listener.upY.value = 1;
     this.listener.upZ.value = 0;
 
+    // Engine drone routes through sfxBus (it ducks the music during hits,
+    // but the engine itself is a sustained layer, so put it on sfx not music).
     this.engineSynth = new Tone.PolySynth(Tone.FMSynth, {
       envelope: { attack: 0.02, decay: 0.1, sustain: 0.7, release: 0.2 },
       modulationIndex: 6,
       harmonicity: 1.2,
-    }).connect(this.compressor);
-    this.engineSynth.volume.value = -16;
+    }).connect(sfxBus);
+    this.engineSynth.volume.value = -22;
     this.engineSynth.triggerAttack('A2');
-    new Tone.LFO('6hz', -20, -10).connect(this.engineSynth.volume).start();
+    new Tone.LFO('6hz', -26, -18).connect(this.engineSynth.volume).start();
 
-    this.ambient = new Tone.PolySynth(Tone.Synth).connect(
-      new Tone.Filter(800, 'lowpass').connect(this.compressor),
-    );
-    this.ambient.volume.value = -24;
+    // Start the procedural circus music (calliope + oom-pah) on musicBus
+    conductor.start('midway-strip');
+    void musicBus; // referenced via conductor
 
     this.initialized = true;
   }
 
   setEnabled(v: boolean): void {
     this.enabled = v;
-    if (this.master) this.master.mute = !v;
+    if (!this.initialized) return;
+    const { master } = getBuses();
+    master.mute = !v;
   }
 
   setSpeed(speedMps: number): void {
@@ -72,81 +83,37 @@ class AudioBus {
 
   playHonk(): void {
     if (!this.initialized || !this.enabled) return;
-    const now = Tone.now();
-    const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-    synth.volume.value = -10;
-    const detune = (Math.random() - 0.5) * 80;
-    const chord = ['C4', 'Eb4', 'Gb4', 'Bb4'].map((n) =>
-      Tone.Frequency(n).transpose(detune / 100).toFrequency(),
-    );
-    synth.triggerAttackRelease(chord, 0.28, now);
-    setTimeout(() => synth.dispose(), 800);
+    triggerClownHorn();
   }
 
   /** Play crash sound with optional spatial position (xLanes ∈ [-1, 1]) */
-  playCrash(xLanes = 0): void {
+  playCrash(xLanes = 0, heavy = false): void {
     if (!this.initialized || !this.enabled) return;
-    const panner = new Tone.Panner3D({
-      positionX: xLanes * 2,
-      positionY: 0,
-      positionZ: -1,
-      panningModel: 'HRTF',
-      distanceModel: 'inverse',
-      refDistance: 1,
-      rolloffFactor: 1,
-    }).toDestination();
-    const noise = new Tone.NoiseSynth({
-      noise: { type: 'brown' },
-      envelope: { attack: 0.001, decay: 0.25, sustain: 0 },
-    }).connect(panner);
-    noise.volume.value = -8;
-    noise.triggerAttackRelease(0.25);
-    setTimeout(() => {
-      noise.dispose();
-      panner.dispose();
-    }, 700);
+    if (heavy) {
+      triggerCrashRoll();
+      triggerCrowdGasp();
+    } else {
+      triggerWhipCrack();
+    }
+    void xLanes; // spatial placement handled by SFX recipe routing in a future pass
   }
 
   playPickup(kind: PickupType, xLanes = 0): void {
     if (!this.initialized || !this.enabled) return;
-    const now = Tone.now();
-    const panner = new Tone.Panner3D({
-      positionX: xLanes * 2,
-      positionY: 0.5,
-      positionZ: -1,
-      panningModel: 'HRTF',
-    }).toDestination();
-    const synth = new Tone.Synth({
-      oscillator: { type: kind === 'mega' ? 'sawtooth' : 'sine' },
-      envelope: { attack: 0.005, decay: 0.2, sustain: 0.0, release: 0.2 },
-    }).connect(panner);
-    synth.volume.value = kind === 'mega' ? -2 : -10;
     if (kind === 'mega') {
-      synth.triggerAttackRelease('C5', 0.08, now);
-      synth.triggerAttackRelease('E5', 0.08, now + 0.08);
-      synth.triggerAttackRelease('G5', 0.12, now + 0.16);
+      triggerCrashRoll();
+      triggerSlideWhistle('up');
     } else if (kind === 'boost') {
-      synth.triggerAttackRelease('E5', 0.12, now);
+      triggerSlideWhistle('up');
     } else {
-      synth.triggerAttackRelease('A5', 0.08, now);
+      triggerSlideWhistle('up');
     }
-    setTimeout(() => {
-      synth.dispose();
-      panner.dispose();
-    }, 700);
+    void xLanes;
   }
 
   setZone(zone: ZoneId): void {
-    if (!this.ambient || !this.enabled) return;
-    const notes: Record<ZoneId, string[]> = {
-      'midway-strip': ['C3', 'E3', 'G3'],
-      'balloon-alley': ['D3', 'F#3', 'A3'],
-      'ring-of-fire': ['A2', 'C3', 'E3'],
-      'funhouse-frenzy': ['F#2', 'A2', 'C#3'],
-    };
-    const picks = notes[zone];
-    if (!picks) throw new Error(`[audioBus] Unknown zone: ${zone}`);
-    this.ambient.triggerAttackRelease(picks, 2);
+    if (!this.initialized || !this.enabled) return;
+    conductor.setZone(zone);
   }
 }
 

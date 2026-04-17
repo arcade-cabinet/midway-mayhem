@@ -32,6 +32,10 @@ ios/DerivedData
 public/sql-wasm.wasm
 public/assets/sql-wasm.wasm
 
+# Soundfonts (large, fetched via scripts/fetch-soundfonts.ts)
+public/soundfonts/*.sf2
+public/soundfonts/*.sfz
+
 .env
 .env.local
 .env.*.local

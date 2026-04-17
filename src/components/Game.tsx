@@ -27,6 +27,11 @@ export function Game() {
     startRun();
     // biome-ignore lint/suspicious/noExplicitAny: dev hook
     (window as any).__mmHonk = () => audioBus.playHonk();
+    // Drive the procedural conductor's zone key+arrangement from gameState
+    const unsub = useGameStore.subscribe((s, prev) => {
+      if (s.currentZone !== prev.currentZone) audioBus.setZone(s.currentZone);
+    });
+    return unsub;
   }, [startRun]);
 
   useSteering(canvasEl);
