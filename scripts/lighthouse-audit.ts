@@ -81,7 +81,7 @@ async function startPreviewServer(): Promise<ChildProcess> {
   // biome-ignore lint/suspicious/noConsole: CLI script
   console.log('Starting pnpm preview on port', PORT);
   // Bind to 0.0.0.0 so the 127.0.0.1 port-check connects reliably — CI
-   // runners default to IPv6 localhost otherwise and the probe times out.
+  // runners default to IPv6 localhost otherwise and the probe times out.
   const child = spawn('pnpm', ['preview', '--port', String(PORT), '--host', '0.0.0.0'], {
     cwd: ROOT,
     stdio: ['ignore', 'pipe', 'pipe'],
