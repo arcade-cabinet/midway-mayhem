@@ -1,7 +1,6 @@
 /// <reference types="@vitest/browser/matchers" />
 
 import path from 'node:path';
-import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
@@ -12,7 +11,7 @@ const alias = { '@': path.resolve(__dirname, 'src') };
 
 export default defineConfig({
   base: isCapacitor ? './' : '/midway-mayhem/',
-  plugins: [react(), tailwindcss(), captureServerPlugin()],
+  plugins: [react(), captureServerPlugin()],
   resolve: { alias },
   build: {
     target: 'es2022',
