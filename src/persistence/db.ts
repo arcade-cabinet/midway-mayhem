@@ -14,15 +14,20 @@
  *
  * Drizzle ORM wraps the async connection through the sqlite-proxy driver.
  * All DDL is run inline via runMigrations() — no separate migration files.
+ *
+ * Platform-specific driver construction lives in dbDrivers.ts.
  */
 
 import { sql } from 'drizzle-orm';
-import { drizzle, type SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
-import initSqlJs from 'sql.js';
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 import * as schema from './schema';
-
-const DB_NAME = 'midway-mayhem.db';
-const DB_VERSION = 1;
+import {
+  openCapacitorConnection,
+  openInMemorySqlJs,
+  openOpfsSqlJs,
+  type SqliteConnection,
+  type SqlJsDatabase,
+} from './dbDrivers';
 
 // ─── Platform detection ────────────────────────────────────────────────────
 
@@ -43,177 +48,14 @@ function hasOpfsSupport(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.storage?.getDirectory === 'function';
 }
 
-// ─── State ────────────────────────────────────���────────────────────────────
-
-type SqliteConnection = import('@capacitor-community/sqlite').SQLiteDBConnection;
+// ─── State ─────────────────────────────────────────────────────────────────
 
 let _drizzle: SqliteRemoteDatabase<typeof schema> | null = null;
 let _sqliteDb: SqliteConnection | null = null;
 // biome-ignore lint/suspicious/noExplicitAny: sql.js Database type varies
-let _sqlJsDb: any = null;
-// biome-ignore lint/suspicious/noExplicitAny: sql.js module
-let _sqlJsMod: any = null;
+let _sqlJsDb: SqlJsDatabase = null;
 let _opfsFile: FileSystemFileHandle | null = null;
 let _initPromise: Promise<void> | null = null;
-
-// ─── Utility row helpers ────────────────────────────────────────────────────
-
-function normalizeRows(values: unknown[] | undefined): unknown[] {
-  return Array.isArray(values) ? values : [];
-}
-
-function rowsToValueArrays(rows: unknown[]): unknown[][] {
-  return rows.map((row) => {
-    if (Array.isArray(row)) return row;
-    if (row && typeof row === 'object') return Object.values(row as Record<string, unknown>);
-    return [row];
-  });
-}
-
-// ─── In-memory sql.js path (tests + fallback) ───────────────────────────────
-
-async function openInMemorySqlJs(): Promise<void> {
-  _sqlJsMod = await initSqlJs();
-  _sqlJsDb = new _sqlJsMod.Database();
-  _drizzle = buildSqlJsDrizzle();
-}
-
-// ─── OPFS + sql.js path (web browser with durable persistence) ──────────────
-
-async function openOpfsSqlJs(): Promise<void> {
-  // Locate the WASM binary — Vite copies it to /public/assets via copywasm.ts
-  let wasmUrl: string;
-  if (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL != null) {
-    const base = import.meta.env.BASE_URL as string;
-    wasmUrl = `${base.endsWith('/') ? base : `${base}/`}assets/sql-wasm.wasm`;
-  } else {
-    wasmUrl = '/assets/sql-wasm.wasm';
-  }
-
-  _sqlJsMod = await initSqlJs({ locateFile: () => wasmUrl });
-
-  // Read existing DB from OPFS if available
-  const root = await navigator.storage.getDirectory();
-  _opfsFile = await root.getFileHandle(DB_NAME, { create: true });
-
-  const existing = await _opfsFile.getFile();
-  const buf = await existing.arrayBuffer();
-
-  if (buf.byteLength > 0) {
-    _sqlJsDb = new _sqlJsMod.Database(new Uint8Array(buf));
-  } else {
-    _sqlJsDb = new _sqlJsMod.Database();
-  }
-
-  _drizzle = buildSqlJsDrizzle();
-}
-
-/** Build the Drizzle proxy for the active sql.js Database instance. */
-function buildSqlJsDrizzle(): SqliteRemoteDatabase<typeof schema> {
-  return drizzle<typeof schema>(
-    async (sql, params, method) => {
-      const d = _sqlJsDb;
-      try {
-        if (method === 'run') {
-          d.run(sql, params);
-          return { rows: [] };
-        }
-        const stmt = d.prepare(sql);
-        stmt.bind(params);
-        const rows: unknown[][] = [];
-        while (stmt.step()) rows.push(stmt.get());
-        stmt.free();
-        if (method === 'get') {
-          // Drizzle uses rows as the raw row; undefined signals "no result" so
-          // mapGetResult returns undefined instead of a partial object.
-          return { rows: rows[0] as unknown[] } as { rows: unknown[] };
-        }
-        return { rows };
-      } catch (err) {
-        throw new Error(`[db:sqljs] ${String(err)}\nSQL: ${sql}`);
-      }
-    },
-    { schema },
-  );
-}
-
-/** Flush current sql.js in-memory state to OPFS. */
-export async function persistToOpfs(): Promise<void> {
-  if (!_opfsFile || !_sqlJsDb) return;
-  const data: Uint8Array = _sqlJsDb.export();
-  const writable = await _opfsFile.createWritable();
-  // Copy into a fresh ArrayBuffer — OPFS write signature requires
-  // ArrayBufferView<ArrayBuffer>, not SharedArrayBuffer-backed views.
-  const copy = new Uint8Array(data.byteLength);
-  copy.set(data);
-  await writable.write(copy);
-  await writable.close();
-}
-
-// ─── CapacitorSQLite path (iOS / Android) ──────────────────────────────────
-
-function getBaseAssetPath(): string {
-  if (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL != null) {
-    const base = import.meta.env.BASE_URL as string;
-    return `${base.endsWith('/') ? base : `${base}/`}assets`;
-  }
-  return '/assets';
-}
-
-async function ensureJeepElement(): Promise<void> {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-  const { defineCustomElements } = await import('jeep-sqlite/loader');
-  await defineCustomElements(window);
-  let el = document.querySelector('jeep-sqlite');
-  if (!el) {
-    el = document.createElement('jeep-sqlite');
-    el.setAttribute('wasmpath', getBaseAssetPath());
-    document.body.appendChild(el);
-  }
-  await customElements.whenDefined('jeep-sqlite');
-}
-
-async function openCapacitorConnection(): Promise<void> {
-  const { CapacitorSQLite, SQLiteConnection } = await import('@capacitor-community/sqlite');
-
-  // On native, jeep-sqlite element is not needed; on web fallback it would be,
-  // but we only call this path on native platforms.
-  if (!isNativePlatform()) await ensureJeepElement();
-
-  const mgr = new SQLiteConnection(CapacitorSQLite);
-
-  if (!isNativePlatform()) await mgr.initWebStore();
-
-  const exists = (await mgr.isConnection(DB_NAME, false)).result;
-  _sqliteDb = exists
-    ? await mgr.retrieveConnection(DB_NAME, false)
-    : await mgr.createConnection(DB_NAME, false, 'no-encryption', DB_VERSION, false);
-
-  await _sqliteDb.open();
-
-  const conn = _sqliteDb;
-
-  _drizzle = drizzle<typeof schema>(
-    async (sql, params, method) => {
-      switch (method) {
-        case 'run': {
-          const r = await conn.run(sql, params, false);
-          return { rows: r.changes?.values ?? [] };
-        }
-        case 'get': {
-          const r = await conn.query(sql, params);
-          const rows = rowsToValueArrays(normalizeRows(r.values));
-          return { rows: rows[0] ?? [] } as { rows: unknown[] };
-        }
-        default: {
-          const r = await conn.query(sql, params);
-          return { rows: rowsToValueArrays(normalizeRows(r.values)) };
-        }
-      }
-    },
-    { schema },
-  );
-}
 
 // ─── DDL (v1, idempotent) ───────────────────────────────────────────────────
 
@@ -316,15 +158,25 @@ export async function initDb(): Promise<void> {
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
+    const native = isNativePlatform();
     if (isTestEnv() || typeof window === 'undefined') {
-      await openInMemorySqlJs();
-    } else if (isNativePlatform()) {
-      await openCapacitorConnection();
+      const result = await openInMemorySqlJs(schema);
+      _drizzle = result.drizzle;
+      _sqlJsDb = result.sqlJsDb;
+    } else if (native) {
+      const result = await openCapacitorConnection(true, schema);
+      _drizzle = result.drizzle;
+      _sqliteDb = result.sqliteDb ?? null;
     } else if (hasOpfsSupport()) {
-      await openOpfsSqlJs();
+      const result = await openOpfsSqlJs(schema);
+      _drizzle = result.drizzle;
+      _sqlJsDb = result.sqlJsDb;
+      _opfsFile = result.opfsFile ?? null;
     } else {
       // Fallback: in-memory sql.js (data not persisted across page loads)
-      await openInMemorySqlJs();
+      const result = await openInMemorySqlJs(schema);
+      _drizzle = result.drizzle;
+      _sqlJsDb = result.sqlJsDb;
     }
     await runMigrations();
     await seedDefaults();
@@ -333,6 +185,19 @@ export async function initDb(): Promise<void> {
   });
 
   return _initPromise;
+}
+
+/** Flush current sql.js in-memory state to OPFS. */
+export async function persistToOpfs(): Promise<void> {
+  if (!_opfsFile || !_sqlJsDb) return;
+  const data: Uint8Array = _sqlJsDb.export();
+  const writable = await _opfsFile.createWritable();
+  // Copy into a fresh ArrayBuffer — OPFS write signature requires
+  // ArrayBufferView<ArrayBuffer>, not SharedArrayBuffer-backed views.
+  const copy = new Uint8Array(data.byteLength);
+  copy.set(data);
+  await writable.write(copy);
+  await writable.close();
 }
 
 /**
@@ -353,17 +218,16 @@ export async function resetDbForTests(): Promise<void> {
     try {
       _sqlJsDb.close?.();
     } catch {
-      /* ignore */
+      /* cleanup — not fatal */
     }
     _sqlJsDb = null;
-    _sqlJsMod = null;
     _opfsFile = null;
   }
   if (_sqliteDb) {
     try {
       await _sqliteDb.close();
     } catch {
-      /* ignore */
+      /* cleanup — not fatal */
     }
     _sqliteDb = null;
   }
