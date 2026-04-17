@@ -2,20 +2,20 @@
  * @hook useTouchGestures
  *
  * Swipe-gesture detector using Pointer Events (unified desktop + mobile).
- * Provides an ALTERNATIVE input path into useSteering — not a replacement.
  *
  * Gestures (min 40px delta):
  *   Swipe-left  → steer -1
  *   Swipe-right → steer +1
- *   Swipe-up    → honk
- *   Swipe-down  → pause
+ *   Swipe-up    → throttle ON (auto-accelerate to cruise)
+ *   Swipe-down  → throttle OFF (coast to a stop — pause-analog)
+ *
+ * Honk is triggered by tapping the horn mesh directly, not via swipe.
  *
  * Returns a cleanup function via useEffect so callers can integrate it with
  * their own canvas or the document body.
  */
 
 import { useEffect } from 'react';
-import { honk } from '@/audio';
 import { useGameStore } from '@/game/gameState';
 
 const MIN_SWIPE_PX = 40;
@@ -87,20 +87,20 @@ export function useTouchGestures(target: HTMLElement | null): void {
 
     const cleanup = attachSwipeGestures(el, {
       onSwipeLeft: () => {
-        const { running, paused } = useGameStore.getState();
-        if (running && !paused) useGameStore.getState().setSteer(-1);
+        const { running } = useGameStore.getState();
+        if (running) useGameStore.getState().setSteer(-1);
       },
       onSwipeRight: () => {
-        const { running, paused } = useGameStore.getState();
-        if (running && !paused) useGameStore.getState().setSteer(1);
+        const { running } = useGameStore.getState();
+        if (running) useGameStore.getState().setSteer(1);
       },
       onSwipeUp: () => {
-        const { running, paused } = useGameStore.getState();
-        if (running && !paused) honk();
+        const { running } = useGameStore.getState();
+        if (running) useGameStore.getState().setThrottle(1);
       },
       onSwipeDown: () => {
-        const { running, paused, gameOver } = useGameStore.getState();
-        if (running && !paused && !gameOver) useGameStore.getState().pause();
+        const { running } = useGameStore.getState();
+        if (running) useGameStore.getState().setThrottle(0);
       },
     });
 

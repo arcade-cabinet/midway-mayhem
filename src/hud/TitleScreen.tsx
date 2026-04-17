@@ -27,10 +27,9 @@ import { TitleHeroLayout } from './TitleHeroLayout';
 
 interface TitleScreenProps {
   onStart: (config?: NewRunConfig) => void;
-  onTour?: () => void;
 }
 
-export function TitleScreen({ onStart, onTour }: TitleScreenProps) {
+export function TitleScreen({ onStart }: TitleScreenProps) {
   const [overlay, setOverlay] = useState<TitleOverlay>('none');
   const [tickets, setTickets] = useState(0);
   const startButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -56,16 +55,6 @@ export function TitleScreen({ onStart, onTour }: TitleScreenProps) {
     onStart: () => {
       if (overlay === 'none') setOverlay('new-run');
     },
-    ...(onTour
-      ? {
-          onTour: () => {
-            if (overlay === 'none') {
-              initAudioBusSafely();
-              onTour();
-            }
-          },
-        }
-      : {}),
     onShop: () => {
       if (overlay === 'none') setOverlay('shop');
     },
@@ -141,14 +130,6 @@ export function TitleScreen({ onStart, onTour }: TitleScreenProps) {
         orientation={formFactor.isPortrait ? 'portrait' : 'landscape'}
         tickets={tickets}
         onStart={() => setOverlay('new-run')}
-        {...(onTour
-          ? {
-              onTour: () => {
-                initAudioBusSafely();
-                onTour();
-              },
-            }
-          : {})}
         onOpen={setOverlay}
         startButtonRef={startButtonRef}
       >
@@ -161,14 +142,6 @@ export function TitleScreen({ onStart, onTour }: TitleScreenProps) {
     <TitleHeroLayout
       tickets={tickets}
       onStart={() => setOverlay('new-run')}
-      {...(onTour
-        ? {
-            onTour: () => {
-              initAudioBusSafely();
-              onTour();
-            },
-          }
-        : {})}
       onOpen={setOverlay}
       startButtonRef={startButtonRef}
     >

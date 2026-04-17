@@ -153,24 +153,24 @@ export function startApplauseBed(volume = -16): () => void {
     gain: Tone.Gain;
   }> = [];
 
+  // Volume is applied on the gain node (Tone.Panner has no volume, only pan).
+  const linearVolume = 10 ** (volume / 20);
   for (const pan of [-0.85, 0, 0.85]) {
     const noise = new Tone.Noise('pink').start();
     const filter = new Tone.Filter(2000, 'bandpass');
     filter.Q.value = 1.5;
     const clapMod = new Tone.LFO({
       frequency: 12 + Math.random() * 6,
-      min: 0.1,
-      max: 1.0,
+      min: 0.1 * linearVolume,
+      max: 1.0 * linearVolume,
       type: 'sine',
     }).start();
-    const gain = new Tone.Gain(0.5);
+    const gain = new Tone.Gain(linearVolume);
     const panner = new Tone.Panner(pan).connect(ambBus);
     noise.connect(filter).connect(gain).connect(panner);
     clapMod.connect(gain.gain);
     layers.push({ noise, filter, clapMod, panner, gain });
   }
-  // biome-ignore lint/suspicious/noExplicitAny: gain channel setter
-  for (const l of layers) (l.panner as any).volume.value = volume;
 
   return () => {
     for (const l of layers) {

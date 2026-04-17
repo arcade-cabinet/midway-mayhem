@@ -110,6 +110,9 @@ importers:
       '@playwright/test':
         specifier: ^1.59.1
         version: 1.59.1
+      '@react-three/test-renderer':
+        specifier: ^9.1.0
+        version: 9.1.0(@react-three/fiber@9.6.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.184.0))(react@19.2.5)(three@0.184.0)
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.2(vite@8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0))
@@ -1145,6 +1148,13 @@ packages:
       '@react-three/fiber': ^9.0.0
       react: ^19.0
       three: '>= 0.156.0'
+
+  '@react-three/test-renderer@9.1.0':
+    resolution: {integrity: sha512-bLjG+cdpVW69wG1W3TuziHrHvA1JQbLesYddY94QMaFF8yzpgwovWK8hGaHWBET1dvsCPIOWVNYHbKAbRj2xSg==}
+    peerDependencies:
+      '@react-three/fiber': '>=9.0.0'
+      react: ^19.0.0
+      three: '>=0.156'
 
   '@rolldown/binding-android-arm64@1.0.0-rc.15':
     resolution: {integrity: sha512-YYe6aWruPZDtHNpwu7+qAHEMbQ/yRl6atqb/AhznLTnD3UY99Q1jE7ihLSahNWkF4EqRPVC4SiR4O0UkLK02tA==}
@@ -2938,8 +2948,8 @@ packages:
     resolution: {integrity: sha512-DI7/OuAUD+GMpR6dmu8lliO2Wg5zfeh+/xsdyJZCzd8o5JgFUjCeLsBDuZjIQJdwXS3J0L/uZYrELKYqx+PXog==}
     engines: {node: '>=8.0'}
 
-  spessasynth_core@4.2.11:
-    resolution: {integrity: sha512-8hUT5b5qYnOIQ+ggwW1oAL2SQGwJv8vTOkKl7nPjzZxXH6keyCrYIah2qmpwRBbRMx9QnumYD2g+LClzRBLQPg==}
+  spessasynth_core@4.2.12:
+    resolution: {integrity: sha512-SdSzAivl+iOAyERzEBTKTKZ3Jw2vZvGNiPZNlwZKWMDRb4y73fZlHjX7QN/Kn0kWkL6H1IuUot0zfFtOvhiBPA==}
 
   spessasynth_lib@4.2.14:
     resolution: {integrity: sha512-n8knZCFlOlCS6zxRjBr/sKjaFDH9gjtJElxh87s6wbNXzAW/DL9wBjPy2Kl1VGQ3dvey482CtJ2nOyK8sAhkKg==}
@@ -4417,6 +4427,12 @@ snapshots:
       three: 0.184.0
     transitivePeerDependencies:
       - '@types/three'
+
+  '@react-three/test-renderer@9.1.0(@react-three/fiber@9.6.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.184.0))(react@19.2.5)(three@0.184.0)':
+    dependencies:
+      '@react-three/fiber': 9.6.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.184.0)
+      react: 19.2.5
+      three: 0.184.0
 
   '@rolldown/binding-android-arm64@1.0.0-rc.15':
     optional: true
@@ -6104,11 +6120,11 @@ snapshots:
       image-ssim: 0.2.0
       jpeg-js: 0.4.4
 
-  spessasynth_core@4.2.11: {}
+  spessasynth_core@4.2.12: {}
 
   spessasynth_lib@4.2.14:
     dependencies:
-      spessasynth_core: 4.2.11
+      spessasynth_core: 4.2.12
 
   split2@4.2.0: {}
 

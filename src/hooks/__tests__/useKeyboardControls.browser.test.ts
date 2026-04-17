@@ -209,21 +209,6 @@ describe('useTitleKeyboard — real browser keyboard events', () => {
     unmount();
   });
 
-  it('T key fires onTour when provided', async () => {
-    const onTour = vi.fn();
-    const { unmount } = renderHook(() =>
-      useTitleKeyboard({ onStart: vi.fn(), onTour, onShop: vi.fn(), onEsc: vi.fn() }),
-    );
-
-    await act(async () => {
-      fireKey('t');
-      await new Promise<void>((resolve) => setTimeout(resolve, 20));
-    });
-
-    expect(onTour).toHaveBeenCalledTimes(1);
-    unmount();
-  });
-
   it('Space key fires onStart', async () => {
     const onStart = vi.fn();
     const { unmount } = renderHook(() =>

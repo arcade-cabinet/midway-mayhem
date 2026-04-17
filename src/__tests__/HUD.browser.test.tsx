@@ -21,7 +21,6 @@ describe('<HUD /> browser', () => {
     expect(screen.getByTestId('hud-stats')).toHaveTextContent('456');
     expect(screen.getByTestId('hud-stats')).toHaveTextContent('2');
     expect(screen.getByTestId('hud-crowd')).toHaveTextContent('1234');
-    expect(screen.getByTestId('honk-button')).toBeInTheDocument();
   });
 
   it('renders all panels', () => {
@@ -33,10 +32,9 @@ describe('<HUD /> browser', () => {
     expect(screen.getByTestId('hud-crowd')).toBeInTheDocument();
   });
 
-  it('shows the HONK button with correct role', () => {
+  it('does not render a 2D HONK button — honk is now the 3D horn mesh', () => {
     render(<HUD />);
-    expect(screen.getByTestId('honk-button')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /honk/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('honk-button')).not.toBeInTheDocument();
   });
 
   it('reflects current distance from store', () => {

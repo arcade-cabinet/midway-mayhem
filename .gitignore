@@ -53,3 +53,6 @@ Gemini-Conversation.md
 # Vitest browser test artifacts
 .vitest-attachments/
 src/__tests__/__screenshots__/
+
+# Debug pause-and-capture output (Space in ?debug=1 mode)
+.capture/

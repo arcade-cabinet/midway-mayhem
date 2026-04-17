@@ -79,7 +79,6 @@ export function reportError(error: unknown, context: string): void {
 
   if (!state.halted) {
     state.halted = true;
-    // biome-ignore lint/suspicious/noConsole: intentional hard-fail signal
     console.error(`[mm:halt] ${context}: ${gameErr.message}`, e);
   }
 
@@ -99,6 +98,11 @@ export function subscribeErrors(fn: Listener): () => void {
   return () => {
     state.listeners.delete(fn);
   };
+}
+
+/** Returns a frozen snapshot of all errors currently on the bus. */
+export function getReportedErrors(): readonly GameError[] {
+  return state.errors.slice();
 }
 
 export function isHalted(): boolean {

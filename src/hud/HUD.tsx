@@ -6,7 +6,6 @@ import { color, safeArea, space } from '@/design/tokens';
 import { useGameStore } from '@/game/gameState';
 import { useFormFactor } from '@/hooks/useFormFactor';
 import { GameOverOverlay } from './GameOverOverlay';
-import { HonkButton } from './HonkButton';
 import { RacingLineMeter } from './RacingLineMeter';
 import { RaidTelegraphBanner } from './RaidTelegraphBanner';
 import { TrickOverlay } from './TrickOverlay';
@@ -57,7 +56,7 @@ export function HUD() {
           </Panel>
         </div>
 
-        {/* Bottom row: SANITY bar + CROWD score + HONK */}
+        {/* Bottom row: SANITY bar + CROWD score + racing-line meter */}
         <div
           style={{
             position: 'absolute',
@@ -86,7 +85,6 @@ export function HUD() {
           </Panel>
         </div>
 
-        <HonkButton />
         <Banner visible={plunging && !gameOver} tone="alert" testId="plunge-banner">
           MIDWAY MELTDOWN
         </Banner>
@@ -134,7 +132,6 @@ export function HUD() {
         <Stat label="CROWD" value={crowd.toFixed(0)} valueColor={color.blue} />
       </Panel>
 
-      <HonkButton />
       <Banner visible={plunging && !gameOver} tone="alert" testId="plunge-banner">
         MIDWAY MELTDOWN
       </Banner>

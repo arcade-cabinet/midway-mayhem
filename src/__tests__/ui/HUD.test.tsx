@@ -15,10 +15,9 @@ describe('<HUD />', () => {
     expect(screen.getByTestId('hud-crowd')).toBeInTheDocument();
   });
 
-  it('shows the HONK button', () => {
+  it('does not show a 2D HONK button — horn lives on the 3D steering wheel', () => {
     render(<HUD />);
-    expect(screen.getByTestId('honk-button')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /honk/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('honk-button')).not.toBeInTheDocument();
   });
 
   it('reflects current distance from store', () => {

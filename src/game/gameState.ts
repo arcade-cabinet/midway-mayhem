@@ -25,6 +25,11 @@ export interface StartRunOptions {
   difficulty?: Difficulty;
   /** User-toggled permadeath; only respected on nightmare (ultra-nightmare forces it on). */
   permadeath?: boolean;
+  /**
+   * Initial throttle. Default 1 (racing: car auto-accelerates). Pass 0 for
+   * debug "visit midway" mode so the car stays put until the player hits ↑.
+   */
+  initialThrottle?: number;
 }
 
 export interface GameState {
@@ -56,6 +61,13 @@ export interface GameState {
   speedMps: number;
   targetSpeedMps: number;
   steer: number; // normalized [-1,1]
+  /**
+   * Throttle gate for the auto-acceleration target. 1 = car drives itself
+   * (the default racing behavior); 0 = car coasts/decelerates. Used by the
+   * `?debug=1` "visit midway" mode so the player can hold position and
+   * inspect scene elements without being whisked down the track.
+   */
+  throttle: number;
 
   // derived gameplay stats (branded names)
   hype: number; // speed-as-percent
@@ -108,6 +120,7 @@ export interface GameState {
   applyPickup(kind: 'ticket' | 'boost' | 'mega'): void;
   setSteer(v: number): void;
   setLateral(v: number): void;
+  setThrottle(v: number): void;
   /** Called each frame by TrackSystem to report which piece the player is on. */
   setCurrentPieceKind(kind: PieceKind | null): void;
   setPhotoMode(v: boolean): void;
@@ -132,6 +145,7 @@ const DEFAULTS = {
   speedMps: 0,
   targetSpeedMps: 0,
   steer: 0,
+  throttle: 1,
   hype: 0,
   sanity: 100,
   crowdReaction: 0,
@@ -193,6 +207,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       startedAt: now,
       targetSpeedMps: profile.targetSpeedMps,
       speedMps: 0,
+      throttle: options?.initialThrottle ?? 1,
       dropProgress: 0,
       dropStartedAt: now,
       scaresThisRun: 0,
@@ -242,6 +257,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   setLateral(v) {
     set({ lateral: v });
+  },
+  setThrottle(v) {
+    set({ throttle: Math.max(0, Math.min(1, v)) });
   },
   setCurrentPieceKind(kind) {
     set({ currentPieceKind: kind });
