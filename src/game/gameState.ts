@@ -1,40 +1,23 @@
 import { create } from 'zustand';
-import { checkRunAchievements } from '@/persistence/achievements';
-import { getStats, recordRun as recordLifetimeRun } from '@/persistence/lifetimeStats';
-import { recordRun as recordProfileRun } from '@/persistence/profile';
 import type { PieceKind } from '@/track/trackComposer';
 import type { ZoneId } from '@/utils/constants';
-import { TRACK } from '@/utils/constants';
 import { combo } from './comboSystem';
+import { resetDeviationWindow } from './deviationWindow';
 import {
   DEFAULT_DIFFICULTY,
   DIFFICULTY_PROFILES,
   type Difficulty,
   effectivePermadeath,
 } from './difficulty';
-import { hapticsBus } from './hapticsBus';
-import { type OptimalPath, optimalLateralAt, solveOptimalPath } from './optimalPath';
+import { applyCrashAction, applyPickupAction } from './gameStateCombat';
+import { DROP_DURATION_MS, tickGameState } from './gameStateTick';
+import { type OptimalPath, solveOptimalPath } from './optimalPath';
+import { persistRunEnd } from './runEndPersistence';
 import { buildRunPlan, type RunPlan } from './runPlan';
 import { initRunRng, trackRng } from './runRngBus';
 
-/** Ramp piece kinds that have no side rails — plunge risk zone. */
-const RAMP_KINDS: ReadonlySet<PieceKind> = new Set(['ramp', 'rampLong', 'rampLongCurved']);
-
-/** How far beyond the lateral clamp the player must drift to trigger a plunge. */
-const PLUNGE_OVERSHOOT_M = 0.5;
-
-/**
- * Racing-line deviation window. We track the last 200 m of squared-error
- * samples; anything older is evicted. The window drives `cleanliness`.
- */
-const DEVIATION_WINDOW_M = 200;
-/** 0 m avg deviation → cleanliness 1.0; ≥ 3 m avg deviation → cleanliness 0.0 */
-const DEVIATION_MAX_M = 3;
-/** EMA smoothing factor applied each tick so the readout isn't jittery. */
-const CLEANLINESS_EMA = 0.05;
-
-/** Duration of the plunge animation in seconds. */
-export const PLUNGE_DURATION_S = 1.5;
+// PLUNGE_DURATION_S and RAMP_KINDS live in gameStateTick.ts
+export { PLUNGE_DURATION_S } from './gameStateTick';
 
 export interface StartRunOptions {
   seed?: number;
@@ -173,53 +156,7 @@ const DEFAULTS = {
   ticketsThisRun: 0,
 };
 
-export const DROP_DURATION_MS = 1800;
-
-// ─── Deviation sliding window ────────────────────────────────────────────────
-// Stores (d, lateral) samples from the last DEVIATION_WINDOW_M metres.
-// Kept at module scope so it is not serialised into Zustand state (it is
-// internal bookkeeping, not UI-visible state).
-interface DeviationSample {
-  d: number;
-  lateralM: number;
-}
-let _deviationWindow: DeviationSample[] = [];
-
-function resetDeviationWindow(): void {
-  _deviationWindow = [];
-}
-
-/**
- * Add a sample and evict samples older than DEVIATION_WINDOW_M.
- * Returns the current raw mean-squared deviation over the window.
- */
-function updateDeviationWindow(d: number, lateral: number, optPath: OptimalPath): number {
-  _deviationWindow.push({ d, lateralM: lateral });
-  // Evict samples that have fallen outside the sliding window
-  const cutoff = d - DEVIATION_WINDOW_M;
-  let i = 0;
-  while (i < _deviationWindow.length && (_deviationWindow[i]?.d ?? 0) < cutoff) {
-    i++;
-  }
-  if (i > 0) _deviationWindow = _deviationWindow.slice(i);
-
-  if (_deviationWindow.length < 2) return 0;
-
-  let sq = 0;
-  let span = 0;
-  for (let j = 1; j < _deviationWindow.length; j++) {
-    const prev = _deviationWindow[j - 1];
-    const cur = _deviationWindow[j];
-    if (!prev || !cur) continue;
-    const dM = cur.d - prev.d;
-    if (dM <= 0) continue;
-    const target = optimalLateralAt(optPath, cur.d);
-    const err = cur.lateralM - target;
-    sq += err * err * dM;
-    span += dM;
-  }
-  return span > 0 ? sq / span : 0;
-}
+export { DROP_DURATION_MS };
 
 export const useGameStore = create<GameState>((set, get) => ({
   ...DEFAULTS,
@@ -266,88 +203,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   tick(dt, now) {
-    const s = get();
-    if (!s.running || s.paused || s.gameOver) return;
-
-    // During drop-in, only advance dropProgress and freeze gameplay
-    if (s.dropProgress < 1) {
-      const p = Math.min(1, (now - s.dropStartedAt) / DROP_DURATION_MS);
-      set({ dropProgress: p });
-      return;
-    }
-
-    // If already plunging, check if the animation is done
-    if (s.plunging) {
-      const elapsed = (now - s.plungeStartedAt) / 1000;
-      if (elapsed >= PLUNGE_DURATION_S) {
-        set({ running: false, gameOver: true, plunging: false });
-      }
-      return;
-    }
-
-    // Speed interpolation toward target; target climbs slowly over time.
-    const CRUISE = 70;
-    const BOOST = 90;
-    const MEGA = 120;
-    let target = Math.min(CRUISE, 30 + s.distance * 0.005);
-    if (now < s.boostUntil) target = BOOST;
-    if (now < s.megaBoostUntil) target = MEGA;
-    const speed = s.speedMps + (target - s.speedMps) * Math.min(1, dt * 1.3);
-    const distance = s.distance + speed * dt;
-    const hype = (speed / MEGA) * 100;
-
-    // Zone derivation (simple cycle every 450 units across 4 zones)
-    const zIdx = Math.floor(distance / 450) % 4;
-    const currentZone: ZoneId =
-      (['midway-strip', 'balloon-alley', 'ring-of-fire', 'funhouse-frenzy'] as const)[zIdx] ??
-      'midway-strip';
-
-    // Sanity regen slowly
-    const sanity = Math.min(100, s.sanity + dt * 2);
-
-    const currentChain = combo.getChainLength();
-    const maxComboThisRun = Math.max(get().maxComboThisRun, currentChain);
-
-    // Racing-line cleanliness: update the deviation sliding window and smooth.
-    let nextCleanliness = s.cleanliness;
-    if (s.optimalPath !== null) {
-      const msd = updateDeviationWindow(distance, s.lateral, s.optimalPath);
-      // Normalise: 0 msd → 1.0; DEVIATION_MAX_M² msd → 0.0 (clamped).
-      const raw = Math.max(0, 1 - msd / (DEVIATION_MAX_M * DEVIATION_MAX_M));
-      // EMA smooth so the readout isn't jittery.
-      nextCleanliness = s.cleanliness + CLEANLINESS_EMA * (raw - s.cleanliness);
-    }
-
-    set({
-      speedMps: speed,
-      targetSpeedMps: target,
-      distance,
-      hype,
-      sanity,
-      currentZone,
-      maxComboThisRun,
-      cleanliness: nextCleanliness,
-    });
-
-    // Plunge detection: player drove off side of a rail-free ramp
-    const plungeThreshold = TRACK.LATERAL_CLAMP + PLUNGE_OVERSHOOT_M;
-    if (
-      !s.plunging &&
-      Math.abs(s.lateral) > plungeThreshold &&
-      s.currentPieceKind !== null &&
-      RAMP_KINDS.has(s.currentPieceKind)
-    ) {
-      set({
-        plunging: true,
-        plungeStartedAt: now,
-        plungeDirection: Math.sign(s.lateral),
-      });
-      hapticsBus.fire('crash-heavy');
-      return;
-    }
-
-    // Game over when sanity exhausted
-    if (sanity <= 0) set({ running: false, gameOver: true });
+    tickGameState(dt, now, set, get);
   },
 
   pause() {
@@ -361,104 +217,24 @@ export const useGameStore = create<GameState>((set, get) => ({
   endRun() {
     const s = get();
     set({ running: false, gameOver: true });
-
-    // Finalize persistence asynchronously — UI does not wait for this
-    const plunged = s.plunging;
-    const secondsPlayed = s.startedAt > 0 ? (performance.now() - s.startedAt) / 1000 : 0;
-    const summary = {
-      distanceM: s.distance,
-      crashes: s.crashes,
-      scares: s.scaresThisRun,
-      ticketsEarned: s.ticketsThisRun,
+    persistRunEnd({
+      distance: s.distance,
       crowd: s.crowdReaction,
-      maxComboChain: s.maxComboThisRun,
-      plunged,
-      secondsPlayed,
-    };
-
-    Promise.resolve()
-      .then(async () => {
-        await recordProfileRun({ distance: s.distance, crowd: s.crowdReaction });
-        await recordLifetimeRun(summary);
-        const lifetime = await getStats();
-        await checkRunAchievements(
-          {
-            distance: s.distance,
-            crowd: s.crowdReaction,
-            crashes: s.crashes,
-            maxCombo: s.maxComboThisRun,
-            scaresThisRun: s.scaresThisRun,
-            raidsSurvived: s.raidsSurvived,
-            plunged,
-            secondsThisRun: secondsPlayed,
-          },
-          {
-            totalDistanceCm: lifetime.totalDistanceCm,
-            totalRunsCompleted: lifetime.totalRunsCompleted,
-            totalScares: lifetime.totalScares,
-            longestComboChain: lifetime.longestComboChain,
-            maxSingleRunCrowd: lifetime.maxSingleRunCrowd,
-            totalGameOversByPlunge: lifetime.totalGameOversByPlunge,
-          },
-        );
-      })
-      .catch((err: unknown) => {
-        // Import reportError lazily to avoid circular dep at module init
-        import('@/game/errorBus').then(({ reportError }) =>
-          reportError(err, 'gameState.endRun persistence'),
-        );
-      });
+      crashes: s.crashes,
+      scaresThisRun: s.scaresThisRun,
+      maxComboThisRun: s.maxComboThisRun,
+      raidsSurvived: s.raidsSurvived,
+      plunged: s.plunging,
+      startedAt: s.startedAt,
+    });
   },
 
   applyCrash(heavy = false) {
-    const s = get();
-    // Permadeath: any collision ends the run instantly, no sanity math.
-    if (s.permadeath) {
-      set({
-        sanity: 0,
-        crashes: s.crashes + 1,
-        speedMps: s.speedMps * 0.55,
-        gameOver: true,
-        running: false,
-      });
-      hapticsBus.fire('game-over');
-      return;
-    }
-    const sanity = Math.max(0, s.sanity - (heavy ? 25 : 10));
-    set({
-      sanity,
-      crashes: s.crashes + 1,
-      speedMps: s.speedMps * 0.55,
-      gameOver: sanity <= 0,
-      running: sanity > 0,
-    });
-    hapticsBus.fire(heavy ? 'crash-heavy' : 'crash-light');
-    if (sanity <= 0) hapticsBus.fire('game-over');
+    applyCrashAction(heavy, set, get);
   },
 
   applyPickup(kind) {
-    const s = get();
-    const now = performance.now();
-    // Cleanliness bonus multiplier: rewards players who follow the optimal
-    // racing line. This is an additional multiplier ON TOP of the existing
-    // combo chain multiplier — both stack on crowd gain events.
-    const cleanBonus = 1 + s.cleanliness * 0.5;
-    if (kind === 'ticket') {
-      set({
-        crowdReaction: s.crowdReaction + Math.round(50 * cleanBonus),
-        ticketsThisRun: s.ticketsThisRun + 1,
-      });
-      hapticsBus.fire('pickup-ticket');
-    } else if (kind === 'boost') {
-      set({ boostUntil: now + 2200, crowdReaction: s.crowdReaction + Math.round(25 * cleanBonus) });
-      hapticsBus.fire('boost');
-    } else if (kind === 'mega') {
-      set({
-        megaBoostUntil: now + 3500,
-        crowdReaction: s.crowdReaction + Math.round(200 * cleanBonus),
-      });
-      hapticsBus.fire('mega-boost');
-    }
+    applyPickupAction(kind, set, get);
   },
 
   setSteer(v) {

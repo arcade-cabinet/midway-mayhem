@@ -11,9 +11,10 @@ domain: ops
 
 | Platform | Status | URL / Artifact |
 |---|---|---|
-| Web (GitHub Pages) | planned | `https://arcade-cabinet.github.io/midway-mayhem/` |
-| Android debug APK | active | `midway-mayhem-debug-apk` artifact on every PR + main push |
-| iOS simulator build | planned | local only until App Store pipeline |
+| Web (GitHub Pages) | **live** | https://arcade-cabinet.github.io/midway-mayhem/ — deployed on every push to `main` via `cd.yml` |
+| Android debug APK | active | `midway-mayhem-android-debug` artifact on every push to `main` via `cd.yml` (web build + `cap sync android` + `gradlew assembleDebug`) |
+| Android release APK | active | attached to every published GitHub Release via `release.yml` |
+| iOS simulator build | planned | `ios/` platform folder not yet committed — run `pnpm exec cap add ios` to unblock |
 
 ## Android
 

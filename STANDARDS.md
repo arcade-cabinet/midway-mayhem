@@ -24,7 +24,7 @@ domain: technical
 
 - **All assets are in the manifest.** `src/assets/manifest.ts` is authoritative. Preloader hard-fails on missing assets with the specific path.
 - **Models are baked, not retextured at runtime.** `scripts/bake-kit.py` runs offline; `public/models/` is the shipped result.
-- **License compliance:** Kenney Racing Kit (CC0), PolyHaven circus_arena (CC0). Credit in `docs/LORE.md#credits`.
+- **License compliance:** Kenney Racing Kit (CC0), Quaternius Ultimate Animated Farm Animals (CC0), PolyHaven circus_arena (CC0), GeneralUser GS 1.472 soundfont (permissive custom license), Bangers + Rajdhani typefaces (SIL OFL 1.1). Full credit list in `docs/LORE.md#credits`.
 
 ## Brand
 
