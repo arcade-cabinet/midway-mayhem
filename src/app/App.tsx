@@ -1,7 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Game } from '../components/Game';
 import { TitleScreen } from '../components/TitleScreen';
-import { HUD } from '../components/HUD';
 import { ErrorModal } from '../components/ErrorModal';
 import { ReactErrorBoundary } from '../components/ReactErrorBoundary';
 import { installDiagnosticsBus } from '../systems/diagnosticsBus';
@@ -33,10 +32,7 @@ export function App() {
           ) : scene === 'title' ? (
             <TitleScreen onStart={() => setScene('play')} />
           ) : (
-            <>
-              <Game />
-              <HUD />
-            </>
+            <Game />
           )}
         </Suspense>
       </ReactErrorBoundary>

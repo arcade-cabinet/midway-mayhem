@@ -41,7 +41,8 @@ export function reportError(error: unknown, context: string): void {
     url: typeof window !== 'undefined' ? window.location.href : '',
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
   };
-  state.errors.push(gameErr);
+  // Allocate a new array on every push so React re-renders on subscriber notification
+  state.errors = [...state.errors, gameErr];
 
   if (!state.halted) {
     state.halted = true;

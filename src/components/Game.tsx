@@ -1,6 +1,6 @@
 import { Environment } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { assetUrl } from '../assets/manifest';
 import { useSteering } from '../hooks/useSteering';
@@ -20,7 +20,7 @@ import { WorldScroller } from './WorldScroller';
 
 export function Game() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const canvasElRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const startRun = useGameStore((s) => s.startRun);
 
   useEffect(() => {
@@ -29,13 +29,13 @@ export function Game() {
     (window as any).__mmHonk = () => audioBus.playHonk();
   }, [startRun]);
 
-  useSteering(canvasElRef.current);
+  useSteering(canvasEl);
 
   return (
     <div ref={wrapperRef} data-testid="mm-game" style={{ position: 'absolute', inset: 0 }}>
       <Canvas
         onCreated={({ gl, scene }) => {
-          canvasElRef.current = gl.domElement;
+          setCanvasEl(gl.domElement);
           scene.fog = new THREE.FogExp2(0x140820, 0.008);
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1.15;
