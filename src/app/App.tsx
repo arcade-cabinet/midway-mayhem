@@ -15,6 +15,10 @@ import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { seedContent } from '@/ecs/systems/seedContent';
 import { seedTrack } from '@/ecs/systems/track';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
+import { seedZones } from '@/ecs/systems/seedZones';
+import { resetAchievementsRun, stepAchievements } from '@/game/achievements';
+import { AchievementToasts } from '@/ui/AchievementToasts';
+import { ZoneBanners } from '@/render/ZoneBanners';
 import { Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
 import { haptic } from '@/input/haptics';
@@ -35,7 +39,9 @@ import { TitleScreen } from '@/ui/TitleScreen';
 // double-invoking child components — no guard flag needed.
 seedTrack(world, 42);
 seedContent(world, 42);
+seedZones(world);
 spawnPlayer(world);
+resetAchievementsRun();
 
 function GameLoop({
   active,
@@ -52,6 +58,7 @@ function GameLoop({
   useFrame(() => {
     if (!active) return;
     stepGameOver(world, { onEnd });
+    stepAchievements(world);
   });
   return null;
 }
@@ -97,6 +104,7 @@ export function App() {
           </Suspense>
           <Track />
           <TrackContent />
+          <ZoneBanners />
           <Cockpit />
           <SpeedLines />
           <PostFX />
@@ -142,6 +150,7 @@ export function App() {
         ) : (
           <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
         )}
+        <AchievementToasts />
         {endReason !== null ? (
           <GameOverEnd
             reason={endReason}
