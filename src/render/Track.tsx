@@ -25,6 +25,7 @@ import { trackArchetypes } from '@/config';
 import { Player, Position, TrackSegment } from '@/ecs/traits';
 import { integratePose, type Pose } from '@/ecs/systems/track';
 import { sampleTrackPose, type SampledSegment } from '@/ecs/systems/trackSampler';
+import { getTrackTexture } from './trackTexture';
 import { useWorld } from 'koota/react';
 
 const SEGMENT_SUBDIVISIONS = 12;
@@ -289,6 +290,7 @@ export function Track() {
   const segments = useQuery(TrackSegment);
   const world = useWorld();
   const groupRef = useRef<THREE.Group>(null);
+  const surfaceTex = useMemo(() => getTrackTexture(), []);
 
   const { built, sampled } = useMemo(() => {
     const traits = segments
@@ -375,7 +377,12 @@ export function Track() {
   return (
     <group ref={groupRef}>
       <mesh geometry={built.surface} name="track-surface">
-        <meshStandardMaterial color="#F36F21" roughness={0.58} metalness={0.08} />
+        <meshStandardMaterial
+          color="#F36F21"
+          roughnessMap={surfaceTex}
+          roughness={0.75}
+          metalness={0.15}
+        />
       </mesh>
       <mesh geometry={built.underside} name="track-underside">
         <meshStandardMaterial color="#2a0d05" roughness={0.95} metalness={0.0} />

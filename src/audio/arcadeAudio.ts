@@ -50,6 +50,15 @@ export async function startArcadeAudio(): Promise<ArcadeAudioHandle> {
   squealNoise.connect(squealGain);
   squealNoise.start();
 
+  // Wind/rush: pink-noise low-passed. Gain + filter cutoff grow with speed
+  // so idle is silent and cruising has a clear "air rushing past" layer.
+  const windFilter = new Tone.Filter(400, 'lowpass').connect(master);
+  windFilter.Q.value = 0.7;
+  const windNoise = new Tone.Noise('pink').connect(windFilter);
+  const windGain = new Tone.Gain(0).connect(windFilter);
+  windNoise.connect(windGain);
+  windNoise.start();
+
   // Horn: clown-car cluster — two detuned square waves, quick envelope.
   const hornEnv = new Tone.AmplitudeEnvelope({
     attack: 0.01,
@@ -113,6 +122,10 @@ export async function startArcadeAudio(): Promise<ArcadeAudioHandle> {
       engineOsc.frequency.rampTo(baseFreq, 0.05);
       engineOsc2.frequency.rampTo(baseFreq * 1.5, 0.05);
       engineGain.gain.rampTo(0.15 + norm * 0.25, 0.05);
+      // Wind: gain + brightness scale with speed squared so it's absent at
+      // idle and dominant at cruise.
+      windGain.gain.rampTo(norm * norm * 0.18, 0.05);
+      windFilter.frequency.rampTo(400 + norm * 2200, 0.05);
     },
     setTireSqueal(active) {
       squealGain.gain.rampTo(active ? 0.1 : 0, 0.08);
@@ -145,6 +158,7 @@ export async function startArcadeAudio(): Promise<ArcadeAudioHandle> {
       engineOsc.stop();
       engineOsc2.stop();
       squealNoise.stop();
+      windNoise.stop();
       hornOsc1.stop();
       hornOsc2.stop();
       master.disconnect();

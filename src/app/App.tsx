@@ -30,6 +30,7 @@ import { useKeyboard } from '@/input/useKeyboard';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment } from '@/render/Environment';
 import { PostFX } from '@/render/PostFX';
+import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
 import { TitleScreen } from '@/ui/TitleScreen';
@@ -103,6 +104,7 @@ export function App() {
           <Track />
           <TrackContent />
           <Cockpit />
+          <SpeedLines />
           <PostFX />
           <GameLoop
             active={playing}

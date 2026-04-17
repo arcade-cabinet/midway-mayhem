@@ -7,12 +7,54 @@
  * Rendered as children of the Track group so the parent's per-frame
  * counter-rotation sweeps them past the cockpit automatically.
  */
+import { useFrame } from '@react-three/fiber';
 import { useQuery } from 'koota/react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { trackArchetypes } from '@/config';
 import { Obstacle, Pickup, TrackSegment } from '@/ecs/traits';
 import { sampleTrackPose, type SampledSegment } from '@/ecs/systems/trackSampler';
+
+/** Balloon with per-frame bob + spin. Phase seeded by position so every
+ *  balloon on the track animates out of sync with its neighbours. */
+function BobbingBalloon({
+  anchor,
+  phase,
+  color,
+}: {
+  anchor: [number, number, number];
+  phase: number;
+  color: string;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    const g = groupRef.current;
+    if (!g) return;
+    const t = clock.elapsedTime;
+    g.position.y = anchor[1] + Math.sin(t * 1.6 + phase) * 0.12;
+    g.rotation.y = t * 0.4 + phase;
+  });
+  return (
+    <group ref={groupRef} position={anchor}>
+      <mesh>
+        <sphereGeometry args={[0.35, 16, 12]} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.3}
+          metalness={0.1}
+          emissive={color}
+          emissiveIntensity={0.25}
+        />
+      </mesh>
+      <mesh position={[0, -0.45, 0]}>
+        <cylinderGeometry args={[0.01, 0.01, 0.5, 4]} />
+        <meshBasicMaterial color="#ffd600" />
+      </mesh>
+    </group>
+  );
+}
+
+const BALLOON_COLORS = ['#ff2d87', '#00e5ff', '#ffd600', '#ff6f00', '#c71585'];
 
 export function TrackContent() {
   const trackSegs = useQuery(TrackSegment);
@@ -87,23 +129,18 @@ export function TrackContent() {
         const x = p.x + rightX * pu.lateral;
         const z = p.z + rightZ * pu.lateral;
         if (pu.kind === 'balloon') {
+          // Deterministic color + phase per entity so the same balloon always
+          // animates the same way across restarts.
+          const id = e.id();
+          const color = BALLOON_COLORS[id % BALLOON_COLORS.length] ?? BALLOON_COLORS[0];
+          const phase = (id * 0.57) % (Math.PI * 2);
           return (
-            <group key={e.id()} position={[x, p.y + 1.6, z]}>
-              <mesh>
-                <sphereGeometry args={[0.35, 16, 12]} />
-                <meshStandardMaterial
-                  color="#ff2d87"
-                  roughness={0.3}
-                  metalness={0.1}
-                  emissive="#ff2d87"
-                  emissiveIntensity={0.25}
-                />
-              </mesh>
-              <mesh position={[0, -0.45, 0]}>
-                <cylinderGeometry args={[0.01, 0.01, 0.5, 4]} />
-                <meshBasicMaterial color="#ffd600" />
-              </mesh>
-            </group>
+            <BobbingBalloon
+              key={id}
+              anchor={[x, p.y + 1.6, z]}
+              phase={phase}
+              color={color as string}
+            />
           );
         }
         // Boost pad

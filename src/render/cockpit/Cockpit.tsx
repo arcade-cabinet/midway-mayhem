@@ -120,14 +120,17 @@ export function Cockpit({ tier }: CockpitProps) {
         <planeGeometry args={[3.2, 4.0]} />
         <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
       </mesh>
+      {/* Side walls pulled further out so the windshield opens wider;
+          the cabin still reads as purple when the player glances sideways
+          but it no longer eats horizontal viewport real estate. */}
       {([-1, 1] as const).map((side) => (
         <mesh
           key={side}
-          position={[side * 1.6, 1.2, 0]}
+          position={[side * 2.2, 1.2, 0.3]}
           rotation={[0, side * -Math.PI / 2, 0]}
           name={`cabin-wall-${side > 0 ? 'right' : 'left'}`}
         >
-          <planeGeometry args={[4.0, 2.8]} />
+          <planeGeometry args={[3.2, 2.8]} />
           <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
         </mesh>
       ))}
