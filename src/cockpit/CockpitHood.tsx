@@ -5,7 +5,7 @@
  * Extracted from Cockpit.tsx to keep that file under 300 LOC.
  */
 import { useMemo } from 'react';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 interface CockpitHoodProps {
   hoodMat: THREE.MeshStandardMaterial;
@@ -34,11 +34,7 @@ export function CockpitHood({
           opens up — hood reads as a rounded horizon rather than a wall.
           hoodZOffset pushes the hood forward on narrow form factors so
           more track is visible through the windshield. */}
-      <mesh
-        position={[0, -0.1, -1.9 + hoodZOffset]}
-        material={hoodMat}
-        scale={[0.95, 0.75, 1.25]}
-      >
+      <mesh position={[0, -0.1, -1.9 + hoodZOffset]} material={hoodMat} scale={[0.95, 0.75, 1.25]}>
         <sphereGeometry args={[0.92, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
       {/* Chrome ridge — laid ON the hood surface */}

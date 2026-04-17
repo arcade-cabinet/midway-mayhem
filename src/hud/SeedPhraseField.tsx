@@ -10,7 +10,13 @@ interface SeedPhraseFieldProps {
   onShuffle: () => void;
 }
 
-export function SeedPhraseField({ phrase, seed, inputRef, onChange, onShuffle }: SeedPhraseFieldProps) {
+export function SeedPhraseField({
+  phrase,
+  seed,
+  inputRef,
+  onChange,
+  onShuffle,
+}: SeedPhraseFieldProps) {
   return (
     <div>
       <div

@@ -8,7 +8,7 @@
  * Extracted from ObstacleSystem.tsx so that module stays under 300 LOC.
  */
 
-import { composeTrack, type PiecePlacement } from '@/track/trackComposer';
+import type { composeTrack, PiecePlacement } from '@/track/trackComposer';
 
 export function trackToWorld(
   composition: ReturnType<typeof composeTrack>,

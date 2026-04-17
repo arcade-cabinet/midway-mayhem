@@ -30,7 +30,7 @@
  */
 
 import { TRACK } from '@/utils/constants';
-import { type RunPlan } from './runPlan';
+import type { RunPlan } from './runPlan';
 
 // ─── Optimal lane trajectory ────────────────────────────────────────────────
 

@@ -9,7 +9,7 @@
  * `resetDeviationWindow`.
  */
 
-import { optimalLateralAt, type OptimalPath } from './optimalPath';
+import { type OptimalPath, optimalLateralAt } from './optimalPath';
 
 /** How far back (in metres) the window extends. */
 export const DEVIATION_WINDOW_M = 200;
@@ -33,11 +33,7 @@ export function resetDeviationWindow(): void {
  * Add a sample and evict samples older than DEVIATION_WINDOW_M.
  * Returns the current raw mean-squared deviation over the window.
  */
-export function updateDeviationWindow(
-  d: number,
-  lateral: number,
-  optPath: OptimalPath,
-): number {
+export function updateDeviationWindow(d: number, lateral: number, optPath: OptimalPath): number {
   _window.push({ d, lateralM: lateral });
 
   // Evict samples that have fallen outside the sliding window

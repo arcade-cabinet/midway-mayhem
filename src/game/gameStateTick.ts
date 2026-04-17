@@ -55,12 +55,7 @@ export const DROP_DURATION_MS = 1800;
 type SetFn = StoreApi<TickableState>['setState'];
 type GetFn = () => TickableState;
 
-export function tickGameState(
-  dt: number,
-  now: number,
-  set: SetFn,
-  get: GetFn,
-): void {
+export function tickGameState(dt: number, now: number, set: SetFn, get: GetFn): void {
   const s = get();
   if (!s.running || s.paused || s.gameOver) return;
 

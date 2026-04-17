@@ -105,7 +105,13 @@ export function TitleCompactLayout({
         }}
       >
         <TicketPill tickets={tickets} />
-        <BrandButton ref={startButtonRef} kind="primary" size="lg" onClick={onStart} testId="start-button">
+        <BrandButton
+          ref={startButtonRef}
+          kind="primary"
+          size="lg"
+          onClick={onStart}
+          testId="start-button"
+        >
           NEW RUN
         </BrandButton>
         {onTour && (
@@ -113,22 +119,58 @@ export function TitleCompactLayout({
             VISIT THE MIDWAY
           </BrandButton>
         )}
-        <BrandButton kind="balloon" hue="yellow" size="md" onClick={() => onOpen('shop')} testId="shop-button">
+        <BrandButton
+          kind="balloon"
+          hue="yellow"
+          size="md"
+          onClick={() => onOpen('shop')}
+          testId="shop-button"
+        >
           🎟 SHOP
         </BrandButton>
-        <BrandButton kind="balloon" hue="purple" size="md" onClick={() => onOpen('achievements')} testId="achievements-button">
+        <BrandButton
+          kind="balloon"
+          hue="purple"
+          size="md"
+          onClick={() => onOpen('achievements')}
+          testId="achievements-button"
+        >
           🏆 ACHIEVEMENTS
         </BrandButton>
-        <BrandButton kind="balloon" hue="blue" size="md" onClick={() => onOpen('how-to-play')} testId="how-to-play-button">
+        <BrandButton
+          kind="balloon"
+          hue="blue"
+          size="md"
+          onClick={() => onOpen('how-to-play')}
+          testId="how-to-play-button"
+        >
           ❓ HOW TO PLAY
         </BrandButton>
-        <BrandButton kind="balloon" hue="orange" size="sm" onClick={() => onOpen('stats')} testId="stats-button">
+        <BrandButton
+          kind="balloon"
+          hue="orange"
+          size="sm"
+          onClick={() => onOpen('stats')}
+          testId="stats-button"
+        >
           📊 STATS
         </BrandButton>
-        <BrandButton kind="balloon" hue="orange" size="sm" onClick={() => onOpen('credits')} testId="credits-button">
+        <BrandButton
+          kind="balloon"
+          hue="orange"
+          size="sm"
+          onClick={() => onOpen('credits')}
+          testId="credits-button"
+        >
           🎭 CREDITS
         </BrandButton>
-        <BrandButton kind="balloon" hue="green" size="sm" onClick={() => onOpen('settings')} testId="settings-button">
+        <BrandButton
+          kind="balloon"
+          hue="green"
+          size="sm"
+          onClick={() => onOpen('settings')}
+          testId="settings-button"
+        >
           ⚙ SETTINGS
         </BrandButton>
       </div>

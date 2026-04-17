@@ -109,9 +109,7 @@ export async function openOpfsSqlJs(schemaObj: DbSchema): Promise<DriverResult> 
   const buf = await existing.arrayBuffer();
 
   const sqlJsDb =
-    buf.byteLength > 0
-      ? new sqlJsMod.Database(new Uint8Array(buf))
-      : new sqlJsMod.Database();
+    buf.byteLength > 0 ? new sqlJsMod.Database(new Uint8Array(buf)) : new sqlJsMod.Database();
 
   const drizzleDb = buildSqlJsDrizzle(() => sqlJsDb, schemaObj);
   return { drizzle: drizzleDb, sqlJsDb, sqlJsMod, opfsFile };

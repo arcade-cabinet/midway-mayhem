@@ -10,7 +10,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { damageLevelFor } from '@/game/damageLevel';
 import { useGameStore } from '@/game/gameState';
 import { STEER } from '@/utils/constants';
@@ -43,8 +43,7 @@ export function useCockpitAnimation(refs: CockpitRefs): void {
     const root = refs.rootRef.current;
     if (root) {
       const dp = Math.max(0, Math.min(1, s.dropProgress));
-      const fall =
-        dp < 0.75 ? (dp / 0.75) ** 2 : 1 + Math.sin((dp - 0.75) * 12) * 0.06 * (1 - dp);
+      const fall = dp < 0.75 ? (dp / 0.75) ** 2 : 1 + Math.sin((dp - 0.75) * 12) * 0.06 * (1 - dp);
       const y0 = 12;
 
       if (s.plunging) {
@@ -61,8 +60,7 @@ export function useCockpitAnimation(refs: CockpitRefs): void {
         root.rotation.y = s.trickRotationY;
         if (dp < 0.1) root.rotation.z = Math.sin(t * 2) * 0.02 + s.trickRotationZ;
         else
-          root.rotation.z =
-            s.trickRotationZ + (s.trickRotationZ === 0 ? root.rotation.z * 0.9 : 0);
+          root.rotation.z = s.trickRotationZ + (s.trickRotationZ === 0 ? root.rotation.z * 0.9 : 0);
       }
     }
 

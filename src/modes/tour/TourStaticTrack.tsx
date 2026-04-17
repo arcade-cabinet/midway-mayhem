@@ -6,7 +6,7 @@
  * Extracted from BigTopTour.tsx to keep that file under 300 LOC.
  */
 import { useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { assetUrl } from '@/assets/manifest';
 import { composeTrack, DEFAULT_TRACK, type PiecePlacement } from '@/track/trackComposer';
 

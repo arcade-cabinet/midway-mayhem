@@ -10,10 +10,10 @@ import {
   effectivePermadeath,
 } from './difficulty';
 import { applyCrashAction, applyPickupAction } from './gameStateCombat';
-import { type OptimalPath, solveOptimalPath } from './optimalPath';
-import { buildRunPlan, type RunPlan } from './runPlan';
-import { persistRunEnd } from './runEndPersistence';
 import { DROP_DURATION_MS, tickGameState } from './gameStateTick';
+import { type OptimalPath, solveOptimalPath } from './optimalPath';
+import { persistRunEnd } from './runEndPersistence';
+import { buildRunPlan, type RunPlan } from './runPlan';
 import { initRunRng, trackRng } from './runRngBus';
 
 // PLUNGE_DURATION_S and RAMP_KINDS live in gameStateTick.ts

@@ -10,8 +10,8 @@
 import { composeTrack, DEFAULT_TRACK, type PieceKind } from '@/track/trackComposer';
 import { TRACK } from '@/utils/constants';
 import { createRunRng } from '@/utils/rng';
+import { type OptimalPath, solveOptimalPath } from './optimalPath';
 import { buildRunPlan, type RunPlan } from './runPlan';
-import { solveOptimalPath, type OptimalPath } from './optimalPath';
 
 /** Ramp piece kinds that have no side rails — plunge risk zone. */
 const RAMP_KINDS: ReadonlySet<PieceKind> = new Set(['ramp', 'rampLong', 'rampLongCurved']);

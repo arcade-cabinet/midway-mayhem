@@ -30,9 +30,7 @@ interface StartRunOptions {
   permadeath?: boolean;
 }
 
-export function useGameSystems(
-  startRun: (opts?: StartRunOptions) => void,
-): void {
+export function useGameSystems(startRun: (opts?: StartRunOptions) => void): void {
   useEffect(() => {
     // biome-ignore lint/suspicious/noExplicitAny: test seed hook
     const overrideSeed = (window as any).__mmSeed as number | undefined;

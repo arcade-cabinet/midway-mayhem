@@ -5,7 +5,7 @@
  * Meshes are exposed via forwarded refs so Cockpit's useFrame can animate them.
  * Extracted from Cockpit.tsx to keep that file under 300 LOC.
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 interface CockpitDamageFXProps {
   fireLightRef: React.RefObject<THREE.PointLight | null>;

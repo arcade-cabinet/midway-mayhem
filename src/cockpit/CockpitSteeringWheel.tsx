@@ -4,7 +4,7 @@
  * Steering wheel group: torus rim, chrome spokes, column, and honkable horn cap.
  * Extracted from Cockpit.tsx to keep that file under 300 LOC.
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 interface CockpitSteeringWheelProps {
   wheelRef: React.RefObject<THREE.Group | null>;

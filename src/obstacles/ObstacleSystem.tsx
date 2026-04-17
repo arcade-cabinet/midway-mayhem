@@ -12,11 +12,11 @@ import type { CritterKind } from '@/utils/constants';
 import { HONK } from '@/utils/constants';
 import {
   CRITTER_KINDS,
+  type CritterPools,
   makeCritterPools,
   populateCritterKind,
-  type CritterPools,
 } from './critterPool';
-import { useObstacleFrame, type PlanFleeState } from './useObstacleFrame';
+import { type PlanFleeState, useObstacleFrame } from './useObstacleFrame';
 
 /**
  * Obstacles rendered via Kenney Racing Kit GLBs (baked with brand palette).
@@ -40,17 +40,34 @@ export function ObstacleSystem() {
   const coneGltf = useGLTF(assetUrl('gltf:cone')) as unknown as { scene: THREE.Object3D };
   const pylonGltf = useGLTF(assetUrl('gltf:pylon')) as unknown as { scene: THREE.Object3D };
   const wallGltf = useGLTF(assetUrl('gltf:barrierWall')) as unknown as { scene: THREE.Object3D };
-  const cowGltf = useGLTF(assetUrl('gltf:critter_cow')) as unknown as { scene: THREE.Object3D; animations: THREE.AnimationClip[] };
-  const horseGltf = useGLTF(assetUrl('gltf:critter_horse')) as unknown as { scene: THREE.Object3D; animations: THREE.AnimationClip[] };
-  const llamaGltf = useGLTF(assetUrl('gltf:critter_llama')) as unknown as { scene: THREE.Object3D; animations: THREE.AnimationClip[] };
-  const pigGltf = useGLTF(assetUrl('gltf:critter_pig')) as unknown as { scene: THREE.Object3D; animations: THREE.AnimationClip[] };
+  const cowGltf = useGLTF(assetUrl('gltf:critter_cow')) as unknown as {
+    scene: THREE.Object3D;
+    animations: THREE.AnimationClip[];
+  };
+  const horseGltf = useGLTF(assetUrl('gltf:critter_horse')) as unknown as {
+    scene: THREE.Object3D;
+    animations: THREE.AnimationClip[];
+  };
+  const llamaGltf = useGLTF(assetUrl('gltf:critter_llama')) as unknown as {
+    scene: THREE.Object3D;
+    animations: THREE.AnimationClip[];
+  };
+  const pigGltf = useGLTF(assetUrl('gltf:critter_pig')) as unknown as {
+    scene: THREE.Object3D;
+    animations: THREE.AnimationClip[];
+  };
 
   const critterScenes: Record<CritterKind, THREE.Object3D> = {
-    cow: cowGltf.scene, horse: horseGltf.scene, llama: llamaGltf.scene, pig: pigGltf.scene,
+    cow: cowGltf.scene,
+    horse: horseGltf.scene,
+    llama: llamaGltf.scene,
+    pig: pigGltf.scene,
   };
   const critterAnimations: Record<CritterKind, THREE.AnimationClip[]> = {
-    cow: cowGltf.animations ?? [], horse: horseGltf.animations ?? [],
-    llama: llamaGltf.animations ?? [], pig: pigGltf.animations ?? [],
+    cow: cowGltf.animations ?? [],
+    horse: horseGltf.animations ?? [],
+    llama: llamaGltf.animations ?? [],
+    pig: pigGltf.animations ?? [],
   };
 
   const barrierGroupRef = useRef<THREE.Group>(null);
@@ -97,7 +114,10 @@ export function ObstacleSystem() {
           if (planFleeState.current.has(i)) continue;
           const ahead = o.d - playerD;
           if (ahead < 0 || ahead > HONK.SCARE_RADIUS_M) continue;
-          planFleeState.current.set(i, { fleeStartedAt: nowMs, fleeDir: rng.next() < 0.5 ? -1 : 1 });
+          planFleeState.current.set(i, {
+            fleeStartedAt: nowMs,
+            fleeDir: rng.next() < 0.5 ? -1 : 1,
+          });
           scared++;
         }
       } else {
@@ -106,7 +126,9 @@ export function ObstacleSystem() {
       if (scared > 0) {
         for (let i = 0; i < scared; i++) combo.registerEvent('scare');
         const mult = combo.getMultiplier();
-        useGameStore.setState((prev) => ({ crowdReaction: prev.crowdReaction + scared * 10 * mult }));
+        useGameStore.setState((prev) => ({
+          crowdReaction: prev.crowdReaction + scared * 10 * mult,
+        }));
       }
     });
   }, [spawner]);
@@ -114,23 +136,56 @@ export function ObstacleSystem() {
   useEffect(() => {
     if (!barrierGroupRef.current || barrierSlots.current.length > 0) return;
     for (let i = 0; i < MAX_PER_TYPE; i++) {
-      const b = barrierGltf.scene.clone(true); b.scale.setScalar(10); b.position.set(0, -9999, 0);
-      barrierGroupRef.current?.add(b); barrierSlots.current.push(b);
-      const c = coneGltf.scene.clone(true); c.scale.setScalar(10); c.position.set(0, -9999, 0);
-      conesGroupRef.current?.add(c); conesSlots.current.push(c);
-      const g = pylonGltf.scene.clone(true); g.scale.setScalar(10); g.position.set(0, -9999, 0);
-      gateGroupRef.current?.add(g); gateSlots.current.push(g);
-      const h = wallGltf.scene.clone(true); h.scale.setScalar(10); h.position.set(0, -9999, 0);
-      hammerGroupRef.current?.add(h); hammerSlots.current.push(h);
-      const o = new THREE.Mesh(oilGeo, oilMat); o.position.set(0, -9999, 0);
-      oilGroupRef.current?.add(o); oilSlots.current.push(o);
+      const b = barrierGltf.scene.clone(true);
+      b.scale.setScalar(10);
+      b.position.set(0, -9999, 0);
+      barrierGroupRef.current?.add(b);
+      barrierSlots.current.push(b);
+      const c = coneGltf.scene.clone(true);
+      c.scale.setScalar(10);
+      c.position.set(0, -9999, 0);
+      conesGroupRef.current?.add(c);
+      conesSlots.current.push(c);
+      const g = pylonGltf.scene.clone(true);
+      g.scale.setScalar(10);
+      g.position.set(0, -9999, 0);
+      gateGroupRef.current?.add(g);
+      gateSlots.current.push(g);
+      const h = wallGltf.scene.clone(true);
+      h.scale.setScalar(10);
+      h.position.set(0, -9999, 0);
+      hammerGroupRef.current?.add(h);
+      hammerSlots.current.push(h);
+      const o = new THREE.Mesh(oilGeo, oilMat);
+      o.position.set(0, -9999, 0);
+      oilGroupRef.current?.add(o);
+      oilSlots.current.push(o);
     }
     if (critterGroupRef.current) {
       for (const kind of CRITTER_KINDS) {
-        populateCritterKind(kind, critterScenes[kind], critterAnimations[kind], critterPools.current, critterGroupRef.current);
+        populateCritterKind(
+          kind,
+          critterScenes[kind],
+          critterAnimations[kind],
+          critterPools.current,
+          critterGroupRef.current,
+        );
       }
     }
-  }, [barrierGltf, coneGltf, pylonGltf, wallGltf, oilGeo, oilMat, critterScenes.cow, critterScenes.horse, critterScenes.llama, critterScenes.pig, critterScenes, critterAnimations]);
+  }, [
+    barrierGltf,
+    coneGltf,
+    pylonGltf,
+    wallGltf,
+    oilGeo,
+    oilMat,
+    critterScenes.cow,
+    critterScenes.horse,
+    critterScenes.llama,
+    critterScenes.pig,
+    critterScenes,
+    critterAnimations,
+  ]);
 
   useObstacleFrame({
     barrierSlots,
@@ -169,7 +224,7 @@ useGLTF.preload(assetUrl('gltf:critter_horse'));
 useGLTF.preload(assetUrl('gltf:critter_llama'));
 useGLTF.preload(assetUrl('gltf:critter_pig'));
 
-// ── Re-export: legacy world-transform used by peer obstacle layers ─────────
-export { trackToWorld } from './trackToWorld';
 // Re-export pickIdleClip for any callers that imported it from here previously
 export { pickIdleClip } from './critterPool';
+// ── Re-export: legacy world-transform used by peer obstacle layers ─────────
+export { trackToWorld } from './trackToWorld';

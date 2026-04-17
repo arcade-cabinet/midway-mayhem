@@ -20,7 +20,6 @@
 
 import { sql } from 'drizzle-orm';
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
-import * as schema from './schema';
 import {
   openCapacitorConnection,
   openInMemorySqlJs,
@@ -28,6 +27,7 @@ import {
   type SqliteConnection,
   type SqlJsDatabase,
 } from './dbDrivers';
+import * as schema from './schema';
 
 // ─── Platform detection ────────────────────────────────────────────────────
 

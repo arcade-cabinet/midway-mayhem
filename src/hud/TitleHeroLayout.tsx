@@ -9,13 +9,13 @@
  *
  * Extracted from TitleScreen.tsx to keep that file under 300 LOC.
  */
-import { BrandButton } from '@/design/components/BrandButton';
-import { space } from '@/design/tokens';
-import { color } from '@/design/tokens';
+
 import type React from 'react';
+import { BrandButton } from '@/design/components/BrandButton';
+import { color, space } from '@/design/tokens';
 import { Leaderboard } from './Leaderboard';
-import { TicketPill } from './TitleCompactLayout';
 import type { TitleOverlay } from './TitleCompactLayout';
+import { TicketPill } from './TitleCompactLayout';
 
 const BASE = `${import.meta.env.BASE_URL ?? '/'}`.replace(/\/$/, '');
 const HERO_ART_URL = `${BASE}/ui/background-landing.png`;
@@ -162,13 +162,7 @@ export function TitleHeroLayout({
             NEW RUN
           </BrandButton>
           {onTour && (
-            <BrandButton
-              kind="balloon"
-              hue="blue"
-              size="lg"
-              onClick={onTour}
-              testId="tour-button"
-            >
+            <BrandButton kind="balloon" hue="blue" size="lg" onClick={onTour} testId="tour-button">
               VISIT THE MIDWAY
             </BrandButton>
           )}
