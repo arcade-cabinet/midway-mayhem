@@ -14,6 +14,7 @@ import { seedTrack } from '@/ecs/systems/track';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
 import { world } from '@/ecs/world';
+import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment } from '@/render/Environment';
@@ -54,7 +55,7 @@ export function App() {
         style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
       >
         <Canvas
-          gl={{ antialias: true, preserveDrawingBuffer: false }}
+          gl={{ antialias: true, preserveDrawingBuffer: true }}
           frameloop="always"
           style={{ position: 'absolute', inset: 0 }}
         >
@@ -74,7 +75,11 @@ export function App() {
             }}
           />
         </Canvas>
-        {titleVisible ? <TitleScreen onDrive={() => setTitleVisible(false)} /> : null}
+        {titleVisible ? (
+          <TitleScreen onDrive={() => setTitleVisible(false)} />
+        ) : (
+          <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+        )}
       </div>
     </WorldProvider>
   );

@@ -35,7 +35,7 @@ interface BigTopEnvironmentProps {
  * is just ground + the scene's existing lights.
  */
 export function BigTopEnvironment({
-  hdriPath = '/hdri/circus_arena_2k.hdr',
+  hdriPath = `${import.meta.env.BASE_URL}hdri/circus_arena_2k.hdr`,
   showBackground = true,
   groundY = -60,
   skipHdri = false,

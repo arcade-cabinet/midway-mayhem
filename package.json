@@ -21,7 +21,9 @@
     "test:node": "vitest run --project node",
     "test:browser": "vitest run --project browser",
     "test:watch": "vitest",
-    "test:visual:update": "vitest run --project browser --update"
+    "test:visual:update": "vitest run --project browser --update",
+    "playthrough": "tsx scripts/playthrough-governor.ts",
+    "playthrough:self": "tsx scripts/playthrough-governor.ts --self-host"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.0",
