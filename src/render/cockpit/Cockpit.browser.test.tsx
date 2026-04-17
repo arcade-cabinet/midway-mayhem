@@ -43,12 +43,7 @@ function Capture() {
   return null;
 }
 
-const TIERS: FormTier[] = [
-  'phone-portrait',
-  'phone-landscape',
-  'tablet-portrait',
-  'desktop',
-];
+const TIERS: FormTier[] = ['phone-portrait', 'phone-landscape', 'tablet-portrait', 'desktop'];
 
 async function waitFrames(n: number) {
   for (let i = 0; i < n; i++) {

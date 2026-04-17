@@ -67,10 +67,12 @@ async function openDb(): Promise<DbConn> {
 
 async function nativeSaveScore(row: ScoreRow): Promise<void> {
   const db = await openDb();
-  await db.run(
-    'INSERT INTO scores (score, balloons, seed, timestamp) VALUES (?, ?, ?, ?);',
-    [row.score, row.balloons, row.seed, row.timestamp],
-  );
+  await db.run('INSERT INTO scores (score, balloons, seed, timestamp) VALUES (?, ?, ?, ?);', [
+    row.score,
+    row.balloons,
+    row.seed,
+    row.timestamp,
+  ]);
   await db.close();
 }
 

@@ -57,10 +57,7 @@ describe('Cockpit + Track composition', () => {
 
     render(
       <WorldProvider world={world}>
-        <div
-          data-testid="full-scene"
-          style={{ width: 1280, height: 720, position: 'relative' }}
-        >
+        <div data-testid="full-scene" style={{ width: 1280, height: 720, position: 'relative' }}>
           <Canvas
             dpr={1}
             gl={{ antialias: false, preserveDrawingBuffer: true }}

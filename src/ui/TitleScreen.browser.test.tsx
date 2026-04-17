@@ -16,7 +16,9 @@ function TestWrapper() {
   const [visible, setVisible] = useState(true);
   return (
     <div data-testid="wrap">
-      {visible ? <TitleScreen onDrive={() => setVisible(false)} /> : (
+      {visible ? (
+        <TitleScreen onDrive={() => setVisible(false)} />
+      ) : (
         <div data-testid="after-drive">driving</div>
       )}
     </div>
@@ -31,10 +33,7 @@ describe('TitleScreen', () => {
     expect(btn.textContent?.toLowerCase()).toContain('drive');
 
     btn.click();
-    await waitFor(
-      () => expect(queryByTestId('after-drive')).toBeTruthy(),
-      { timeout: 1500 },
-    );
+    await waitFor(() => expect(queryByTestId('after-drive')).toBeTruthy(), { timeout: 1500 });
   });
 
   it('visual baseline (desktop viewport)', async () => {

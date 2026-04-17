@@ -38,12 +38,7 @@ export function stepPlayer(world: World, dt: number): void {
   world
     .query(Player, Speed, Steer, Throttle, Position)
     .updateEach(([speed, steer, throttle, pos]) => {
-      const tgt =
-        throttle.value > 0
-          ? cruiseMps
-          : throttle.value < 0
-            ? 0
-            : cruiseMps * 0.4;
+      const tgt = throttle.value > 0 ? cruiseMps : throttle.value < 0 ? 0 : cruiseMps * 0.4;
       speed.target = tgt;
       // Exponential smoothing toward target.
       const k = 1 - Math.exp(-throttleResponse * dt);

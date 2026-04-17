@@ -67,7 +67,7 @@ function FlowerOrnament() {
         const y = Math.sin(angle) * 0.18;
         return (
           <mesh
-            key={i}
+            key={`petal-${angle.toFixed(3)}`}
             position={[x, y, 0]}
             rotation={[0, 0, angle]}
             scale={[1.4, 0.5, 0.5]}

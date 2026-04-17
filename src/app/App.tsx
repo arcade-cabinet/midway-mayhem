@@ -6,25 +6,18 @@
  * Input listeners + motion loop are mounted unconditionally so the player
  * entity's state always reflects reality; gating is purely visual.
  */
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useRef, useState } from 'react';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
-import {
-  type EndReason,
-  resetGameOver,
-  stepGameOver,
-} from '@/ecs/systems/gameOver';
+import { type EndReason, resetGameOver, stepGameOver } from '@/ecs/systems/gameOver';
+import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { seedContent } from '@/ecs/systems/seedContent';
 import { seedTrack } from '@/ecs/systems/track';
-import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
+import { Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
 import { haptic } from '@/input/haptics';
-import { Player, Score } from '@/ecs/traits';
-import { useFrame } from '@react-three/fiber';
-import { saveScore } from '@/storage/scores';
-import { GameOverOverlay } from '@/ui/GameOverOverlay';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
 import { Cockpit } from '@/render/cockpit/Cockpit';
@@ -33,6 +26,8 @@ import { PostFX } from '@/render/PostFX';
 import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
+import { saveScore } from '@/storage/scores';
+import { GameOverOverlay } from '@/ui/GameOverOverlay';
 import { TitleScreen } from '@/ui/TitleScreen';
 
 // Seed the world once at module load. ES modules are evaluated exactly

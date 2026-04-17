@@ -29,11 +29,7 @@ import { CockpitHood } from './CockpitHood';
 import { CockpitSteeringWheel } from './CockpitSteeringWheel';
 import { DiegeticHUD } from './DiegeticHUD';
 import { makePolkaDotTexture } from './polkaDotTexture';
-import {
-  type FormTier,
-  responsiveCockpitTransform,
-  useFormFactor,
-} from './useFormFactor';
+import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
 
 const PURPLE = '#9c27b0';
 const YELLOW = '#ffd600';
@@ -63,10 +59,7 @@ interface CockpitProps {
 export function Cockpit({ tier }: CockpitProps) {
   const ff = useFormFactor();
   const active = tier ?? ff.tier;
-  const { scale, hoodZOffset } = useMemo(
-    () => responsiveCockpitTransform(active),
-    [active],
-  );
+  const { scale, hoodZOffset } = useMemo(() => responsiveCockpitTransform(active), [active]);
 
   const cowlTexture = useMemo(() => {
     const t = makePolkaDotTexture(COWL_DOT, COWL_CREAM, { dotsPerSide: 3 });
@@ -114,11 +107,21 @@ export function Cockpit({ tier }: CockpitProps) {
           so we see the track through the windshield. */}
       <mesh position={[0, 1.2, 2.2]} rotation={[0, Math.PI, 0]} name="cabin-back">
         <planeGeometry args={[3.2, 2.8]} />
-        <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
+        <meshStandardMaterial
+          color={PURPLE}
+          roughness={0.6}
+          metalness={0.15}
+          side={THREE.DoubleSide}
+        />
       </mesh>
       <mesh position={[0, 2.6, 0]} rotation={[Math.PI / 2, 0, 0]} name="cabin-ceiling">
         <planeGeometry args={[3.2, 4.0]} />
-        <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
+        <meshStandardMaterial
+          color={PURPLE}
+          roughness={0.6}
+          metalness={0.15}
+          side={THREE.DoubleSide}
+        />
       </mesh>
       {/* Side walls pulled further out so the windshield opens wider;
           the cabin still reads as purple when the player glances sideways
@@ -127,11 +130,16 @@ export function Cockpit({ tier }: CockpitProps) {
         <mesh
           key={side}
           position={[side * 2.2, 1.2, 0.3]}
-          rotation={[0, side * -Math.PI / 2, 0]}
+          rotation={[0, (side * -Math.PI) / 2, 0]}
           name={`cabin-wall-${side > 0 ? 'right' : 'left'}`}
         >
           <planeGeometry args={[3.2, 2.8]} />
-          <meshStandardMaterial color={PURPLE} roughness={0.6} metalness={0.15} side={THREE.DoubleSide} />
+          <meshStandardMaterial
+            color={PURPLE}
+            roughness={0.6}
+            metalness={0.15}
+            side={THREE.DoubleSide}
+          />
         </mesh>
       ))}
 
@@ -151,11 +159,7 @@ export function Cockpit({ tier }: CockpitProps) {
       {/* Windshield arch — standard "arch" shape: the half-torus ends
           point DOWN and midpoint crests UP at ~y = 2.7. Positioned high
           enough that it crowns the windshield without obscuring the road. */}
-      <mesh
-        position={[0, 1.75, -0.8]}
-        rotation={[0.1, 0, 0]}
-        name="windshield-arch"
-      >
+      <mesh position={[0, 1.75, -0.8]} rotation={[0.1, 0, 0]} name="windshield-arch">
         <torusGeometry args={[0.95, 0.05, 10, 28, Math.PI]} />
         <meshStandardMaterial color={YELLOW} roughness={0.3} metalness={0.4} />
       </mesh>
@@ -168,7 +172,12 @@ export function Cockpit({ tier }: CockpitProps) {
         name="dashboard-cowl"
       >
         <cylinderGeometry args={[0.32, 0.32, 2.0, 24, 1, true]} />
-        <meshStandardMaterial map={cowlTexture} roughness={0.75} metalness={0.02} side={THREE.DoubleSide} />
+        <meshStandardMaterial
+          map={cowlTexture}
+          roughness={0.75}
+          metalness={0.02}
+          side={THREE.DoubleSide}
+        />
       </mesh>
 
       {/* Chrome accent along the top rear edge of the cowl */}

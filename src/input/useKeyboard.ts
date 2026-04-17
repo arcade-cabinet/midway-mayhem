@@ -13,8 +13,9 @@
  *   ArrowDown / S        Brake
  *   Space                Honk (onHorn edge-trigger)
  */
-import { useEffect } from 'react';
+
 import type { World } from 'koota';
+import { useEffect } from 'react';
 import { Player, Steer, Throttle } from '@/ecs/traits';
 
 interface UseKeyboardOptions {

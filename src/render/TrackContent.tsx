@@ -12,8 +12,8 @@ import { useQuery } from 'koota/react';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { trackArchetypes } from '@/config';
+import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { Obstacle, Pickup, TrackSegment } from '@/ecs/traits';
-import { sampleTrackPose, type SampledSegment } from '@/ecs/systems/trackSampler';
 
 /** Balloon with per-frame bob + spin. Phase seeded by position so every
  *  balloon on the track animates out of sync with its neighbours. */
@@ -110,11 +110,7 @@ export function TrackContent() {
           );
         }
         return (
-          <mesh
-            key={e.id()}
-            position={[x, p.y + 0.01, z]}
-            rotation={[-Math.PI / 2, 0, p.yaw]}
-          >
+          <mesh key={e.id()} position={[x, p.y + 0.01, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
             <circleGeometry args={[1.4, 16]} />
             <meshStandardMaterial color="#1a1a1a" roughness={0.3} metalness={0.4} />
           </mesh>
@@ -149,11 +145,7 @@ export function TrackContent() {
         void lanes;
         void laneWidth;
         return (
-          <mesh
-            key={e.id()}
-            position={[x, p.y + 0.02, z]}
-            rotation={[-Math.PI / 2, 0, p.yaw]}
-          >
+          <mesh key={e.id()} position={[x, p.y + 0.02, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
             <planeGeometry args={[1.8, 2.2]} />
             <meshStandardMaterial
               color="#00e5ff"

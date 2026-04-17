@@ -21,11 +21,7 @@ interface Options {
 
 export function seedContent(world: World, seed: number, opts: Options = {}): void {
   const rng = new Rng(seed ^ 0xbee5); // fork the seed so track/content don't alias
-  const {
-    obstacleCount = 30,
-    pickupCount = 40,
-    leadIn = 40,
-  } = opts;
+  const { obstacleCount = 30, pickupCount = 40, leadIn = 40 } = opts;
   const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
   const laneWidth = trackArchetypes.laneWidth;
   const totalLen = trackArchetypes.runLength * 20; // conservative upper bound

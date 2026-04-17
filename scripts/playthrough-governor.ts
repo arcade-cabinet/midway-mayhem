@@ -1,4 +1,8 @@
 #!/usr/bin/env -S npx tsx
+import { type ChildProcess, spawn } from 'node:child_process';
+import { mkdir } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 /**
  * E2E playthrough governor: launches the real app in real Chrome, drives
  * through a scripted 15-second playthrough (click DRIVE, hold throttle,
@@ -15,10 +19,6 @@
  * the `--self-host` flag is passed.
  */
 import { chromium } from 'playwright';
-import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -126,8 +126,16 @@ async function run() {
   const frameInterval = opts.durationMs / opts.frames;
   // Alternate steer across run: LEFT for thirds 0..2, NONE, RIGHT 3..5, NONE, LEFT 6..8, NONE.
   const steerPlan: (KeyboardKey | null)[] = [
-    'ArrowLeft', null, 'ArrowRight', null, 'ArrowLeft', null,
-    'ArrowRight', null, 'ArrowLeft', null,
+    'ArrowLeft',
+    null,
+    'ArrowRight',
+    null,
+    'ArrowLeft',
+    null,
+    'ArrowRight',
+    null,
+    'ArrowLeft',
+    null,
   ];
 
   let currentSteer: KeyboardKey | null = null;

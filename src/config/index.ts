@@ -4,8 +4,9 @@
  * as immutable, typed data. No async loading, no runtime fetch — config
  * ships with the bundle.
  */
-import { TrackArchetypeSetSchema, TunablesSchema } from './schema';
+
 import trackPiecesJson from './archetypes/track-pieces.json';
+import { TrackArchetypeSetSchema, TunablesSchema } from './schema';
 import tunablesJson from './tunables.json';
 
 export const trackArchetypes = TrackArchetypeSetSchema.parse(trackPiecesJson);

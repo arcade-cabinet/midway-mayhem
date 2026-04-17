@@ -162,8 +162,8 @@ export function TitleScreen({ onDrive }: TitleScreenProps) {
         >
           <div style={{ color: '#ffd600', marginBottom: '6px' }}>Top runs</div>
           {scores.map((s, i) => (
-            <div key={`${s.timestamp}-${i}`} style={{ lineHeight: 1.5 }}>
-              #{i + 1}  {Math.floor(s.score).toLocaleString()}  · {s.balloons} 🎈
+            <div key={`${s.timestamp}-${s.score}-${s.seed}`} style={{ lineHeight: 1.5 }}>
+              #{i + 1} {Math.floor(s.score).toLocaleString()} · {s.balloons} 🎈
             </div>
           ))}
         </div>

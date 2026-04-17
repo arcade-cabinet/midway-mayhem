@@ -5,16 +5,16 @@
  * channels. Returns `honk()` so the input layer can trigger it on space.
  */
 import { useFrame } from '@react-three/fiber';
-import { useCallback, useEffect, useRef } from 'react';
 import type { World } from 'koota';
+import { useCallback, useEffect, useRef } from 'react';
 import { tunables } from '@/config';
 import { Player, Speed, Steer } from '@/ecs/traits';
-import {
-  type ArcadeAudioHandle,
-  startArcadeAudio,
-} from './arcadeAudio';
+import { type ArcadeAudioHandle, startArcadeAudio } from './arcadeAudio';
 
-export function useArcadeAudio(world: World, ready: boolean): {
+export function useArcadeAudio(
+  world: World,
+  ready: boolean,
+): {
   honk: () => void;
   ding: () => void;
   thud: () => void;

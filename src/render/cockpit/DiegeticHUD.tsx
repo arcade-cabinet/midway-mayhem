@@ -198,7 +198,7 @@ export function DiegeticHUD() {
           const x = (i - (lanes - 1) / 2) * spacing;
           return (
             <mesh
-              key={i}
+              key={`lane-x${x.toFixed(3)}`}
               ref={(m) => {
                 laneRefs.current[i] = m;
               }}

@@ -23,9 +23,7 @@ export const writePngFromDataUrl: BrowserCommand<[string, string]> = async (
   relPath,
 ) => {
   if (!dataUrl.startsWith(PNG_PREFIX)) {
-    throw new Error(
-      `writePngFromDataUrl: expected PNG data URL, got ${dataUrl.slice(0, 32)}…`,
-    );
+    throw new Error(`writePngFromDataUrl: expected PNG data URL, got ${dataUrl.slice(0, 32)}…`);
   }
   const bytes = Buffer.from(dataUrl.slice(PNG_PREFIX.length), 'base64');
   const projectRoot = ctx.project.config.root;

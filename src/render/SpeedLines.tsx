@@ -9,9 +9,9 @@
  * material opacity each frame is cheap.
  */
 import { useFrame, useThree } from '@react-three/fiber';
+import { useWorld } from 'koota/react';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useWorld } from 'koota/react';
 import { tunables } from '@/config';
 import { Player, Score, Speed } from '@/ecs/traits';
 

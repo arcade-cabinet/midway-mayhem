@@ -56,11 +56,7 @@ describe('Track (composed, full 80 pieces)', () => {
 
         render(
           <WorldProvider world={world}>
-            <Scene
-              size={{ width: 1280, height: 720 }}
-              cameraPosition={view.cam}
-              lookAt={view.look}
-            >
+            <Scene size={{ width: 1280, height: 720 }} cameraPosition={view.cam} lookAt={view.look}>
               {view.withEnv ? <BigTopEnvironment skipHdri /> : null}
               <Track />
             </Scene>

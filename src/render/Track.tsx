@@ -18,15 +18,14 @@
  * walls, stripes, curbs-red, curbs-white) regardless of segment count.
  */
 import { useFrame } from '@react-three/fiber';
-import { useQuery } from 'koota/react';
+import { useQuery, useWorld } from 'koota/react';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { trackArchetypes } from '@/config';
-import { Player, Position, TrackSegment } from '@/ecs/traits';
 import { integratePose, type Pose } from '@/ecs/systems/track';
-import { sampleTrackPose, type SampledSegment } from '@/ecs/systems/trackSampler';
+import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { Player, Position, TrackSegment } from '@/ecs/traits';
 import { getTrackTexture } from './trackTexture';
-import { useWorld } from 'koota/react';
 
 const SEGMENT_SUBDIVISIONS = 12;
 const SLAB_DEPTH = 0.45;
@@ -61,11 +60,7 @@ interface SegmentInput {
   bank: number;
 }
 
-function sampleStation(
-  startPose: Pose,
-  seg: SegmentInput,
-  t: number,
-): Station {
+function sampleStation(startPose: Pose, seg: SegmentInput, t: number): Station {
   const arch = {
     id: seg.archetypeId,
     label: seg.archetypeId,
@@ -170,7 +165,6 @@ function buildTrackGeometry(segments: SegmentInput[]): BuiltGeo {
         // right wall (flipped winding)
         wallIdx.push(w + 2, w + 6, w + 3, w + 3, w + 6, w + 7);
       }
-
     }
 
     // Lane dividers — build each divider as independent dashed segments
@@ -185,8 +179,7 @@ function buildTrackGeometry(segments: SegmentInput[]): BuiltGeo {
         const cycleT0 = c / dashCycles;
         const cycleT1 = (c + 1) / dashCycles;
         // Dash fills first DASH_LENGTH / (DASH_LENGTH+GAP_LENGTH) of cycle.
-        const dashEndT =
-          cycleT0 + (cycleT1 - cycleT0) * (DASH_LENGTH / (DASH_LENGTH + GAP_LENGTH));
+        const dashEndT = cycleT0 + (cycleT1 - cycleT0) * (DASH_LENGTH / (DASH_LENGTH + GAP_LENGTH));
         const stStart = sampleStation(seg.startPose, seg, cycleT0);
         const stEnd = sampleStation(seg.startPose, seg, dashEndT);
         const aL = stStart.pos
@@ -391,7 +384,12 @@ export function Track() {
         <meshStandardMaterial color="#7a2e10" roughness={0.8} metalness={0.05} />
       </mesh>
       <mesh geometry={built.stripes} name="track-stripes">
-        <meshStandardMaterial color="#FFFFFF" roughness={0.35} emissive="#FFFFFF" emissiveIntensity={0.08} />
+        <meshStandardMaterial
+          color="#FFFFFF"
+          roughness={0.35}
+          emissive="#FFFFFF"
+          emissiveIntensity={0.08}
+        />
       </mesh>
       <mesh geometry={built.curbsRed} name="track-curbs-red">
         <meshStandardMaterial color="#E53935" roughness={0.5} metalness={0.05} />

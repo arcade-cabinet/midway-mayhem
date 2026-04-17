@@ -54,11 +54,7 @@ describe('Track archetype — single piece visual', () => {
 
       render(
         <WorldProvider world={world}>
-          <Scene
-            size={{ width: 1280, height: 720 }}
-            cameraPosition={CAM_POS}
-            lookAt={CAM_LOOK}
-          >
+          <Scene size={{ width: 1280, height: 720 }} cameraPosition={CAM_POS} lookAt={CAM_LOOK}>
             <Track />
           </Scene>
         </WorldProvider>,

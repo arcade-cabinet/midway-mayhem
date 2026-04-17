@@ -21,10 +21,7 @@ export function CockpitSteeringWheel() {
       {[0, 1, 2, 3].map((i) => {
         const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
         return (
-          <mesh
-            key={i}
-            rotation={[0, 0, angle]}
-          >
+          <mesh key={i} rotation={[0, 0, angle]}>
             <boxGeometry args={[0.04, 0.3, 0.02]} />
             <meshStandardMaterial color={SPOKE} roughness={0.2} metalness={0.85} />
           </mesh>

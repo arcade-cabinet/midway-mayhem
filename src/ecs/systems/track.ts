@@ -9,7 +9,7 @@
  * Deterministic: same seed always produces the same track.
  */
 import type { World } from 'koota';
-import { trackArchetypes, type TrackArchetype } from '@/config';
+import { type TrackArchetype, trackArchetypes } from '@/config';
 import { LaneCount, TrackSegment } from '@/ecs/traits';
 import { Rng } from '@/utils/rng';
 
@@ -22,11 +22,7 @@ export interface Pose {
 }
 
 /** Pure function used by both generation + rendering. No side effects. */
-export function integratePose(
-  start: Pose,
-  archetype: TrackArchetype,
-  t: number,
-): Pose {
+export function integratePose(start: Pose, archetype: TrackArchetype, t: number): Pose {
   // t ∈ [0, 1]: position along the piece
   const yaw = start.yaw + archetype.deltaYaw * t;
   const pitch = start.pitch + archetype.deltaPitch * t;

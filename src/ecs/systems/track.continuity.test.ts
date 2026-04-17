@@ -4,13 +4,9 @@
  * ever fails, the generator has a bug and the track is visibly broken.
  */
 import { describe, expect, it } from 'vitest';
-import { endPose, generateTrack } from './track';
+import { type endPose, generateTrack } from './track';
 
-function poseEq(
-  a: ReturnType<typeof endPose>,
-  b: ReturnType<typeof endPose>,
-  tol = 1e-9,
-): boolean {
+function poseEq(a: ReturnType<typeof endPose>, b: ReturnType<typeof endPose>, tol = 1e-9): boolean {
   return (
     Math.abs(a.x - b.x) < tol &&
     Math.abs(a.y - b.y) < tol &&

@@ -16,10 +16,10 @@ import { WorldProvider } from 'koota/react';
 import { useEffect } from 'react';
 import type * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { Player, Position, Throttle } from '@/ecs/traits';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { seedTrack } from '@/ecs/systems/track';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
+import { Player, Position, Throttle } from '@/ecs/traits';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment } from '@/render/Environment';
 import { Track } from '@/render/Track';
@@ -68,10 +68,7 @@ describe('Driving — player motion + track scroll', () => {
 
     render(
       <WorldProvider world={world}>
-        <div
-          data-testid="drive-scene"
-          style={{ width: 1280, height: 720, position: 'relative' }}
-        >
+        <div data-testid="drive-scene" style={{ width: 1280, height: 720, position: 'relative' }}>
           <Canvas
             gl={{ antialias: false, preserveDrawingBuffer: true }}
             style={{ width: '100%', height: '100%', display: 'block' }}

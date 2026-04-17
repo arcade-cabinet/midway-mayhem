@@ -78,8 +78,8 @@ export function responsiveCockpitTransform(tier: FormTier): CockpitTransform {
     case 'tablet-landscape':
       return { scale: 0.96, hoodZOffset: 0 };
     case 'ultrawide':
-      return { scale: 1.0, hoodZOffset: 0 };
     case 'desktop':
+      return { scale: 1.0, hoodZOffset: 0 };
     default:
       return { scale: 1.0, hoodZOffset: 0 };
   }

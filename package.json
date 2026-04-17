@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:node": "vitest run --project node",
+    "test:jsdom": "echo 'no jsdom tests in v2 — all DOM tests run on real-GPU browser' && exit 0",
     "test:browser": "vitest run --project browser",
     "test:watch": "vitest",
     "test:visual:update": "vitest run --project browser --update",

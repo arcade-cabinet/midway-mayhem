@@ -9,13 +9,11 @@
  * write to koota traits directly, same as the keyboard hook — so the
  * motion system is agnostic about input source.
  */
-import { useEffect, useRef, useState } from 'react';
+
 import type { World } from 'koota';
+import { useEffect, useRef, useState } from 'react';
 import { Player, Steer, Throttle } from '@/ecs/traits';
-import {
-  useFormFactor,
-  type FormTier,
-} from '@/render/cockpit/useFormFactor';
+import { type FormTier, useFormFactor } from '@/render/cockpit/useFormFactor';
 
 interface TouchControlsProps {
   world: World;

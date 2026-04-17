@@ -4,9 +4,9 @@
  */
 import { createWorld } from 'koota';
 import { describe, expect, it } from 'vitest';
+import { trackArchetypes, tunables } from '@/config';
 import { Player, Position, Speed, Steer, Throttle } from '@/ecs/traits';
 import { spawnPlayer, stepPlayer } from './playerMotion';
-import { trackArchetypes, tunables } from '@/config';
 
 describe('playerMotion', () => {
   it('spawns with zero speed / position', () => {

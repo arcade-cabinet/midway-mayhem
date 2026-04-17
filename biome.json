@@ -67,5 +67,16 @@
   "assist": {
     "enabled": true,
     "actions": { "source": { "organizeImports": "on" } }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "scripts/**/*.ts", "src/test/**/*"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" },
+          "suspicious": { "noConsole": "off", "noArrayIndexKey": "off" }
+        }
+      }
+    }
+  ]
 }

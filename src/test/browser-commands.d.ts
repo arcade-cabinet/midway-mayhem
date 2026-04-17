@@ -14,9 +14,6 @@
 
 declare module '@vitest/browser/context' {
   interface BrowserCommands {
-    writePngFromDataUrl(
-      dataUrl: string,
-      relPath: string,
-    ): Promise<{ path: string; bytes: number }>;
+    writePngFromDataUrl(dataUrl: string, relPath: string): Promise<{ path: string; bytes: number }>;
   }
 }
