@@ -2,7 +2,8 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useResponsiveCockpitScale } from '../hooks/useResponsiveCockpitScale';
-import { useGameStore } from '../systems/gameState';
+import { PLUNGE_DURATION_S, useGameStore } from '../systems/gameState';
+import { damageLevelFor } from '../systems/damageLevel';
 import { STEER } from '../utils/constants';
 import { makePolkaDotTexture } from '../utils/proceduralTextures';
 import { CockpitCamera } from './CockpitCamera';
@@ -26,6 +27,11 @@ export function Cockpit() {
   const diceRef = useRef<THREE.Group>(null);
   const rigLeftRef = useRef<THREE.Mesh>(null);
   const rigRightRef = useRef<THREE.Mesh>(null);
+  const fireLightRef = useRef<THREE.PointLight>(null);
+  const smokeRef0 = useRef<THREE.Mesh>(null);
+  const smokeRef1 = useRef<THREE.Mesh>(null);
+  const smokeRef2 = useRef<THREE.Mesh>(null);
+  const smokeStartT = useRef(0);
 
   const polkaTex = useMemo(() => {
     const t = makePolkaDotTexture();
@@ -75,6 +81,8 @@ export function Cockpit() {
   useFrame((state) => {
     const s = useGameStore.getState();
     const t = state.clock.elapsedTime;
+    const dmgLevel = damageLevelFor(s.sanity);
+    const now = performance.now();
 
     // Drop-in animation: cockpit hangs at +12m, eases to 0 over dropProgress
     const root = rootRef.current;
@@ -83,42 +91,99 @@ export function Cockpit() {
       // ease-in-cubic for the fall, then slight bounce settle
       const fall = dp < 0.75 ? (dp / 0.75) ** 2 : 1 + Math.sin((dp - 0.75) * 12) * 0.06 * (1 - dp);
       const y0 = 12;
-      root.position.y = y0 * (1 - fall);
-      // Subtle pre-drop sway while hanging
-      if (dp < 0.1) root.rotation.z = Math.sin(t * 2) * 0.02;
-      else root.rotation.z *= 0.9;
+
+      // Plunge animation: parabolic fall off the ramp side
+      if (s.plunging) {
+        const elapsed = Math.min(1, (now - s.plungeStartedAt) / (PLUNGE_DURATION_S * 1000));
+        // Parabolic y drop (starts fast, accelerates)
+        root.position.y = -(elapsed * elapsed) * 18;
+        // Drift in the plunge direction
+        root.position.x = s.plungeDirection * elapsed * 6;
+        // Forward roll tipping over the edge
+        root.rotation.x = elapsed * 1.2;
+        root.rotation.z = s.plungeDirection * elapsed * 0.8;
+      } else {
+        root.position.y = y0 * (1 - fall);
+        root.position.x = 0;
+        root.rotation.x = 0;
+        // Subtle pre-drop sway while hanging
+        if (dp < 0.1) root.rotation.z = Math.sin(t * 2) * 0.02;
+        else root.rotation.z *= 0.9;
+      }
     }
     // Wire opacity fades out once settled
     const rigL = rigLeftRef.current;
     const rigR = rigRightRef.current;
     if (rigL && rigR) {
-      const visible = s.dropProgress < 0.98;
+      const visible = s.dropProgress < 0.98 && !s.plunging;
       rigL.visible = visible;
       rigR.visible = visible;
     }
 
     // Car body banks with steering: yaw + roll + camera rides it
     const body = bodyRef.current;
-    if (body) {
+    if (body && !s.plunging) {
       const targetYaw = -s.steer * 0.14;
-      const targetRoll = s.steer * 0.22;
+      // Damage wobble: level-proportional oscillation on Z
+      const dmgWobble = dmgLevel > 0 ? Math.sin(t * (8 + dmgLevel * 4)) * dmgLevel * 0.018 : 0;
+      const targetRoll = s.steer * 0.22 + dmgWobble;
       body.rotation.y += (targetYaw - body.rotation.y) * 0.15;
       body.rotation.z += (targetRoll - body.rotation.z) * 0.15;
       // Engine idle + speed-driven shake. Louder at higher speed for visceral feel.
+      // At damage level 3, shake is doubled.
       const speedNorm = Math.min(1, s.speedMps / 120);
-      const shakeAmp = 0.015 + speedNorm * 0.02;
+      const shakeMultiplier = dmgLevel >= 3 ? 2.0 : 1.0;
+      const shakeAmp = (0.015 + speedNorm * 0.02) * shakeMultiplier;
       body.position.x = Math.sin(t * 40) * shakeAmp;
       body.position.y = Math.cos(t * 50) * shakeAmp + Math.sin(t * 130) * 0.005 * speedNorm;
     }
 
+    // Wheel wobble proportional to damage level
     const wh = wheelRef.current;
-    if (wh) wh.rotation.z = -(s.steer * STEER.WHEEL_MAX_DEG * Math.PI) / 180;
+    if (wh) {
+      const wheelWobble = dmgLevel > 0 ? Math.sin(t * 12) * dmgLevel * 0.04 : 0;
+      wh.rotation.z = -(s.steer * STEER.WHEEL_MAX_DEG * Math.PI) / 180 + wheelWobble;
+    }
     const orn = ornamentRef.current;
     if (orn) orn.rotation.y = t * 3;
 
     if (diceRef.current) {
       diceRef.current.rotation.z = Math.sin(t * 3) * 0.3;
       diceRef.current.rotation.x = Math.cos(t * 2) * 0.2;
+    }
+
+    // Damage FX: fire light flicker + smoke particles
+    const fireLight = fireLightRef.current;
+    if (fireLight) {
+      const active = dmgLevel >= 2;
+      fireLight.visible = active;
+      if (active) {
+        // Flicker: random-ish oscillation
+        fireLight.intensity = 1.2 + Math.sin(t * 23) * 0.5 + Math.sin(t * 37) * 0.3;
+      }
+    }
+
+    // Smoke particles: rise and reset
+    const smokes = [smokeRef0.current, smokeRef1.current, smokeRef2.current];
+    for (let i = 0; i < smokes.length; i++) {
+      const mesh = smokes[i];
+      if (!mesh) continue;
+      const active = dmgLevel >= 2;
+      mesh.visible = active;
+      if (active) {
+        if (smokeStartT.current === 0) smokeStartT.current = t;
+        const offset = (i / 3) * 1.8; // stagger each particle
+        const elapsed = ((t - smokeStartT.current + offset) % 1.8);
+        const frac = elapsed / 1.8;
+        mesh.position.y = -0.3 + frac * 2.0;
+        mesh.position.x = Math.sin(t * 2 + i * 1.2) * 0.15;
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        mat.opacity = frac < 0.5 ? frac * 1.6 : (1 - frac) * 1.6;
+        const scale = 0.06 + frac * 0.14;
+        mesh.scale.setScalar(scale);
+      } else {
+        smokeStartT.current = 0;
+      }
     }
   });
 
@@ -336,6 +401,30 @@ export function Cockpit() {
           color="#ffeedd"
         />
         <pointLight position={[0, 1.8, 0.3]} intensity={0.45} distance={3.5} color="#ffd6b0" />
+
+        {/* Damage fire reflection — orange point light, flickers at level >= 2 */}
+        <pointLight
+          ref={fireLightRef}
+          position={[0, 0.4, -1.8]}
+          intensity={0}
+          distance={4}
+          color="#ff6600"
+          visible={false}
+        />
+
+        {/* Smoke particles — 3 dark spheres rising from hood at damage level >= 2 */}
+        <mesh ref={smokeRef0} position={[-0.25, -0.3, -1.6]} visible={false}>
+          <sphereGeometry args={[1, 8, 6]} />
+          <meshStandardMaterial color="#1a1a1a" transparent opacity={0} />
+        </mesh>
+        <mesh ref={smokeRef1} position={[0, -0.3, -1.7]} visible={false}>
+          <sphereGeometry args={[1, 8, 6]} />
+          <meshStandardMaterial color="#222222" transparent opacity={0} />
+        </mesh>
+        <mesh ref={smokeRef2} position={[0.25, -0.3, -1.6]} visible={false}>
+          <sphereGeometry args={[1, 8, 6]} />
+          <meshStandardMaterial color="#1a1a1a" transparent opacity={0} />
+        </mesh>
       </group>
     </group>
   );

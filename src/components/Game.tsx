@@ -9,6 +9,7 @@ import { honk } from '../systems/honkBus';
 import { useGameStore } from '../systems/gameState';
 import { Governor } from '../systems/governor/Governor';
 import { Cockpit } from './Cockpit';
+import { ExplosionFX } from './ExplosionFX';
 import { GameLoop } from './GameLoop';
 import { HUD } from './HUD';
 import { ObstacleSystem } from './ObstacleSystem';
@@ -72,6 +73,9 @@ export function Game() {
 
             {/* COCKPIT — world-origin, camera inside */}
             <Cockpit />
+
+            {/* Clown explosion on game-over */}
+            <ExplosionFX />
 
             <Governor />
             <PostFX />

@@ -1,6 +1,17 @@
 import { create } from 'zustand';
+import type { PieceKind } from '../game/trackComposer';
 import type { ZoneId } from '../utils/constants';
+import { TRACK } from '../utils/constants';
 import { hapticsBus } from './hapticsBus';
+
+/** Ramp piece kinds that have no side rails — plunge risk zone. */
+const RAMP_KINDS: ReadonlySet<PieceKind> = new Set(['ramp', 'rampLong', 'rampLongCurved']);
+
+/** How far beyond the lateral clamp the player must drift to trigger a plunge. */
+const PLUNGE_OVERSHOOT_M = 0.5;
+
+/** Duration of the plunge animation in seconds. */
+export const PLUNGE_DURATION_S = 1.5;
 
 export interface GameState {
   // session
@@ -33,6 +44,14 @@ export interface GameState {
   dropProgress: number;
   dropStartedAt: number;
 
+  // plunge: player drove off the side of a rail-free ramp
+  plunging: boolean;
+  plungeStartedAt: number;
+  /** Lateral direction at the moment of plunge (sign of lateral offset). */
+  plungeDirection: number;
+  /** The current piece kind under the player when plunge was triggered. */
+  currentPieceKind: PieceKind | null;
+
   // actions
   startRun(seed?: number): void;
   tick(dt: number, now: number): void;
@@ -43,6 +62,8 @@ export interface GameState {
   applyPickup(kind: 'ticket' | 'boost' | 'mega'): void;
   setSteer(v: number): void;
   setLateral(v: number): void;
+  /** Called each frame by TrackSystem to report which piece the player is on. */
+  setCurrentPieceKind(kind: PieceKind | null): void;
 }
 
 const DEFAULTS = {
@@ -65,6 +86,10 @@ const DEFAULTS = {
   megaBoostUntil: 0,
   dropProgress: 0,
   dropStartedAt: 0,
+  plunging: false,
+  plungeStartedAt: 0,
+  plungeDirection: 0,
+  currentPieceKind: null as PieceKind | null,
 };
 
 export const DROP_DURATION_MS = 1800;
@@ -99,6 +124,15 @@ export const useGameStore = create<GameState>((set, get) => ({
       return;
     }
 
+    // If already plunging, check if the animation is done
+    if (s.plunging) {
+      const elapsed = (now - s.plungeStartedAt) / 1000;
+      if (elapsed >= PLUNGE_DURATION_S) {
+        set({ running: false, gameOver: true, plunging: false });
+      }
+      return;
+    }
+
     // Speed interpolation toward target; target climbs slowly over time.
     const CRUISE = 70;
     const BOOST = 90;
@@ -120,6 +154,23 @@ export const useGameStore = create<GameState>((set, get) => ({
     const sanity = Math.min(100, s.sanity + dt * 2);
 
     set({ speedMps: speed, targetSpeedMps: target, distance, hype, sanity, currentZone });
+
+    // Plunge detection: player drove off side of a rail-free ramp
+    const plungeThreshold = TRACK.LATERAL_CLAMP + PLUNGE_OVERSHOOT_M;
+    if (
+      !s.plunging &&
+      Math.abs(s.lateral) > plungeThreshold &&
+      s.currentPieceKind !== null &&
+      RAMP_KINDS.has(s.currentPieceKind)
+    ) {
+      set({
+        plunging: true,
+        plungeStartedAt: now,
+        plungeDirection: Math.sign(s.lateral),
+      });
+      hapticsBus.fire('crash-heavy');
+      return;
+    }
 
     // Game over when sanity exhausted
     if (sanity <= 0) set({ running: false, gameOver: true });
@@ -171,6 +222,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   setLateral(v) {
     set({ lateral: v });
+  },
+  setCurrentPieceKind(kind) {
+    set({ currentPieceKind: kind });
   },
 }));
 

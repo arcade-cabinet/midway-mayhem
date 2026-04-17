@@ -16,6 +16,7 @@ export function HUD() {
   const sanity = useGameStore((s) => s.sanity);
   const crowd = useGameStore((s) => s.crowdReaction);
   const gameOver = useGameStore((s) => s.gameOver);
+  const plunging = useGameStore((s) => s.plunging);
   const startRun = useGameStore((s) => s.startRun);
   const ff = useFormFactor();
 
@@ -80,6 +81,9 @@ export function HUD() {
         </div>
 
         <HonkButton />
+        <Banner visible={plunging && !gameOver} tone="alert" testId="plunge-banner">
+          MIDWAY MELTDOWN
+        </Banner>
         {gameOver && <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />}
       </HUDFrame>
     );
@@ -118,6 +122,9 @@ export function HUD() {
       </Panel>
 
       <HonkButton />
+      <Banner visible={plunging && !gameOver} tone="alert" testId="plunge-banner">
+        MIDWAY MELTDOWN
+      </Banner>
       {gameOver && <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />}
     </HUDFrame>
   );

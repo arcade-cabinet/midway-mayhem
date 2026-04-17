@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DROP_DURATION_MS, resetGameState, useGameStore } from '../gameState';
+import { PLUNGE_DURATION_S, DROP_DURATION_MS, resetGameState, useGameStore } from '../gameState';
+import { TRACK } from '../../utils/constants';
 
 // Jump past the drop-in animation so distance-based tests can tick gameplay
 function skipDropIn() {
@@ -110,5 +111,93 @@ describe('gameState store', () => {
     expect(useGameStore.getState().steer).toBe(-1);
     useGameStore.getState().setSteer(0.3);
     expect(useGameStore.getState().steer).toBe(0.3);
+  });
+
+  describe('plunge detection', () => {
+    it('does not plunge on a non-ramp piece even when lateral exceeds clamp', () => {
+      useGameStore.getState().startRun(1);
+      skipDropIn();
+      // Drive player off-side on a straight piece — should NOT plunge
+      useGameStore.getState().setCurrentPieceKind('straight');
+      useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP + 1.5);
+      useGameStore.getState().tick(0.016, performance.now());
+      expect(useGameStore.getState().plunging).toBe(false);
+    });
+
+    it('triggers plunge when lateral exceeds clamp+0.5 on a rampLong piece', () => {
+      useGameStore.getState().startRun(1);
+      skipDropIn();
+      useGameStore.getState().setCurrentPieceKind('rampLong');
+      // Place player just past the plunge threshold
+      const threshold = TRACK.LATERAL_CLAMP + 0.6;
+      useGameStore.getState().setLateral(threshold);
+      const now = performance.now();
+      useGameStore.getState().tick(0.016, now);
+      const s = useGameStore.getState();
+      expect(s.plunging).toBe(true);
+      expect(s.plungeStartedAt).toBeGreaterThan(0);
+      expect(s.plungeDirection).toBe(1); // positive lateral → positive direction
+    });
+
+    it('triggers plunge on ramp piece', () => {
+      useGameStore.getState().startRun(1);
+      skipDropIn();
+      useGameStore.getState().setCurrentPieceKind('ramp');
+      useGameStore.getState().setLateral(-(TRACK.LATERAL_CLAMP + 0.6));
+      useGameStore.getState().tick(0.016, performance.now());
+      const s = useGameStore.getState();
+      expect(s.plunging).toBe(true);
+      expect(s.plungeDirection).toBe(-1); // negative lateral
+    });
+
+    it('triggers plunge on rampLongCurved piece', () => {
+      useGameStore.getState().startRun(1);
+      skipDropIn();
+      useGameStore.getState().setCurrentPieceKind('rampLongCurved');
+      useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP + 0.6);
+      useGameStore.getState().tick(0.016, performance.now());
+      expect(useGameStore.getState().plunging).toBe(true);
+    });
+
+    it('does not plunge when lateral is within safe bounds on a ramp', () => {
+      useGameStore.getState().startRun(1);
+      skipDropIn();
+      useGameStore.getState().setCurrentPieceKind('rampLong');
+      // Stay just inside the threshold
+      useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP - 0.1);
+      useGameStore.getState().tick(0.016, performance.now());
+      expect(useGameStore.getState().plunging).toBe(false);
+    });
+
+    it('freezes gameplay while plunging', () => {
+      useGameStore.getState().startRun(1);
+      skipDropIn();
+      useGameStore.getState().setCurrentPieceKind('rampLong');
+      useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP + 0.6);
+      const now = performance.now();
+      useGameStore.getState().tick(0.016, now);
+      expect(useGameStore.getState().plunging).toBe(true);
+      const distBefore = useGameStore.getState().distance;
+      // Tick again — distance should NOT advance while plunging
+      useGameStore.getState().tick(0.5, now + 500);
+      expect(useGameStore.getState().distance).toBe(distBefore);
+    });
+
+    it('ends run with gameOver after plunge duration elapses', () => {
+      useGameStore.getState().startRun(1);
+      skipDropIn();
+      useGameStore.getState().setCurrentPieceKind('rampLong');
+      useGameStore.getState().setLateral(TRACK.LATERAL_CLAMP + 0.6);
+      const now = performance.now();
+      useGameStore.getState().tick(0.016, now);
+      expect(useGameStore.getState().plunging).toBe(true);
+      // Advance past the plunge duration
+      const afterPlunge = now + PLUNGE_DURATION_S * 1000 + 100;
+      useGameStore.getState().tick(0.016, afterPlunge);
+      const s = useGameStore.getState();
+      expect(s.plunging).toBe(false);
+      expect(s.gameOver).toBe(true);
+      expect(s.running).toBe(false);
+    });
   });
 });
