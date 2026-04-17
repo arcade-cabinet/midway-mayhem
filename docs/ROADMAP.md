@@ -24,9 +24,9 @@ Everything committed to ship in PR #2. No deferrals. Each item is a tracked Task
 | — | Full governance workflow suite (ci.yml / cd.yml / release.yml / dependabot) aligned with grailguard | ✅ |
 | — | Release-please wired for conventional commits → tagged releases | ✅ |
 | — | GitHub Pages deploy on push-to-main | ✅ |
-| — | Android debug APK artifact on CD run (pending `cap add android` — see TODO in cd.yml) | ⏳ |
+| — | Android debug APK artifact on CD run | ✅ |
 
-## Queued for PR #2 (next-wave — autonomy granted, shipping when done)
+## Shipped in PR #2 (this branch)
 
 **Gameplay depth**
 
@@ -62,7 +62,21 @@ Everything committed to ship in PR #2. No deferrals. Each item is a tracked Task
 | 36 | Barrel pattern — @/audio, @/obstacles, @/cockpit, @/config aliases |
 | 37 | Marketing screenshot capture — 12 curated poses |
 | 38 | Title-screen 3D start sequence — replace 2D polka-dot logo |
-| 39 | Maestro native smoke scripts (Android + iOS) |
+| 39 | Maestro native smoke scripts (Android — iOS pending `cap add ios`) |
+
+## Shipped in PR #2 (post-plan)
+
+Beyond the original PR #2 scope, these landed before ship:
+
+- **NewRunModal** — seed phrase input + 🎲 shuffle + 3×2 DOOM-style difficulty grid (I'M TOO SILLY / KAZOO IT YOURSELF / HONK ME PLENTY / ULTRA HONK / NIGHTMARE MIDWAY / ULTRA NIGHTMARE) + permadeath toggle (forced-on at Ultra)
+- **Dual-channel deterministic PRNG** — `track` for run construction, `events` for in-run streaming. Both derived from master seed via splitmix64-salted mix.
+- **Pre-baked RunPlan** — buildRunPlan(seed) enumerates every obstacle, pickup, balloon anchor, mirror room, fire hoop, start platform, and finish banner at run start. Systems render from the plan, not from streaming spawners.
+- **Critter idle animations** — each cow/horse/llama/pig clone has its own AnimationMixer seeded with a phase offset so animals don't breathe in sync.
+- **Start platform + checkered finish banner + plunge-past-track** — wire-hung launching pad at d=0, B&W checker banner + goal platform at d=distance, plunge animates cockpit falling past stationary track geometry.
+- **Optimal-path features** — the solver in `src/game/optimalPath.ts` powers: (1) scripted-outcome test factory for deterministic e2e, (2) racing-line cleanliness scoring + HUD meter + crowd multiplier, (3) RacingLineGhost overlay (settings toggle), (4) difficulty telemetry + balance audit CLI.
+- **Governor drives via real keyboard events** — no more `setSteer()` shortcuts; ArrowLeft/ArrowRight dispatched on window, same path a player uses. 60m forward perception cap.
+- **Balloon-style landing buttons** with distinct hues, compact phone layout with square transparent logo.
+- **Browser test migration** — visual/DOM/keyboard tests moved from jsdom to @vitest/browser-playwright.
 
 ## Execution model
 

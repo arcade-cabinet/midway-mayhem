@@ -82,6 +82,16 @@ Drive fast. Honk louder.
 ## Credits
 
 - Kenney — Racing Kit 2.0 (CC0) — source for all road pieces, barriers, tents, flags, grandstands, pylons, banners
+- Quaternius — Ultimate Animated Farm Animals pack (CC0) — cow, horse, llama, pig GLBs with bundled idle animation clips
 - PolyHaven — `circus_arena` HDRI (CC0) by Sergej Majboroda — the big-top environment
+- S. Christian Collins — GeneralUser GS 1.472 soundfont (custom permissive license, free for any use) — SF2 sampled sweetener under the procedural calliope
+- M. Stillman — Sonatina Symphonic Orchestra (CC Sampling Plus) — orchestral sample library reference
+- Vernon Adams — Bangers typeface (SIL OFL 1.1) — display/hero wordmark
+- Indian Type Foundry — Rajdhani typeface (SIL OFL 1.1) — UI body
+- Poimandres — React Three Fiber, drei, zustand (MIT) — core rendering stack
+- Yotam Mann et al. — Tone.js (MIT) — procedural calliope engine
+- spessasus — spessasynth_lib (Apache-2.0) — SF2 playback
+- Mugen87 — Yuka.js (MIT) — autonomous governor navigation reference
+- drizzle-team + jeep — drizzle-orm + Capacitor SQLite (Apache-2.0 / MIT) — persistence layer
 - The user — vision, direction, redirects through 7+ Gemini iterations and the ChatGPT brand lock
 - Claude (Opus 4.7, 1M context) — implementation + reconciliation
