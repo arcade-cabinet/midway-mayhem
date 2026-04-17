@@ -2,6 +2,7 @@ import * as Tone from 'tone';
 import type { PickupType, ZoneId } from '../utils/constants';
 import { getBuses, initBuses } from './audio/buses';
 import { conductor } from './audio/conductor';
+import { GM, initSF2Safely, sf2Bridge } from './audio/sf2';
 import {
   triggerClownHorn,
   triggerCrashRoll,
@@ -57,6 +58,12 @@ class AudioBus {
     // Start the procedural circus music (calliope + oom-pah) on musicBus
     conductor.start('midway-strip');
     void musicBus; // referenced via conductor
+
+    // Kick off SF2 sampled sweetener in the background — if the SF2 file is
+    // missing from public/soundfonts/, the bridge silently disables itself
+    // and procedural music continues uninterrupted.
+    const baseUrl = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+    initSF2Safely(baseUrl);
 
     this.initialized = true;
   }
@@ -114,6 +121,18 @@ class AudioBus {
   setZone(zone: ZoneId): void {
     if (!this.initialized || !this.enabled) return;
     conductor.setZone(zone);
+    // Sampled tuba stinger on zone entry — a 2-note low-brass accent that
+    // sits underneath the procedural calliope's zone shift for a moment
+    // of real-instrument warmth. No-op if SF2 bridge hasn't loaded.
+    if (sf2Bridge.isReady()) {
+      const roots: Record<ZoneId, [number, number]> = {
+        'midway-strip': [36, 48],
+        'balloon-alley': [38, 50],
+        'ring-of-fire': [33, 45],
+        'funhouse-frenzy': [29, 41],
+      };
+      sf2Bridge.triggerChord(roots[zone], 80, 1.2, GM.TUBA);
+    }
   }
 }
 
