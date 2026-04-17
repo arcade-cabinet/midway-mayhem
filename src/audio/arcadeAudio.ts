@@ -16,6 +16,9 @@ export interface ArcadeAudioHandle {
   updateEngine(speedMps: number, cruiseMps: number): void;
   setTireSqueal(active: boolean): void;
   honk(): void;
+  setMusicPlaying(on: boolean): void;
+  pickupDing(): void;
+  hitThud(): void;
   dispose(): void;
 }
 
@@ -61,6 +64,48 @@ export async function startArcadeAudio(): Promise<ArcadeAudioHandle> {
   hornOsc1.start();
   hornOsc2.start();
 
+  // Circus organ bed — a PolySynth on a looped carnival progression (I → V → vi → IV)
+  // played as short chord stabs. Ducked below engine so it sits under.
+  const musicGain = new Tone.Gain(0).connect(master);
+  const organ = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.04, decay: 0.3, sustain: 0.3, release: 0.4 },
+  }).connect(musicGain);
+  organ.volume.value = -8;
+  const chords: string[][] = [
+    ['C4', 'E4', 'G4'],
+    ['G3', 'B3', 'D4'],
+    ['A3', 'C4', 'E4'],
+    ['F3', 'A3', 'C4'],
+  ];
+  const loop = new Tone.Loop((time) => {
+    const idx = Math.floor(Tone.Transport.seconds / 1.2) % chords.length;
+    const chord = chords[idx];
+    if (chord) organ.triggerAttackRelease(chord, 0.6, time);
+  }, 1.2);
+
+  // Pickup ding — short bright blip.
+  const dingEnv = new Tone.AmplitudeEnvelope({
+    attack: 0.005,
+    decay: 0.2,
+    sustain: 0,
+    release: 0.1,
+  }).connect(master);
+  const dingOsc = new Tone.Oscillator(880, 'triangle').connect(dingEnv);
+  dingOsc.volume.value = -10;
+  dingOsc.start();
+
+  // Hit thud — low body thunk.
+  const thudEnv = new Tone.AmplitudeEnvelope({
+    attack: 0.002,
+    decay: 0.15,
+    sustain: 0,
+    release: 0.08,
+  }).connect(master);
+  const thudOsc = new Tone.Oscillator(90, 'sine').connect(thudEnv);
+  thudOsc.volume.value = -6;
+  thudOsc.start();
+
   handle = {
     updateEngine(speedMps, cruiseMps) {
       const norm = Math.min(1, Math.max(0, speedMps / Math.max(1, cruiseMps)));
@@ -75,7 +120,28 @@ export async function startArcadeAudio(): Promise<ArcadeAudioHandle> {
     honk() {
       hornEnv.triggerAttackRelease(0.25);
     },
+    setMusicPlaying(on) {
+      if (on) {
+        musicGain.gain.rampTo(0.25, 0.4);
+        if (Tone.Transport.state !== 'started') Tone.Transport.start();
+        if (loop.state !== 'started') loop.start(0);
+      } else {
+        musicGain.gain.rampTo(0, 0.3);
+      }
+    },
+    pickupDing() {
+      dingEnv.triggerAttackRelease(0.18);
+      dingOsc.frequency.setValueAtTime(880 + Math.random() * 220, Tone.now());
+    },
+    hitThud() {
+      thudEnv.triggerAttackRelease(0.12);
+    },
     dispose() {
+      loop.stop();
+      loop.dispose();
+      organ.dispose();
+      dingOsc.stop();
+      thudOsc.stop();
       engineOsc.stop();
       engineOsc2.stop();
       squealNoise.stop();

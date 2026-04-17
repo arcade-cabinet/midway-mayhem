@@ -14,7 +14,11 @@ import {
   startArcadeAudio,
 } from './arcadeAudio';
 
-export function useArcadeAudio(world: World, ready: boolean): { honk: () => void } {
+export function useArcadeAudio(world: World, ready: boolean): {
+  honk: () => void;
+  ding: () => void;
+  thud: () => void;
+} {
   const handleRef = useRef<ArcadeAudioHandle | null>(null);
 
   useEffect(() => {
@@ -27,6 +31,7 @@ export function useArcadeAudio(world: World, ready: boolean): { honk: () => void
           return;
         }
         handleRef.current = h;
+        h.setMusicPlaying(true);
       })
       .catch(() => {
         // Hard-fail would surface via error modal; for audio we accept
@@ -34,6 +39,7 @@ export function useArcadeAudio(world: World, ready: boolean): { honk: () => void
       });
     return () => {
       cancelled = true;
+      handleRef.current?.setMusicPlaying(false);
       handleRef.current?.dispose();
       handleRef.current = null;
     };
@@ -56,6 +62,12 @@ export function useArcadeAudio(world: World, ready: boolean): { honk: () => void
   const honk = useCallback(() => {
     handleRef.current?.honk();
   }, []);
+  const ding = useCallback(() => {
+    handleRef.current?.pickupDing();
+  }, []);
+  const thud = useCallback(() => {
+    handleRef.current?.hitThud();
+  }, []);
 
-  return { honk };
+  return { honk, ding, thud };
 }

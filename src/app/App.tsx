@@ -10,11 +10,21 @@ import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useRef, useState } from 'react';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
+import {
+  type EndReason,
+  resetGameOver,
+  stepGameOver,
+} from '@/ecs/systems/gameOver';
 import { seedContent } from '@/ecs/systems/seedContent';
 import { seedTrack } from '@/ecs/systems/track';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
 import { world } from '@/ecs/world';
+import { haptic } from '@/input/haptics';
+import { Player, Score } from '@/ecs/traits';
+import { useFrame } from '@react-three/fiber';
+import { saveScore } from '@/storage/scores';
+import { GameOverOverlay } from '@/ui/GameOverOverlay';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
 import { Cockpit } from '@/render/cockpit/Cockpit';
@@ -34,32 +44,42 @@ if (!bootstrapped) {
 
 function GameLoop({
   active,
-  onHornNeeded,
+  onPickup,
+  onObstacle,
+  onEnd,
 }: {
   active: boolean;
-  onHornNeeded: () => void;
+  onPickup: (kind: 'balloon' | 'boost') => void;
+  onObstacle: (kind: 'cone' | 'oil') => void;
+  onEnd: (reason: EndReason) => void;
 }) {
-  usePlayerLoop(world, active, {
-    onPickup: (kind) => {
-      if (kind === 'balloon') onHornNeeded();
-    },
-    onObstacle: () => {},
+  usePlayerLoop(world, active, { onPickup, onObstacle });
+  useFrame(() => {
+    if (!active) return;
+    stepGameOver(world, { onEnd });
   });
   return null;
 }
 
-function AudioBridge({ active, onHornReady }: { active: boolean; onHornReady: (fn: () => void) => void }) {
-  const { honk } = useArcadeAudio(world, active);
-  // Pass the honk function up so the keyboard hook (mounted outside the
-  // Canvas) can trigger it.
-  onHornReady(honk);
+function AudioBridge({
+  active,
+  onReady,
+}: {
+  active: boolean;
+  onReady: (fns: { honk: () => void; ding: () => void; thud: () => void }) => void;
+}) {
+  const api = useArcadeAudio(world, active);
+  onReady(api);
   return null;
 }
 
 export function App() {
   const [titleVisible, setTitleVisible] = useState(true);
-  const playing = !titleVisible;
+  const [endReason, setEndReason] = useState<EndReason | null>(null);
+  const playing = !titleVisible && endReason === null;
   const hornRef = useRef<() => void>(() => {});
+  const dingRef = useRef<() => void>(() => {});
+  const thudRef = useRef<() => void>(() => {});
 
   useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
 
@@ -84,11 +104,40 @@ export function App() {
           <TrackContent />
           <Cockpit />
           <PostFX />
-          <GameLoop active={playing} onHornNeeded={() => hornRef.current()} />
+          <GameLoop
+            active={playing}
+            onPickup={(kind) => {
+              if (kind === 'balloon') {
+                dingRef.current();
+                void haptic('light');
+              } else {
+                dingRef.current();
+                void haptic('medium');
+              }
+            }}
+            onObstacle={() => {
+              thudRef.current();
+              void haptic('heavy');
+            }}
+            onEnd={(r) => {
+              setEndReason(r);
+              const score = world.query(Player, Score)[0]?.get(Score);
+              if (score) {
+                void saveScore({
+                  score: score.value,
+                  balloons: score.balloons,
+                  seed: 42,
+                  timestamp: Date.now(),
+                });
+              }
+            }}
+          />
           <AudioBridge
             active={playing}
-            onHornReady={(fn) => {
-              hornRef.current = fn;
+            onReady={(fns) => {
+              hornRef.current = fns.honk;
+              dingRef.current = fns.ding;
+              thudRef.current = fns.thud;
             }}
           />
         </Canvas>
@@ -97,7 +146,29 @@ export function App() {
         ) : (
           <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
         )}
+        {endReason !== null ? (
+          <GameOverEnd
+            reason={endReason}
+            onRestart={() => {
+              // Simplest reliable reset: hard reload.
+              resetGameOver();
+              window.location.reload();
+            }}
+          />
+        ) : null}
       </div>
     </WorldProvider>
+  );
+}
+
+function GameOverEnd({ reason, onRestart }: { reason: EndReason; onRestart: () => void }) {
+  const score = world.query(Player, Score)[0]?.get(Score);
+  return (
+    <GameOverOverlay
+      reason={reason}
+      score={score?.value ?? 0}
+      balloons={score?.balloons ?? 0}
+      onRestart={onRestart}
+    />
   );
 }

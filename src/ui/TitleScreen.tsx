@@ -11,6 +11,7 @@
  * (dev convenience + used by e2e playwright tests to skip into gameplay).
  */
 import { useEffect, useState } from 'react';
+import { loadTopScores, type ScoreRow } from '@/storage/scores';
 
 interface TitleScreenProps {
   onDrive: () => void;
@@ -24,10 +25,15 @@ function shouldSkipFromUrl(): boolean {
 
 export function TitleScreen({ onDrive }: TitleScreenProps) {
   const [fading, setFading] = useState(false);
+  const [scores, setScores] = useState<ScoreRow[]>([]);
 
   useEffect(() => {
     if (shouldSkipFromUrl()) onDrive();
   }, [onDrive]);
+
+  useEffect(() => {
+    void loadTopScores(5).then(setScores);
+  }, []);
 
   const startFade = () => {
     if (fading) return;
@@ -142,6 +148,26 @@ export function TitleScreen({ onDrive }: TitleScreenProps) {
       >
         Drive
       </button>
+
+      {scores.length > 0 ? (
+        <div
+          data-testid="title-leaderboard"
+          style={{
+            marginTop: '32px',
+            color: '#fff1db',
+            fontSize: 'clamp(12px, 1.4vw, 15px)',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <div style={{ color: '#ffd600', marginBottom: '6px' }}>Top runs</div>
+          {scores.map((s, i) => (
+            <div key={`${s.timestamp}-${i}`} style={{ lineHeight: 1.5 }}>
+              #{i + 1}  {Math.floor(s.score).toLocaleString()}  · {s.balloons} 🎈
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <div
         style={{
