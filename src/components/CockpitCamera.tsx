@@ -47,8 +47,14 @@ export function CockpitCamera() {
     vFov += speedNorm * FOV_SPEED_BOOST_MAX;
 
     vFov = Math.max(FOV_MIN, Math.min(FOV_MAX, vFov));
-    if (Math.abs(cam.fov - vFov) > 0.01) {
+    // Update aspect AND fov before rebuilding the projection matrix — otherwise
+    // a stale aspect (from camera construction) leaves the viewport squished
+    // after a resize / orientation flip / foldable unfold.
+    const aspectChanged = Math.abs(cam.aspect - aspect) > 1e-4;
+    const fovChanged = Math.abs(cam.fov - vFov) > 0.01;
+    if (aspectChanged || fovChanged) {
       cam.fov = vFov;
+      cam.aspect = aspect;
       cam.updateProjectionMatrix();
     }
 
