@@ -40,23 +40,34 @@ pnpm test:e2e             # playwright full matrix (desktop + mobile)
 - `?governor=1` — Yuka.js autonomous driver plays the game
 - `?diag=1` — exposes `window.__mm.diag()` for diagnostics
 
-## Project structure (load-bearing modules)
+## Project structure (load-bearing modules, feature-folder layout)
 
 ```
 src/
-  app/             App entry, global CSS
+  app/             App entry, global CSS, boot scene-router
   assets/          manifest.ts (typed declarative), preloader (hard-fail)
-  components/      Game, Cockpit, TrackSystem, ObstacleSystem, PickupSystem,
-                   HUD, TitleScreen, ErrorModal, ReactErrorBoundary, PostFX, …
-  game/            trackComposer.ts (snap-to-grid track assembly),
-                   pbrMaterials.ts (optional PBR factories)
-  hooks/           useSteering, useShake, useResponsiveFov, useDeviceDetection
-  systems/         gameState (zustand), errorBus, diagnosticsBus,
-                   obstacleSpawner, collisionSystem, zoneSystem,
-                   trackGenerator (mathematical spline — legacy),
-                   audioBus (Tone.js procedural),
-                   governor/Governor + GovernorDriver (yuka AI)
-  utils/           constants, math, rng (splitmix64), proceduralTextures
+  audio/           audioBus + conductor (Tone.js), sf2 bridge (spessasynth), honkBus, tireSqueal
+  cockpit/         Cockpit shell, CockpitCamera, SpeedFX, plungeMotion, RacingLineGhost, ExplosionFX
+  design/          tokens, typography, reusable Panel/Stat/Banner/BrandButton/HUDFrame
+  game/            gameState (zustand), errorBus, diagnosticsBus, comboSystem, runPlan,
+                   optimalPath + scripts, runRngBus, difficulty + difficultyTelemetry,
+                   trickSystem, replayRecorder, hapticsBus,
+                   governor/Governor + GovernorDriver (real-keyboard dispatch)
+  hooks/           useSteering, useShake, useResponsiveFov, useDeviceDetection,
+                   useFormFactor, useKeyboardControls, useTouchGestures
+  hud/             HUD, TitleScreen, NewRunModal, ErrorModal, AchievementsPanel,
+                   SettingsPanel, TicketShop, HowToPlayPanel, CreditsPanel, StatsPanel,
+                   RacingLineMeter, Leaderboard, ZoneBanner, LiveRegion, PhotoMode
+  modes/           BigTopTour (walkaround mode)
+  obstacles/       ObstacleSystem, PickupSystem, BalloonLayer, FireHoopGate,
+                   MirrorLayer, BarkerCrowd, RaidLayer, GhostCar + spawners/directors
+  persistence/     db + schema (drizzle + sql.js + CapacitorSQLite),
+                   profile, achievements, lifetimeStats, settings, replay, tutorial,
+                   preferences (OPFS + Capacitor Preferences)
+  track/           trackComposer, trackGenerator, TrackSystem, WorldScroller,
+                   StartPlatform, FinishBanner, dailyRoute
+  tour/            CutsceneBalloons (big-top tour cutscene assets)
+  utils/           constants, math, rng (splitmix64) + seedPhrase, proceduralTextures
 public/
   hdri/            circus_arena_2k.hdr — the big-top interior
   models/          Kenney Racing Kit baked with MM brand palette

@@ -18,7 +18,6 @@ export default defineConfig({
       '@/cockpit': src('cockpit/index.ts'),
       '@/hud': src('hud/index.ts'),
       '@/track': src('track/index.ts'),
-      '@/systems': src('systems/index.ts'),
       '@/config': src('config/index.ts'),
       '@/persistence': src('persistence/index.ts'),
       '@/design': src('design/index.ts'),

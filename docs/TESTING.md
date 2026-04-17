@@ -44,52 +44,55 @@ pnpm test:surfaces     # everything, ordered
 
 ## What each tier tests
 
-### Unit (node)
-- `trackComposer` — piece placement math, cumulative distance, corner turning
-- `gameState` — zustand store mutations, applyCrash, applyPickup, tick integration
-- `errorBus` — halt-on-first, subscriber notification, cause-chain capture
-- `obstacleSpawner` — deterministic per-seed, zone weighting, recycling
-- `rng` — determinism, bounds, `dailySeed` stability
-- `GovernorDriver` — steer clamping, obstacle avoidance, pickup seeking
+### Unit (node / pure logic) — 41 files
 
-### Component (jsdom)
-- `<ErrorModal />` — appears on reportError, dismissible, multi-error subtitle
-- `<HUD />` — panel presence, store reactivity, game-over overlay gating
-- `<TitleScreen />` — brand text, start button → onStart
-- `<ZoneBanner />` — zone name reactivity
+Covers everything that can be asserted without a DOM or GPU:
 
-### Browser (real Chromium WebGL)
-- `<Cockpit />` mounts inside `<Canvas>` without throwing
-- WebGL context established
-- `<TrackSystem />` mounts with Suspense + drei useGLTF without throwing
-- `<HUD />` renders correctly at 1280×720 with live store updates
+- Runtime: `gameState`, `errorBus`, `comboSystem`, `damageLevel`, `difficulty`, `difficultyTelemetry`, `runPlan`, `optimalPath`, `replayRecorder`, `trickSystem`, `hapticsBus` (where relevant)
+- Track: `trackComposer`, `trackGenerator` helpers, `dailyRoute` seeded permutation
+- Obstacles (pure spawner math): `obstacleSpawner`, `balloonSpawner`, `raidDirector`, `mirrorDuplicator`
+- Governor: `GovernorDriver` (steer clamp, obstacle-avoidance, pickup-seek)
+- Persistence (in-memory sql.js): `profile`, `lifetimeStats`, `achievements`, `settings`, `replay`, `tutorial`
+- Utils: `rng`, `runRng`, `seedPhrase`, `loader`
 
-### E2E (Playwright)
+### Component (jsdom) — 6 files
 
-**Boot (5 tests):**
-- Title screen loads with brand
-- `?skip=1` drops into gameplay
-- START button enters gameplay
-- circus_arena HDRI is requested (preload verifies)
-- No console errors during boot (tolerates audio autoplay warning)
+Small DOM surfaces where `@vitest/browser` overhead isn't justified:
 
-**Gameplay (4 tests):**
-- Distance increases over time during free-play
-- Pointer steering moves player laterally (lateral diff > 0.1)
-- HONK button clickable without error
-- HUD reflects distance as run progresses
+- `useKeyboardControls`, `useTouchGestures`, `usePrefersReducedMotion`
+- `<LiveRegion />`, `<AchievementToast />` (TBD), small pure-DOM assertions
 
-**Governor (2 tests):**
-- Autonomous run drives > 300m, FPS > 25, crash rate < 0.05/meter
-- Screenshots captured at t=3s, t=12s, t=25s (attached to test report)
+### Browser (real Chromium WebGL via @vitest/browser-playwright) — 35 files
 
-**Error modal (2 tests):**
-- Clean run shows NO modal
-- 404 on HDRI → modal appears with exact path in message
+Everything visual, geometric, or interactive runs in a real Chromium with a live WebGL context:
 
-**Mobile (2 tests, iPhone 14 Pro portrait):**
-- Boots + renders HUD at portrait aspect
-- HONK button reachable at safe-area, tap doesn't error
+- Cockpit: shell mount, responsive scaling, hood clipping, drop-in Y curve, plunge-past-track, RacingLineGhost overlay
+- Track: seam alignment, lane alignment, piece-to-piece geometry
+- Obstacles: zone gimmicks (balloons, fire-hoops, mirrors, barker crowd) at the GL level
+- Scripted outcomes: the four `PathOutcome` modes (finish-clean / collide-first / plunge-off-ramp / survive-30s) driven into the live game store + canvas
+- HUD: real 1280×720 Chromium layout, `<RacingLineMeter>`, accessibility tree, `<NewRunModal>` keyboard + focus
+- Title: desktop hero-art + compact phone layouts, balloon buttons, landing ticket pill
+- Error modal: real error-path with proper focus management
+- PhotoMode: canvas capture + blob download
+- Difficulty real-physics: one seed per tier survives the full scripted optimal path under live physics
+
+### E2E (Playwright) — 13 specs
+
+Full app-start-to-finish flows against `pnpm preview` (production bundle) in headless Chromium:
+
+- `boot.spec.ts` — title → NewRunModal → PLAY, `?skip=1`, HDRI preload, console cleanliness, DB bootstrap regression
+- `newrun-flow.spec.ts` — full modal UX end-to-end with frame capture at t=0/3/6/9/12s
+- `terminal-scenarios.spec.ts` — normal run ≥ 300 m, permadeath sudden-death, full-success run, keyboard-arrows-produce-visible-wheel
+- `governor.spec.ts` — autonomous run > 300 m + screenshot capture at milestones
+- `errorModal.spec.ts` — halt-on-missing-HDRI + clean-run no-modal
+- `gameplay.spec.ts` — pointer steering + HONK + HUD reactivity
+- `cockpit-pov.spec.ts`, `visual-3d.spec.ts`, `visual.spec.ts` — pixel-regression baselines across 4 viewports
+- `mobile.spec.ts` — iPhone 14 Pro portrait boot + safe-area
+- `loadout.spec.ts` — loadout equip + reflect in cockpit
+- `bigtop-tour.spec.ts` — tour mode walkaround
+- `gif-capture.spec.ts` — manual gif capture helpers
+
+All E2E job is marked `continue-on-error` in CI because the vitest-browser suite is the authoritative gate; E2E covers the same surfaces with more CI-runner flakiness.
 
 ## Test factory pattern
 
@@ -151,16 +154,17 @@ statements: ≥ 65%
 
 Focused on `src/game/**`, `src/systems/**`, `src/utils/**` (core logic). Component + R3F not coverage-gated (they're exercised via jsdom + browser suites).
 
-## Visual regression (planned)
+## Visual regression
 
-Playwright `toHaveScreenshot` baselines for:
-- Title screen at 1280×720
-- Cockpit idle (no steering) at 1280×720 + 390×844 portrait
-- Each zone entry (Midway Strip, Balloon Alley, Ring of Fire, Funhouse Frenzy)
-- Each obstacle type in isolation (via diag API spawning at fixed distance)
-- HUD in: idle / mid-run / crash / game-over states
+Playwright `toHaveScreenshot` baselines live in `e2e/visual.spec.ts-snapshots/` and `e2e/loadout.spec.ts-snapshots/`. Currently committed baselines:
+
+- Title screen at desktop / tablet / phone-portrait / phone-landscape (4 PNGs)
+- HUD at desktop / tablet / phone-portrait / phone-landscape (4 PNGs)
+- Loadout equip overlay (1 PNG)
 
 Pixel tolerance 250px, color threshold 0.25 (permissive because HDRI lighting varies slightly per frame).
+
+**Still pending**: zone-entry baselines (Midway Strip / Balloon Alley / Ring of Fire / Funhouse Frenzy), obstacle-in-isolation baselines, HUD in-run / crash / game-over variants. The browser-test suite (`*.browser.test.tsx`) covers scene-graph assertions for these; the Playwright pixel-baseline layer is an additional layer on top.
 
 ## Browser launch args (matches grailguard + marmalade-drops)
 

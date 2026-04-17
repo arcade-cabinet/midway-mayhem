@@ -17,7 +17,7 @@ You, behind the polka-dot hood, are the star attraction. Drive fast. Honk louder
 
 ## The CLOWN car
 
-A red-and-yellow polka-dot micromachine with purple A-pillars, a gold arched windshield, chrome gauges labeled **LAUGHS** and **FUN**, a squirting-flower hood ornament that spins constantly, fuzzy red-and-blue dice hanging from the rearview mirror, and a big red horn button on the steering wheel. The horn plays a Cmin7 chord with a different random detuning every time you press it.
+A red-and-yellow polka-dot micromachine with purple A-pillars, a gold arched windshield, a squirting-flower hood ornament that spins constantly, fuzzy red-and-blue dice hanging from the rearview mirror, and a big red horn button on the steering wheel. The horn plays a Cmin7 chord with a different random detuning every time you press it. (Chrome **LAUGHS** + **FUN** gauges are deferred — dead decoration in an already-busy cockpit; may return as an idle-only visual in a later pass.)
 
 You do not know how this car steers. Neither does the car. That's the point.
 

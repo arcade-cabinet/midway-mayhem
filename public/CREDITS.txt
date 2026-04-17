@@ -1,0 +1,30 @@
+Midway Mayhem: Clown Car Chaos — Credits
+===========================================
+
+3D assets
+---------
+- Racing Kit 2.0 — Kenney (kenney.nl) — CC0 1.0 Universal
+- Ultimate Animated Farm Animals — Quaternius (quaternius.com) — CC0 1.0 Universal
+- circus_arena HDRI — Sergej Majboroda via Poly Haven (polyhaven.com/a/circus_arena) — CC0 1.0
+
+Audio
+-----
+- GeneralUser GS 1.472 — S. Christian Collins (schristiancollins.com/generaluser.php) — Permissive custom license; free for any use.
+
+Typography
+----------
+- Bangers — Vernon Adams (fonts.google.com/specimen/Bangers) — SIL Open Font License 1.1
+- Rajdhani — Indian Type Foundry (fonts.google.com/specimen/Rajdhani) — SIL Open Font License 1.1
+
+Libraries
+---------
+- React Three Fiber + drei — Poimandres — MIT
+- Tone.js — Yotam Mann et al. — MIT
+- spessasynth_lib — spessasus — Apache-2.0
+- Yuka.js — Mugen87 — MIT
+- drizzle-orm + Capacitor SQLite — drizzle-team + jeep — Apache-2.0 / MIT
+- zustand — Poimandres — MIT
+
+All in-game art, level design, audio composition, and code are © 2026
+Jon Bogaty and released under the MIT license for code; assets under their
+respective upstream licenses as noted above.

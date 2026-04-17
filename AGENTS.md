@@ -102,14 +102,17 @@ See `docs/TESTING.md` for the pyramid + coverage targets.
 
 ## Diagnostics surface
 
-`window.__mm` (dev or `?diag=1`):
+All diagnostics surfaces are gated by `DEV || ?diag=1 || ?governor=1`. On a bare `pnpm preview` run (production + no flags) they are **not present**. E2E specs must add `?diag=1` to `page.goto()` if they call `readDiag()`.
+
+`window.__mm` (gated):
 - `.diag()` returns a JSON-serializable snapshot of fps/distance/speed/hype/sanity/crashes/crowd/zone/steer/lateral/obstacleCount/pickupCount
 - `.setSteer(v)` programmatic steering (governor uses internal path instead)
 - `.start()` / `.end()` run control
 
-`window.__mmSpawner` — live ObstacleSpawner reference (governor reads it each tick)
+`window.__mmSpawner` — live ObstacleSpawner reference (governor reads it each tick; gated with `?governor=1` or DEV)
 `window.__mmGovernor` — live GovernorDriver (when `?governor=1`)
-`window.__mmHonk` — triggers audioBus.playHonk() from anywhere
+`window.__mmHonk` — triggers audioBus.playHonk() from anywhere (gated)
+`window.__mmRunConfig` — write-only bridge from NewRunModal to Game.tsx; consumed + cleared on first run
 
 ## Performance targets
 

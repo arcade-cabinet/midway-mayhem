@@ -1,11 +1,65 @@
 ---
 title: Gap Analysis — Midway Mayhem
-updated: 2026-04-16
+updated: 2026-04-17
 status: current
 domain: context
 ---
 
-# Gap Analysis — 2026-04-16
+# Gap Analysis — 2026-04-16 (original) + 2026-04-17 remediation
+
+Snapshot of divergence between docs, code, and assets. **Most items listed below have been resolved in the 2026-04-17 remediation pass** (PR #2 landed + follow-up branch `fix/gap-analysis-sweep`). Each row that was fixed in the pass is marked `✅`. Remaining open rows are marked `🔲`.
+
+## Remediation summary (2026-04-17)
+
+| # | Item | Status | Resolution |
+|---|------|--------|------------|
+| C1 / M1 | `src/game/pbrMaterials.ts` orphan | ✅ | Deleted (zero importers; referenced nonexistent manifest ids). |
+| C2 | Android APK assembly commented out | ✅ | Uncommented in `cd.yml` + `release.yml`; added `pnpm build:native` step (fix PR #10 on top). |
+| C3 | `upload-artifact@v7` | ✅ | Pinned to `@v4` across all three workflow files. |
+| C4 | Missing `ios/` platform | 🔲 | Requires user-run `pnpm exec cap add ios` + commit. Documented in DEPLOYMENT.md. |
+| H1 | README feature-matrix "Queued" lies | ✅ | Flipped to Shipped; added new shipped rows (NewRunModal, dual RNG, RunPlan, etc.). |
+| H2 | STATE.md "In Progress / Next" lies | ✅ | Moved shipped items into the new `## Shipped in PR #2` section; rewrote `## Next (TBD)`. |
+| H3 | ARCHITECTURE scene-tree incomplete | ✅ | Added StartPlatform, FinishBanner, BalloonLayer, FireHoopGate, MirrorLayer, BarkerCrowd, RaidLayer, ExplosionFX, SpeedFX, RacingLineGhost, RacingLineMeter, LiveRegion, AchievementToast. |
+| H4 | TESTING.md test counts stale | ✅ | Rewrote Unit / Component / Browser / E2E sections against actual file counts (41 unit, 6 jsdom, 35 browser, 13 e2e). |
+| H5 | CLAUDE.md project-structure stale | ✅ | Rewrote the feature-folder layout block. |
+| H6 | `showRacingLine` settings toggle | ✅ | Shipped in PR #2 (Feature 3 agent). Confirmed via grep on `SettingsPanel.tsx`. |
+| H7 | DEPLOYMENT.md Web "planned" | ✅ | Updated to `live` + linked production URL. |
+| H8 | LORE gauges vs Cockpit reality | ✅ | LORE narrative now explicitly defers LAUGHS/FUN gauges. |
+| H9 | Pause button missing | 🔲 | Deferred — pause is not a runner-style ship requirement; Maestro flows background via `pressKey: Home`. |
+| H10 | Mobile frametime audits unverified | 🔲 | Requires on-device runs; documented as pending in AGENTS.md. |
+| H11 | Orphan GLBs | ✅ | Deleted 9: raceCarRed/White/Orange, ramp, cone-flat, overheadLights, billboardLower, flagRed, flagGreen (roadCurved kept — actually used). |
+| H12 | `__mm` diag gating undocumented | ✅ | Added explicit gate note in AGENTS.md + documented `__mmRunConfig`. |
+| M2 | CLAUDE.md mislabels trackGenerator | ✅ | Reworded in the structure block. |
+| M3 | `@/systems` alias landmine | ✅ | Removed from `vite.config.ts`. |
+| M4–M7 | Files > 300 LOC | 🔀 in-flight | Background agent on branch `fix/gap-analysis-sweep` splitting Cockpit/HUD/BigTopTour/NewRunModal/TicketShop/ObstacleSystem/db/gameState/optimalPath/achievements. |
+| M8 | Schema ≠ PRD | 🔲 | Schema-diff note deferred (low priority; code is correct). |
+| M10 | MeshReflectorMaterial mirror | 🔲 | Still (planned) — acceptable. |
+| M11 | Barrel-pattern migration half done | 🔲 | Acceptable current state; no new imports need to be fixed. |
+| M12 | jsdom suites undocumented | ✅ | TESTING.md rewrite covers all suites. |
+| M13 | `audit:balance:compare` script missing | ✅ | Created `scripts/compare-balance-audits.ts`. |
+| M14 / M15 | SF2 + CC-BY attribution missing | ✅ | Added to LORE.md credits + STANDARDS.md + new `public/CREDITS.txt`. |
+| M16 | Empty catch in `resetDbForTests` | 🔲 | Test-path only; tolerable. |
+| M17 | Duplicate sql-wasm.wasm | ✅ | Intentional (sql.js locateFile probes both); comment added to `copywasm.ts` documenting the rationale. |
+| L1 | PRD plan status | 🔲 | Low priority, bump on next release. |
+| L2 | ROADMAP "Queued for PR #2" | ✅ | Rewrote as "Shipped in PR #2" earlier in session. |
+| L3 / L4 | Dependabot token | ✅ | Switched to `GITHUB_TOKEN` in `dependabot-auto-merge.yml`. |
+| L5 | Visual regression baselines doc stale | ✅ | Rewrote TESTING.md section against actual snapshot set. |
+| L6 | Bundle chunk splitting | ✅ | Actually landed pre-session; STATE.md already reconciled. |
+| L7 | Conversation-dump .gitignore | ✅ | Dumps are gitignored and no longer tracked. |
+| L8 | Motion tokens | 🔲 | Low-pri polish. |
+| L10 | CodeRabbit evidence | 🔲 | Shows ✓ pass on PR #2 via `gh pr checks`. |
+
+## Open items summary
+
+Open after the remediation pass:
+- **C4** (iOS platform) — requires user to run `pnpm exec cap add ios` (can't be automated).
+- **H9 / H10** — out-of-scope feature work (pause UI + on-device perf audits).
+- **M4–M7** — in-flight (background agent splitting oversized files).
+- Minor doc polish (L1, L8, L10) — not load-bearing.
+
+---
+
+## Original findings (preserved for reference)
 
 Snapshot of divergence between what the docs claim, what the code does, and what assets are shipped. Every row cites the file path (absolute) and line number where applicable. Report only — no fixes performed.
 

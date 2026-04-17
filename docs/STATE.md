@@ -27,18 +27,33 @@ Where the project stands right now. Updated as work lands.
 
 - **Cockpit deep refinement pass** — see memory: `project_next_pass_cockpit.md`. The cockpit is THE hero procedural element and needs Blender-prototyped proportions, proper hood hemisphere, reflective mirror, fuzzy-dice physics-bob, working chrome gauges, honkable 3D horn. Currently placeholder-quality.
 
-## Next (order TBD with user)
+## Shipped in PR #2 (c5d1a89 on main)
 
-- Wire-suspended start platform + NEW GAME overlay + drop transition (see `project_world_architecture.md`)
+- Wire-suspended **start platform** at d=0 + black-and-white **checkered finish banner** at d=distance with goal platform
+- Cockpit **plunge-past-track** animation (free-fall Y curve, track stays in world-space)
+- **NewRunModal** — seed phrase + 🎲 shuffle + 3×2 DOOM-style difficulty grid + permadeath toggle
+- **Dual-channel deterministic PRNG** seeded by phrase hash (track channel for construction, events channel for in-run streaming)
+- **Pre-baked RunPlan** — every obstacle/pickup/balloon/mirror/fire-hoop enumerated at `startRun`, baked from `trackRng`, replayed by renderers
+- **Critter idle animations** via per-clone `THREE.AnimationMixer` with phase-offset so animals breathe out-of-sync
+- **Optimal-path solver** — `src/game/optimalPath.ts` — powers the test factory, runtime cleanliness scoring, RacingLineGhost overlay, difficulty telemetry CLI
+- **Real-keyboard governor** — dispatches ArrowLeft/ArrowRight on `window`, same path a player uses. 60 m forward perception cap.
+- **GitHub Pages deploy live** at https://arcade-cabinet.github.io/midway-mayhem/
+- **Android debug APK** artifact on every push to `main` via `cd.yml`; **Android release APK** attached to every release via `release.yml`
+- **Persistence** — drizzle schema + sql.js + CapacitorSQLite stack, with 7 tables (profile, unlocks, loadout, daily_runs, replays, achievements, lifetime_stats)
+- **Maestro native smoke scripts** — 6 Android flows committed (iOS flows staged, pending `cap add ios`)
+- **Balance audit** — `pnpm audit:balance` + `pnpm audit:balance:compare <before> <after>`
+- **Difficulty telemetry** — `pnpm audit:difficulty` + `docs/telemetry/difficulty-balance.json`
+- **Marketing screenshot capture** — `scripts/capture-marketing.ts` with curated poses
+- **Landing-page hero art** with compact phone layout + square transparent logo + balloon-style brand buttons
+- **Test matrix migration** — 35 browser tests via `@vitest/browser-playwright` in the same Chromium the game ships in
+
+## Next (TBD)
+
+- Cockpit deep refinement pass — proportions, hood hemisphere, reflective mirror, fuzzy dice, working chrome gauges, honkable 3D horn
 - Per-zone color grading + crossfades
-- GitHub Actions: ci.yml, release.yml, cd.yml (see docs/DEPLOYMENT.md)
-- GitHub Pages deploy
-- Capacitor sync + Android debug APK build
-- Persistence: drizzle schema + sql.js + CapacitorSQLite (grailguard pattern)
-- Maestro native smoke scripts
-- Balance-audit TS script (N autonomous runs, collect stats per commit)
-- Marketing screenshot capture script (12 curated poses)
-- Title-screen 3D start sequence (replace 2D polka-dot title)
+- Title-screen 3D start sequence (currently 2D hero-art; 3D sequence still pending)
+- iOS platform wiring (`pnpm exec cap add ios`) + iOS Maestro flow validation
+- Split remaining oversized source files under 300 LOC (in-flight this session)
 
 ## Known issues
 

@@ -21,26 +21,37 @@ domain: technical
 </App>
 
 <Game>
-  <HUD />                     — DOM overlay
-  <ZoneBanner />              — DOM overlay
+  <HUD />                     — DOM overlay + <RacingLineMeter>
+  <ZoneBanner />              — DOM overlay (zone transitions)
+  <LiveRegion />              — a11y announce region
+  <AchievementToast />        — DOM overlay
   <Canvas>                    — r3f root
     <ReactErrorBoundary context="canvas-root">
       <Suspense>
         <Environment files="circus_arena.hdr" background />
         <ambientLight />
-        <GameLoop />          — drives store tick
+        <GameLoop />          — drives store tick; updates cleanliness + deviation window
         <WorldScroller>       — translates world past fixed cockpit
-          <TrackSystem />     — drei.useGLTF per baked Kenney piece
-          <ObstacleSystem />  — instanced meshes fed by ObstacleSpawner
-          <PickupSystem />    — instanced meshes, world-mapped via trackToWorld
+          <TrackSystem />     — drei.useGLTF per baked Kenney piece; composes track once
+          <StartPlatform />   — wire-hung deck at d=0 (plan.startPlatform)
+          <FinishBanner />    — checkered banner + goal platform at d=distance
+          <ObstacleSystem />  — RunPlan-driven instanced clones; critter idle mixers
+          <PickupSystem />    — RunPlan-driven pickups (ticket/boost/mega)
+          <BalloonLayer />    — zone gimmick; drifts from startLateral → endLateral
+          <FireHoopGate />    — zone gimmick; emissive torus + ember particles
+          <MirrorLayer />     — zone gimmick; phantom duplicates flicker per-room
+          <BarkerCrowd />     — roadside spectators with per-zone skins
+          <RaidLayer />       — Ringmaster-raid projectiles (tigers/knives/cannonball)
           <GhostCar />        — translucent replay ghost (daily route only)
           <RacingLineGhost /> — wireframe optimal-line guide, 12m lookahead
+          <ExplosionFX />     — multicolor clown explosion on game-over
         </WorldScroller>
         <Cockpit>             — world-origin, hand-authored procedural
           <CockpitCamera />   — PerspectiveCamera makeDefault, inside cockpit body
+          <SpeedFX />         — speed-reactive visual FX (disabled pending port)
         </Cockpit>
-        <Governor />          — ?governor=1, drives via setSteer
-        <PostFX />             — Bloom + ChromaticAberration + Noise + Vignette
+        <Governor />          — ?governor=1, dispatches ArrowLeft/ArrowRight via window
+        <PostFX />            — Bloom + Hue/Saturation + Brightness/Contrast + Noise + ToneMapping
       </Suspense>
     </ReactErrorBoundary>
   </Canvas>
