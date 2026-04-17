@@ -1,6 +1,6 @@
 ---
 title: CLAUDE.md — Midway Mayhem
-updated: 2026-04-16
+updated: 2026-04-17
 status: current
 domain: technical
 ---
@@ -9,86 +9,78 @@ domain: technical
 
 > Drive fast. Honk louder.
 
-Cockpit-perspective arcade driver where you race a polka-dot clown car down a Hot Wheels mega-track inside a circus big-top.
+Cockpit-perspective arcade driver down a Hot Wheels mega-track inside a circus big-top. Web build is debug-only; the shipped targets are Capacitor iOS + Android.
 
-## Critical rules
+## How this repo is structured right now
 
-1. **Hard-fail, no fallbacks.** Every error surfaces in `<ErrorModal>` via `errorBus.reportError`. No `try { ... } catch { /* ignore */ }`, no perf-tier branches, no "if asset loaded use it else procedural". See `src/systems/errorBus.ts`.
-2. **TypeScript everywhere.** Source, tests, build scripts, configs. Only exemption: `bpy` Blender scripts (Python-required) and harness hooks (bash).
-3. **Grailguard + marmalade-drops are references.** For any Vite/R3F/drei/Capacitor/test/build problem check `../grailguard/` and `../marmalade-drops/` BEFORE inventing.
-4. **Retexture at BAKE time, not RUNTIME.** Model palette is baked via `scripts/bake-kit.py` into `public/models/`. Zero runtime retexturing code.
-5. **Camera lives inside the cockpit group.** No world-space camera following a separate car — eliminates the "sail glitch" and "hood-swallows-camera" classes entirely.
-6. **HDRI is the world.** The circus_arena HDRI from PolyHaven is the BIG-TOP — full 360° × 180° immersion, not a skybox half-shell.
+- `src/` — the v2 rewrite. Empty shell bootstrapping: koota ECS, JSON-driven
+  config, procedural track, responsive cockpit group. Being built stepwise:
+  (1) test harness (2) track (3) cockpit (4) landing. Each step is gated by
+  passing visual-capture tests before moving on.
+- `reference/` — the entire v1 codebase. Preserved for lookups only. Do NOT
+  import from here. Do NOT refactor inside here. Read it to remember how
+  something was done, then build fresh in `src/`.
+
+## Architecture rules (v2)
+
+1. **`.ts` = logic. `.tsx` = rendering. `.json` = data.** If a number
+   appears in `.ts`, it came from JSON. If math is in `.tsx`, it's wrong.
+2. **One koota world is the entire state boundary.** Everything that was
+   a zustand store is now an entity with traits. Queries, not hooks.
+3. **Procedural everything.** No GLB road pieces. Track geometry is
+   generated deterministically from JSON archetypes + seed, shaded with
+   PBR materials (PolyHaven).
+4. **Hard-fail, no fallbacks.** Every failure path goes to an error modal.
+   No silent catches. No "if asset missing, degrade gracefully."
+5. **Test-gated progress.** Each subsystem has browser screenshot tests
+   running on the real Chrome GPU (ANGLE/GL, not SwiftShader). A step
+   isn't done until its screenshots are right.
 
 ## Commands
 
 ```bash
-pnpm install              # fresh setup
-pnpm dev                  # vite dev server
-pnpm build                # production web bundle
-pnpm build:native         # capacitor-targeted bundle
-pnpm lint                 # biome check
-pnpm typecheck            # tsc --noEmit
-pnpm test                 # node + jsdom
-pnpm test:browser         # real Chromium with WebGL
-pnpm test:e2e             # playwright full matrix (desktop + mobile)
+pnpm install        # fresh setup
+pnpm dev            # vite dev server (localhost:5173/midway-mayhem/)
+pnpm build          # production web bundle
+pnpm build:native   # capacitor build
+pnpm lint           # biome check
+pnpm typecheck      # tsc --noEmit
+pnpm test           # all projects
+pnpm test:node      # logic-only unit tests
+pnpm test:browser   # real-GPU Chromium screenshot tests
 ```
 
-## URL flags (dev + test)
+## URL flags (dev only)
 
-- `?skip=1` — skip title screen, drop into gameplay
-- `?governor=1` — Yuka.js autonomous driver plays the game
-- `?diag=1` — exposes `window.__mm.diag()` for diagnostics
+- `?debug=1` — expose `window.__mm` diagnostics + `window.__mmCapture()`
 
-## Project structure (load-bearing modules, feature-folder layout)
+## Current layout
 
 ```
 src/
-  app/             App entry, global CSS, boot scene-router
-  assets/          manifest.ts (typed declarative), preloader (hard-fail)
-  audio/           audioBus + conductor (Tone.js), sf2 bridge (spessasynth), honkBus, tireSqueal
-  cockpit/         Cockpit shell, CockpitCamera, SpeedFX, plungeMotion, RacingLineGhost, ExplosionFX
-  design/          tokens, typography, reusable Panel/Stat/Banner/BrandButton/HUDFrame
-  game/            gameState (zustand), errorBus, diagnosticsBus, comboSystem, runPlan,
-                   optimalPath + scripts, runRngBus, difficulty + difficultyTelemetry,
-                   trickSystem, replayRecorder, hapticsBus,
-                   governor/Governor + GovernorDriver (real-keyboard dispatch)
-  hooks/           useSteering, useShake, useResponsiveFov, useDeviceDetection,
-                   useFormFactor, useKeyboardControls, useTouchGestures
-  hud/             HUD, TitleScreen, NewRunModal, ErrorModal, AchievementsPanel,
-                   SettingsPanel, TicketShop, HowToPlayPanel, CreditsPanel, StatsPanel,
-                   RacingLineMeter, Leaderboard, ZoneBanner, LiveRegion, PhotoMode
-  modes/           BigTopTour (walkaround mode)
-  obstacles/       ObstacleSystem, PickupSystem, BalloonLayer, FireHoopGate,
-                   MirrorLayer, BarkerCrowd, RaidLayer, GhostCar + spawners/directors
-  persistence/     db + schema (drizzle + sql.js + CapacitorSQLite),
-                   profile, achievements, lifetimeStats, settings, replay, tutorial,
-                   preferences (OPFS + Capacitor Preferences)
-  track/           trackComposer, trackGenerator, TrackSystem, WorldScroller,
-                   StartPlatform, FinishBanner, dailyRoute
-  tour/            CutsceneBalloons (big-top tour cutscene assets)
-  utils/           constants, math, rng (splitmix64) + seedPhrase, proceduralTextures
+  app/              App + main entry (composition only)
+  ecs/              world.ts, traits.ts, systems/
+  render/           R3F components that query traits
+  config/           tunables.json + archetypes/*.json + zod schemas
+  audio/            procedural Tone.js (no soundfonts)
+  utils/            rng, math — tiny utilities only
+  test/             scene harness + setup
+
 public/
-  hdri/            circus_arena_2k.hdr — the big-top interior
-  models/          Kenney Racing Kit baked with MM brand palette
-  textures/        PBR maps for cockpit chrome + hood (optional)
+  hdri/             circus_arena_2k.hdr — the big-top dome
+  textures/         PBR maps (chrome, track, hood)
+  fonts/            Bangers + Rajdhani
+  ui/               background-landing.png (title art)
+
 scripts/
-  bake-kit.py      Baker: Kenney default palette → MM brand palette
-  copywasm.ts      Copies sql-wasm.wasm into public/
-e2e/
-  boot.spec.ts, gameplay.spec.ts, governor.spec.ts,
-  errorModal.spec.ts, mobile.spec.ts, helpers.ts
+  vite-capture-plugin.ts   # POST /__capture → .capture/<ts>/ on disk
 ```
 
-## Where to look first
+## Reference material
 
-- Extended protocols + architecture: `AGENTS.md`
-- Hard rules: `STANDARDS.md`
-- What changed when: `CHANGELOG.md`
-- Full stack + data flow: `docs/ARCHITECTURE.md`
-- Brand + palette + UX laws: `docs/DESIGN.md`
-- Testing strategy: `docs/TESTING.md`
-- World + narrative: `docs/LORE.md`
-- Current state: `docs/STATE.md`
-- Deploy matrix: `docs/DEPLOYMENT.md`
-- The epic plan: `docs/plans/midway-mayhem.prq.md`
+- `reference/` — v1 codebase, read-only lookups
+- `../marmalade-drops/` — vitest+koota patterns we're mirroring
+- `../stellar-descent/` — real-GPU Playwright e2e pattern
+- `../grailguard/` — build/test reference
+- `/Users/jbogaty/src/reference-codebases/koota/examples/` — koota examples
+  (`revade` + `n-body-react` are the closest analogs)
