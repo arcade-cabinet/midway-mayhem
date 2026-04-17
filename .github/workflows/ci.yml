@@ -121,11 +121,11 @@ jobs:
         run: pnpm build
       - name: Bundle budget gate
         run: pnpm audit:bundle
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: bundle-size-report
@@ -187,7 +187,7 @@ jobs:
         working-directory: android
 
       - name: Upload debug APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: midway-mayhem-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
@@ -236,7 +236,7 @@ jobs:
 
       - name: Upload Maestro results + debug APK
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: maestro-android-results
           path: |
@@ -277,7 +277,7 @@ jobs:
           else
             xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
@@ -310,7 +310,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Lighthouse audit
         run: pnpm audit:lighthouse
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: lighthouse-report
@@ -360,7 +360,7 @@ jobs:
             kill $PREVIEW_PID 2>/dev/null || true
             exit $AUDIT_EXIT
           '
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: frametime-report

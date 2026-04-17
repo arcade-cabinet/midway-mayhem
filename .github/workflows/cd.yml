@@ -127,7 +127,7 @@ jobs:
         run: cd android && ./gradlew assembleDebug
 
       - name: Upload APK as workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: midway-mayhem-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
