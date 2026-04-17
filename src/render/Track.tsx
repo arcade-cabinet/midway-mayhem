@@ -17,12 +17,15 @@
  * Everything coalesces into a handful of draw calls (surface, underside,
  * walls, stripes, curbs-red, curbs-white) regardless of segment count.
  */
+import { useFrame } from '@react-three/fiber';
 import { useQuery } from 'koota/react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { trackArchetypes } from '@/config';
-import { TrackSegment } from '@/ecs/traits';
+import { Player, Position, TrackSegment } from '@/ecs/traits';
 import { integratePose, type Pose } from '@/ecs/systems/track';
+import { sampleTrackPose, type SampledSegment } from '@/ecs/systems/trackSampler';
+import { useWorld } from 'koota/react';
 
 const SEGMENT_SUBDIVISIONS = 12;
 const SLAB_DEPTH = 0.45;
@@ -284,8 +287,10 @@ function buildTrackGeometry(segments: SegmentInput[]): BuiltGeo {
 
 export function Track() {
   const segments = useQuery(TrackSegment);
+  const world = useWorld();
+  const groupRef = useRef<THREE.Group>(null);
 
-  const built = useMemo(() => {
+  const { built, sampled } = useMemo(() => {
     const traits = segments
       .map((e) => {
         const seg = e.get(TrackSegment);
@@ -311,11 +316,64 @@ export function Track() {
       deltaPitch: seg.deltaPitch,
       bank: seg.bank,
     }));
-    return buildTrackGeometry(data);
+    const sampledSegs: SampledSegment[] = traits.map((seg) => ({
+      startPose: {
+        x: seg.startX,
+        y: seg.startY,
+        z: seg.startZ,
+        yaw: seg.startYaw,
+        pitch: seg.startPitch,
+      },
+      archetypeId: seg.archetype,
+      length: seg.length,
+      deltaYaw: seg.deltaYaw,
+      deltaPitch: seg.deltaPitch,
+      bank: seg.bank,
+      distanceStart: seg.distanceStart,
+    }));
+    return {
+      built: buildTrackGeometry(data),
+      sampled: sampledSegs,
+    };
   }, [segments]);
 
+  // Each frame: offset + counter-rotate the whole track so that the pose
+  // at the player's current distance lines up with the cockpit at origin,
+  // looking forward along -z. The cockpit NEVER moves — the world does.
+  useFrame(() => {
+    const g = groupRef.current;
+    if (!g) return;
+    const players = world.query(Player, Position);
+    if (players.length === 0) return;
+    const first = players[0];
+    if (!first) return;
+    const pos = first.get(Position);
+    if (!pos) return;
+
+    const p = sampleTrackPose(sampled, pos.distance);
+    // Anchor point on the track, with lateral offset perpendicular to
+    // forward (player moving side-to-side on a 4-lane road).
+    const rightX = Math.cos(p.yaw);
+    const rightZ = -Math.sin(p.yaw);
+    const ax = p.x + rightX * pos.lateral;
+    const ay = p.y;
+    const az = p.z + rightZ * pos.lateral;
+
+    // Counter-rotate by the pose's yaw + pitch so "forward" along the
+    // track becomes -z in world space.
+    g.rotation.set(-p.pitch, -p.yaw, 0, 'YXZ');
+    // Then translate: we want the anchor (after rotation) to sit at origin.
+    // Three applies T then R? Actually Group's matrix = T * R * S, meaning
+    // local → world is: world = T * R * local. So world(anchor) = 0 means
+    // T = -R * anchor.
+    const negAnchor = new THREE.Vector3(-ax, -ay, -az);
+    negAnchor.applyEuler(g.rotation);
+    g.position.copy(negAnchor);
+    g.updateMatrixWorld();
+  });
+
   return (
-    <group>
+    <group ref={groupRef}>
       <mesh geometry={built.surface} name="track-surface">
         <meshStandardMaterial color="#F36F21" roughness={0.58} metalness={0.08} />
       </mesh>

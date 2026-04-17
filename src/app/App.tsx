@@ -1,30 +1,41 @@
 /**
- * Root component. Landing surface + 3D scene.
+ * Root component. Landing surface + 3D scene + per-frame game loop.
  *
- * The canvas always renders the live cockpit + track scene (no gated
- * dev/game split — you're in the car from the first paint). The
- * TitleScreen overlay sits on top until the user clicks DRIVE, then fades
- * away. Pure composition — all game state lives in the koota world, all
- * rendering in src/render/.
+ * The canvas always renders the live cockpit + track scene. The
+ * TitleScreen sits on top until the user clicks DRIVE, then fades away.
+ * Input listeners + motion loop are mounted unconditionally so the player
+ * entity's state always reflects reality; gating is purely visual.
  */
 import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useState } from 'react';
 import { seedTrack } from '@/ecs/systems/track';
+import { spawnPlayer } from '@/ecs/systems/playerMotion';
+import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
 import { world } from '@/ecs/world';
+import { useKeyboard } from '@/input/useKeyboard';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment } from '@/render/Environment';
 import { Track } from '@/render/Track';
 import { TitleScreen } from '@/ui/TitleScreen';
 
-let seeded = false;
-if (!seeded) {
+let bootstrapped = false;
+if (!bootstrapped) {
   seedTrack(world, 42);
-  seeded = true;
+  spawnPlayer(world);
+  bootstrapped = true;
+}
+
+function GameLoop({ active }: { active: boolean }) {
+  usePlayerLoop(world, active);
+  return null;
 }
 
 export function App() {
   const [titleVisible, setTitleVisible] = useState(true);
+  const playing = !titleVisible;
+
+  useKeyboard({ world, enabled: playing });
 
   return (
     <WorldProvider world={world}>
@@ -45,6 +56,7 @@ export function App() {
           </Suspense>
           <Track />
           <Cockpit />
+          <GameLoop active={playing} />
         </Canvas>
         {titleVisible ? <TitleScreen onDrive={() => setTitleVisible(false)} /> : null}
       </div>
