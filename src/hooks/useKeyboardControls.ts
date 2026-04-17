@@ -7,8 +7,11 @@
  *   Space / H        → honk()
  *   ArrowLeft / A    → steer -1 (decays to 0 on keyup)
  *   ArrowRight / D   → steer +1 (decays to 0 on keyup)
- *   P / Escape       → pause / resume
  *   R                → restart on game-over screen
+ *
+ * Deliberately NO pause binding — this is a runner-style arcade racer.
+ * The whole point is how far you get + how cleanly you hold the line; pausing
+ * would break the flow and make the cleanliness/crowd-chain meaningless.
  *
  * Auto-registers on window. Returns a cleanup function.
  * Call once from Game.tsx alongside useSteering.
@@ -56,23 +59,11 @@ export function useKeyboardControls(): void {
 
       held.add(e.key);
 
-      const { running, paused, gameOver } = useGameStore.getState();
+      const { running, gameOver } = useGameStore.getState();
 
       // HONK — Space or H
-      if ((e.code === 'Space' || e.key === 'h' || e.key === 'H') && running && !paused) {
+      if ((e.code === 'Space' || e.key === 'h' || e.key === 'H') && running) {
         honk();
-        return;
-      }
-
-      // PAUSE / RESUME — P or Escape
-      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
-        if (running && !gameOver) {
-          if (paused) {
-            useGameStore.getState().resume();
-          } else {
-            useGameStore.getState().pause();
-          }
-        }
         return;
       }
 

@@ -64,7 +64,7 @@ describe('useKeyboardControls — real browser keyboard events', () => {
     expect(useGameStore.getState().paused).toBe(false);
   });
 
-  it('P key pauses a running game via hook', async () => {
+  it('P key does NOT pause — runner-style racer has no pause binding', async () => {
     useGameStore.getState().startRun({ seed: 1 });
     expect(useGameStore.getState().paused).toBe(false);
 
@@ -75,18 +75,17 @@ describe('useKeyboardControls — real browser keyboard events', () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 20));
     });
 
-    expect(useGameStore.getState().paused).toBe(true);
+    expect(useGameStore.getState().paused).toBe(false);
     unmount();
   });
 
-  it('P key again resumes game via hook', async () => {
+  it('Escape key does NOT pause — runner-style racer has no pause binding', async () => {
     useGameStore.getState().startRun({ seed: 1 });
-    useGameStore.getState().pause();
 
     const { unmount } = renderHook(() => useKeyboardControls());
 
     await act(async () => {
-      fireKey('p');
+      fireKey('Escape');
       await new Promise<void>((resolve) => setTimeout(resolve, 20));
     });
 
@@ -145,17 +144,19 @@ describe('useKeyboardControls — real browser keyboard events', () => {
 
   it('cleanup: unmounting removes the window listener', async () => {
     useGameStore.getState().startRun({ seed: 1 });
+    useGameStore.setState({ gameOver: true, running: false });
     const { unmount } = renderHook(() => useKeyboardControls());
     unmount();
 
-    // Pressing P after unmount should not change paused state
+    // Pressing R after unmount should not restart (listener removed)
     await act(async () => {
-      fireKey('p');
+      fireKey('r');
       await new Promise<void>((resolve) => setTimeout(resolve, 20));
     });
 
-    // State unchanged after unmount
-    expect(useGameStore.getState().paused).toBe(false);
+    // gameOver still true because the restart listener was removed
+    expect(useGameStore.getState().gameOver).toBe(true);
+    expect(useGameStore.getState().running).toBe(false);
   });
 });
 

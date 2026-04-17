@@ -8,7 +8,8 @@
  *   Swipe-left  → steer -1
  *   Swipe-right → steer +1
  *   Swipe-up    → honk
- *   Swipe-down  → pause
+ *
+ * Swipe-down is intentionally unbound — runner-style arcade has no pause.
  *
  * Returns a cleanup function via useEffect so callers can integrate it with
  * their own canvas or the document body.
@@ -99,8 +100,7 @@ export function useTouchGestures(target: HTMLElement | null): void {
         if (running && !paused) honk();
       },
       onSwipeDown: () => {
-        const { running, paused, gameOver } = useGameStore.getState();
-        if (running && !paused && !gameOver) useGameStore.getState().pause();
+        // Intentional no-op — runner-style racer has no player-facing pause.
       },
     });
 

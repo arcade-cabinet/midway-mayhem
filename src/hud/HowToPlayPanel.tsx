@@ -15,7 +15,6 @@ const ROWS: Array<{ what: string; desktop: string; mobile: string }> = [
     mobile: 'drag on canvas or swipe left/right',
   },
   { what: 'Honk', desktop: 'Space or H', mobile: 'HONK button or swipe up' },
-  { what: 'Pause', desktop: 'P or Esc', mobile: 'pause button' },
   { what: 'Restart', desktop: 'R on game-over', mobile: 'AGAIN! button' },
 ];
 
