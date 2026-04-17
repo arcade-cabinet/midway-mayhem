@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 import { captureServerPlugin } from './scripts/vite-capture-plugin';
+import { writePngFromDataUrl } from './scripts/vitest-write-png-command';
 
 const isCapacitor = process.env.CAPACITOR === 'true';
 const alias = { '@': path.resolve(__dirname, 'src') };
@@ -73,6 +74,7 @@ export default defineConfig({
               },
             ],
             screenshotFailures: false,
+            commands: { writePngFromDataUrl },
           },
         },
       },

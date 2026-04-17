@@ -2,13 +2,20 @@
  * Renders the procedural track as geometry. Pure read from koota
  * `TrackSegment` entities → three.js buffer geometry. No loaders, no GLBs.
  *
- * Each segment contributes:
- *   - a ribbon of quads (the road surface, lanes wide)
- *   - lane-stripe decals on the surface
- *   - raised curb strips along both edges
+ * Geometry layout, per segment, sampled at SEGMENT_SUBDIVISIONS+1 stations:
+ *   - top surface: a quad strip laid along the full-width centreline
+ *   - slab underside + side walls: extruded down by SLAB_DEPTH
+ *   - lane dividers: (lanes-1) thin dashed ribbons on the top surface
+ *   - edge rumble strips: alternating red/white chunks just outside the paved
+ *     surface on both the left and right edges
  *
- * Banking rolls the segment around its forward axis, yaw/pitch integrate
- * from the starting pose. Surface normals point up (pre-bank).
+ * Banking rolls the local frame around the forward axis by `bank` (radians)
+ * interpolated linearly across the segment. Yaw and pitch integrate from the
+ * starting pose. Heights are applied along the bank-rotated up vector so the
+ * entire slab cants into the turn as one solid body.
+ *
+ * Everything coalesces into a handful of draw calls (surface, underside,
+ * walls, stripes, curbs-red, curbs-white) regardless of segment count.
  */
 import { useQuery } from 'koota/react';
 import { useMemo } from 'react';
@@ -18,107 +25,246 @@ import { TrackSegment } from '@/ecs/traits';
 import { integratePose, type Pose } from '@/ecs/systems/track';
 
 const SEGMENT_SUBDIVISIONS = 12;
-const LANE_STRIPE_WIDTH = 0.22;
+const SLAB_DEPTH = 0.45;
+const LANE_STRIPE_WIDTH = 0.16;
+const LANE_STRIPE_LIFT = 0.015;
+const CURB_CHUNK_LENGTH = 2.5;
+const CURB_WIDTH = 0.6;
+const CURB_HEIGHT = 0.18;
 
-interface Built {
-  geometry: THREE.BufferGeometry;
+interface BuiltGeo {
+  surface: THREE.BufferGeometry;
+  underside: THREE.BufferGeometry;
+  walls: THREE.BufferGeometry;
   stripes: THREE.BufferGeometry;
-  curbs: THREE.BufferGeometry;
+  curbsRed: THREE.BufferGeometry;
+  curbsWhite: THREE.BufferGeometry;
 }
 
-/**
- * Build a single buffer geometry from all TrackSegment entities. Coalesces
- * into three meshes (surface, stripes, curbs) so the scene has three draw
- * calls for the whole track, not 80×3.
- */
-function buildTrackGeometry(
-  segmentData: Array<{
-    startPose: Pose;
-    archetypeId: string;
-    length: number;
-    deltaYaw: number;
-    deltaPitch: number;
-    bank: number;
-  }>,
-): Built {
-  const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
-  const surfacePositions: number[] = [];
-  const surfaceIndices: number[] = [];
-  const stripePositions: number[] = [];
-  const stripeIndices: number[] = [];
-  const curbPositions: number[] = [];
-  const curbIndices: number[] = [];
+interface Station {
+  pos: THREE.Vector3;
+  right: THREE.Vector3;
+  up: THREE.Vector3;
+  forward: THREE.Vector3;
+}
 
-  for (const seg of segmentData) {
-    const arch = {
-      id: seg.archetypeId,
-      label: seg.archetypeId,
-      length: seg.length,
-      deltaYaw: seg.deltaYaw,
-      deltaPitch: seg.deltaPitch,
-      bank: seg.bank,
-      weight: 1,
-    };
+interface SegmentInput {
+  startPose: Pose;
+  archetypeId: string;
+  length: number;
+  deltaYaw: number;
+  deltaPitch: number;
+  bank: number;
+}
+
+function sampleStation(
+  startPose: Pose,
+  seg: SegmentInput,
+  t: number,
+): Station {
+  const arch = {
+    id: seg.archetypeId,
+    label: seg.archetypeId,
+    length: seg.length,
+    deltaYaw: seg.deltaYaw,
+    deltaPitch: seg.deltaPitch,
+    bank: seg.bank,
+    weight: 1,
+  };
+  const pose = integratePose(startPose, arch, t);
+
+  // Forward: yaw-horizontal projected with pitch (Z-negative "into screen").
+  const fwd = new THREE.Vector3(
+    -Math.sin(pose.yaw) * Math.cos(pose.pitch),
+    Math.sin(pose.pitch),
+    -Math.cos(pose.yaw) * Math.cos(pose.pitch),
+  ).normalize();
+
+  // Right (before bank): horizontal, perpendicular to yaw.
+  const rightFlat = new THREE.Vector3(Math.cos(pose.yaw), 0, -Math.sin(pose.yaw));
+  const upFlat = new THREE.Vector3().crossVectors(rightFlat, fwd).normalize();
+
+  // Bank: roll right+up around forward.
+  const bank = seg.bank * t;
+  const cosB = Math.cos(bank);
+  const sinB = Math.sin(bank);
+  const right = rightFlat.clone().multiplyScalar(cosB).addScaledVector(upFlat, sinB);
+  const up = upFlat.clone().multiplyScalar(cosB).addScaledVector(rightFlat, -sinB);
+
+  return {
+    pos: new THREE.Vector3(pose.x, pose.y, pose.z),
+    right,
+    up,
+    forward: fwd,
+  };
+}
+
+function buildTrackGeometry(segments: SegmentInput[]): BuiltGeo {
+  const lanes = trackArchetypes.lanes;
+  const laneWidth = trackArchetypes.laneWidth;
+  const halfWidth = (laneWidth * lanes) / 2;
+
+  const surfacePos: number[] = [];
+  const surfaceIdx: number[] = [];
+  const underPos: number[] = [];
+  const underIdx: number[] = [];
+  const wallPos: number[] = [];
+  const wallIdx: number[] = [];
+  const stripePos: number[] = [];
+  const stripeIdx: number[] = [];
+  const curbRedPos: number[] = [];
+  const curbRedIdx: number[] = [];
+  const curbWhitePos: number[] = [];
+  const curbWhiteIdx: number[] = [];
+
+  // Pre-sample all segments' stations so we can emit curb chunks evenly
+  // along an entire segment's path length rather than segment-locally.
+  const segmentStations: Station[][] = segments.map((seg) => {
+    const arr: Station[] = [];
     for (let i = 0; i <= SEGMENT_SUBDIVISIONS; i++) {
       const t = i / SEGMENT_SUBDIVISIONS;
-      const pose = integratePose(seg.startPose, arch, t);
+      arr.push(sampleStation(seg.startPose, seg, t));
+    }
+    return arr;
+  });
 
-      // Compute right vector (perpendicular to forward in yaw plane)
-      const rightX = Math.cos(pose.yaw);
-      const rightZ = -Math.sin(pose.yaw);
+  const pushVec = (arr: number[], v: THREE.Vector3) => {
+    arr.push(v.x, v.y, v.z);
+  };
 
-      // Apply banking: rotate the right vector around forward axis by `bank`.
-      // For our purposes lateral Y tilt is enough: right vector pitches.
-      const bankCos = Math.cos(seg.bank * t);
-      const bankSin = Math.sin(seg.bank * t);
+  for (let s = 0; s < segments.length; s++) {
+    const stations = segmentStations[s];
+    if (!stations) continue;
+    const seg = segments[s];
+    if (!seg) continue;
 
-      const leftX = -rightX * halfWidth * bankCos;
-      const leftZ = -rightZ * halfWidth * bankCos;
-      const leftY = -halfWidth * bankSin;
-      const rightRX = rightX * halfWidth * bankCos;
-      const rightRZ = rightZ * halfWidth * bankCos;
-      const rightRY = halfWidth * bankSin;
+    for (let i = 0; i <= SEGMENT_SUBDIVISIONS; i++) {
+      const st = stations[i];
+      if (!st) continue;
+      const left = st.pos.clone().addScaledVector(st.right, -halfWidth);
+      const right = st.pos.clone().addScaledVector(st.right, halfWidth);
+      const leftBot = left.clone().addScaledVector(st.up, -SLAB_DEPTH);
+      const rightBot = right.clone().addScaledVector(st.up, -SLAB_DEPTH);
 
-      // Road surface ribbon (two verts per subdivision)
-      surfacePositions.push(pose.x + leftX, pose.y + leftY, pose.z + leftZ);
-      surfacePositions.push(pose.x + rightRX, pose.y + rightRY, pose.z + rightRZ);
+      pushVec(surfacePos, left);
+      pushVec(surfacePos, right);
+      pushVec(underPos, leftBot);
+      pushVec(underPos, rightBot);
+      pushVec(wallPos, left);
+      pushVec(wallPos, leftBot);
+      pushVec(wallPos, right);
+      pushVec(wallPos, rightBot);
 
       if (i > 0) {
-        const baseSurfaceIdx = surfacePositions.length / 3 - 4;
-        // Two triangles per quad
-        surfaceIndices.push(baseSurfaceIdx, baseSurfaceIdx + 1, baseSurfaceIdx + 2);
-        surfaceIndices.push(baseSurfaceIdx + 1, baseSurfaceIdx + 3, baseSurfaceIdx + 2);
+        const b = surfacePos.length / 3 - 4;
+        surfaceIdx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2);
+        const u = underPos.length / 3 - 4;
+        underIdx.push(u + 2, u + 1, u, u + 2, u + 3, u + 1);
+        const w = wallPos.length / 3 - 8;
+        // left wall — previous-top, previous-bot, cur-top, cur-bot
+        wallIdx.push(w, w + 1, w + 4, w + 1, w + 5, w + 4);
+        // right wall (flipped winding)
+        wallIdx.push(w + 2, w + 6, w + 3, w + 3, w + 6, w + 7);
       }
 
-      // Lane stripes — one centerline, 2 lane dividers per side for 4-lane.
-      // For v2 we only render the centerline as a thin ribbon (cheap placeholder).
-      stripePositions.push(pose.x - LANE_STRIPE_WIDTH * rightX, pose.y + 0.02, pose.z - LANE_STRIPE_WIDTH * rightZ);
-      stripePositions.push(pose.x + LANE_STRIPE_WIDTH * rightX, pose.y + 0.02, pose.z + LANE_STRIPE_WIDTH * rightZ);
-      if (i > 0) {
-        const baseStripeIdx = stripePositions.length / 3 - 4;
-        stripeIndices.push(baseStripeIdx, baseStripeIdx + 1, baseStripeIdx + 2);
-        stripeIndices.push(baseStripeIdx + 1, baseStripeIdx + 3, baseStripeIdx + 2);
-      }
+    }
 
-      // Raised curbs — ~20cm tall block along each edge
-      const curbH = 0.2;
-      curbPositions.push(pose.x + leftX, pose.y + leftY, pose.z + leftZ);
-      curbPositions.push(pose.x + leftX, pose.y + leftY + curbH, pose.z + leftZ);
-      curbPositions.push(pose.x + rightRX, pose.y + rightRY, pose.z + rightRZ);
-      curbPositions.push(pose.x + rightRX, pose.y + rightRY + curbH, pose.z + rightRZ);
-      if (i > 0) {
-        const baseCurbIdx = curbPositions.length / 3 - 8;
-        // Left curb front face
-        curbIndices.push(baseCurbIdx, baseCurbIdx + 1, baseCurbIdx + 4);
-        curbIndices.push(baseCurbIdx + 1, baseCurbIdx + 5, baseCurbIdx + 4);
-        // Right curb front face
-        curbIndices.push(baseCurbIdx + 2, baseCurbIdx + 6, baseCurbIdx + 3);
-        curbIndices.push(baseCurbIdx + 3, baseCurbIdx + 6, baseCurbIdx + 7);
+    // Lane dividers — build each divider as independent dashed segments
+    // sampled along its own path. Dash cadence is independent of
+    // SEGMENT_SUBDIVISIONS so it stays clean on short and long pieces.
+    const DASH_LENGTH = 1.4;
+    const GAP_LENGTH = 1.4;
+    const dashCycles = Math.max(1, Math.round(seg.length / (DASH_LENGTH + GAP_LENGTH)));
+    for (let d = 1; d < lanes; d++) {
+      const offset = -halfWidth + d * laneWidth;
+      for (let c = 0; c < dashCycles; c++) {
+        const cycleT0 = c / dashCycles;
+        const cycleT1 = (c + 1) / dashCycles;
+        // Dash fills first DASH_LENGTH / (DASH_LENGTH+GAP_LENGTH) of cycle.
+        const dashEndT =
+          cycleT0 + (cycleT1 - cycleT0) * (DASH_LENGTH / (DASH_LENGTH + GAP_LENGTH));
+        const stStart = sampleStation(seg.startPose, seg, cycleT0);
+        const stEnd = sampleStation(seg.startPose, seg, dashEndT);
+        const aL = stStart.pos
+          .clone()
+          .addScaledVector(stStart.right, offset - LANE_STRIPE_WIDTH / 2)
+          .addScaledVector(stStart.up, LANE_STRIPE_LIFT);
+        const aR = stStart.pos
+          .clone()
+          .addScaledVector(stStart.right, offset + LANE_STRIPE_WIDTH / 2)
+          .addScaledVector(stStart.up, LANE_STRIPE_LIFT);
+        const bL = stEnd.pos
+          .clone()
+          .addScaledVector(stEnd.right, offset - LANE_STRIPE_WIDTH / 2)
+          .addScaledVector(stEnd.up, LANE_STRIPE_LIFT);
+        const bR = stEnd.pos
+          .clone()
+          .addScaledVector(stEnd.right, offset + LANE_STRIPE_WIDTH / 2)
+          .addScaledVector(stEnd.up, LANE_STRIPE_LIFT);
+        const base = stripePos.length / 3;
+        pushVec(stripePos, aL);
+        pushVec(stripePos, aR);
+        pushVec(stripePos, bL);
+        pushVec(stripePos, bR);
+        stripeIdx.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
+      }
+    }
+
+    // Rumble-strip curbs along both edges: alternating red/white chunks
+    // of ~CURB_CHUNK_LENGTH along the outside of each edge.
+    const totalLen = seg.length;
+    const chunkCount = Math.max(1, Math.round(totalLen / CURB_CHUNK_LENGTH));
+    for (let c = 0; c < chunkCount; c++) {
+      const t0 = c / chunkCount;
+      const t1 = (c + 1) / chunkCount;
+      const st0 = sampleStation(seg.startPose, seg, t0);
+      const st1 = sampleStation(seg.startPose, seg, t1);
+      const red = c % 2 === 0;
+      const posArr = red ? curbRedPos : curbWhitePos;
+      const idxArr = red ? curbRedIdx : curbWhiteIdx;
+
+      for (const sign of [-1, 1] as const) {
+        const inner0 = st0.pos
+          .clone()
+          .addScaledVector(st0.right, sign * halfWidth)
+          .addScaledVector(st0.up, LANE_STRIPE_LIFT);
+        const outer0 = inner0.clone().addScaledVector(st0.right, sign * CURB_WIDTH);
+        const innerTop0 = inner0.clone().addScaledVector(st0.up, CURB_HEIGHT);
+        const outerTop0 = outer0.clone().addScaledVector(st0.up, CURB_HEIGHT);
+        const inner1 = st1.pos
+          .clone()
+          .addScaledVector(st1.right, sign * halfWidth)
+          .addScaledVector(st1.up, LANE_STRIPE_LIFT);
+        const outer1 = inner1.clone().addScaledVector(st1.right, sign * CURB_WIDTH);
+        const innerTop1 = inner1.clone().addScaledVector(st1.up, CURB_HEIGHT);
+        const outerTop1 = outer1.clone().addScaledVector(st1.up, CURB_HEIGHT);
+
+        const b = posArr.length / 3;
+        pushVec(posArr, innerTop0);
+        pushVec(posArr, outerTop0);
+        pushVec(posArr, innerTop1);
+        pushVec(posArr, outerTop1);
+        pushVec(posArr, inner0);
+        pushVec(posArr, outer0);
+        pushVec(posArr, inner1);
+        pushVec(posArr, outer1);
+
+        const topWinding = sign > 0;
+        if (topWinding) {
+          idxArr.push(b, b + 1, b + 2, b + 1, b + 3, b + 2);
+        } else {
+          idxArr.push(b + 2, b + 1, b, b + 2, b + 3, b + 1);
+        }
+        // outer wall
+        idxArr.push(b + 1, b + 5, b + 3, b + 3, b + 5, b + 7);
+        // end caps (front + back)
+        idxArr.push(b, b + 2, b + 4, b + 2, b + 6, b + 4);
+        idxArr.push(b + 3, b + 1, b + 5, b + 3, b + 5, b + 7);
       }
     }
   }
 
-  const makeBufferGeo = (pos: number[], idx: number[]): THREE.BufferGeometry => {
+  const make = (pos: number[], idx: number[]): THREE.BufferGeometry => {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setIndex(idx);
@@ -127,9 +273,12 @@ function buildTrackGeometry(
   };
 
   return {
-    geometry: makeBufferGeo(surfacePositions, surfaceIndices),
-    stripes: makeBufferGeo(stripePositions, stripeIndices),
-    curbs: makeBufferGeo(curbPositions, curbIndices),
+    surface: make(surfacePos, surfaceIdx),
+    underside: make(underPos, underIdx),
+    walls: make(wallPos, wallIdx),
+    stripes: make(stripePos, stripeIdx),
+    curbsRed: make(curbRedPos, curbRedIdx),
+    curbsWhite: make(curbWhitePos, curbWhiteIdx),
   };
 }
 
@@ -137,69 +286,53 @@ export function Track() {
   const segments = useQuery(TrackSegment);
 
   const built = useMemo(() => {
-    const data = segments.map((e) => {
-      const seg = e.get(TrackSegment);
-      if (!seg) throw new Error('TrackSegment missing');
-      // Re-integrate the start pose deterministically from the generator,
-      // since traits only hold distanceStart + archetype data (pose is
-      // derivable). In v1 we cached pose on the trait; here we keep traits
-      // small and regenerate poses in memo.
-      return seg;
-    });
-    // We don't currently carry startPose on the trait — regenerate from
-    // the full generator output. To keep this renderer self-contained for
-    // now, lean on the system to have spawned in index order so we can
-    // integrate here.
-    const sorted = [...data].sort((a, b) => a.index - b.index);
-    const dataWithPose = sorted.reduce<
-      Array<{
-        startPose: Pose;
-        archetypeId: string;
-        length: number;
-        deltaYaw: number;
-        deltaPitch: number;
-        bank: number;
-      }>
-    >((acc, seg) => {
-      const prev = acc[acc.length - 1];
-      const startPose: Pose = prev
-        ? integratePose(
-            prev.startPose,
-            {
-              id: prev.archetypeId,
-              label: prev.archetypeId,
-              length: prev.length,
-              deltaYaw: prev.deltaYaw,
-              deltaPitch: prev.deltaPitch,
-              bank: prev.bank,
-              weight: 1,
-            },
-            1,
-          )
-        : { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 };
-      acc.push({
-        startPose,
-        archetypeId: seg.archetype,
-        length: seg.length,
-        deltaYaw: seg.deltaYaw,
-        deltaPitch: seg.deltaPitch,
-        bank: seg.bank,
-      });
-      return acc;
-    }, []);
-    return buildTrackGeometry(dataWithPose);
+    const traits = segments
+      .map((e) => {
+        const seg = e.get(TrackSegment);
+        if (!seg) throw new Error('TrackSegment missing');
+        return seg;
+      })
+      .sort((a, b) => a.index - b.index);
+
+    // Trust the startPose persisted by the generator rather than
+    // re-integrating — 80 segments of FP math compounded into a visible
+    // seam otherwise.
+    const data: SegmentInput[] = traits.map((seg) => ({
+      startPose: {
+        x: seg.startX,
+        y: seg.startY,
+        z: seg.startZ,
+        yaw: seg.startYaw,
+        pitch: seg.startPitch,
+      },
+      archetypeId: seg.archetype,
+      length: seg.length,
+      deltaYaw: seg.deltaYaw,
+      deltaPitch: seg.deltaPitch,
+      bank: seg.bank,
+    }));
+    return buildTrackGeometry(data);
   }, [segments]);
 
   return (
     <group>
-      <mesh geometry={built.geometry} name="track-surface">
-        <meshStandardMaterial color="#F36F21" roughness={0.55} metalness={0.1} side={THREE.DoubleSide} />
+      <mesh geometry={built.surface} name="track-surface">
+        <meshStandardMaterial color="#F36F21" roughness={0.58} metalness={0.08} />
+      </mesh>
+      <mesh geometry={built.underside} name="track-underside">
+        <meshStandardMaterial color="#2a0d05" roughness={0.95} metalness={0.0} />
+      </mesh>
+      <mesh geometry={built.walls} name="track-walls">
+        <meshStandardMaterial color="#7a2e10" roughness={0.8} metalness={0.05} />
       </mesh>
       <mesh geometry={built.stripes} name="track-stripes">
-        <meshStandardMaterial color="#FFD600" roughness={0.4} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.35} emissive="#FFFFFF" emissiveIntensity={0.08} />
       </mesh>
-      <mesh geometry={built.curbs} name="track-curbs">
-        <meshStandardMaterial color="#8E24AA" roughness={0.4} />
+      <mesh geometry={built.curbsRed} name="track-curbs-red">
+        <meshStandardMaterial color="#E53935" roughness={0.5} metalness={0.05} />
+      </mesh>
+      <mesh geometry={built.curbsWhite} name="track-curbs-white">
+        <meshStandardMaterial color="#F5F5F5" roughness={0.5} metalness={0.05} />
       </mesh>
     </group>
   );

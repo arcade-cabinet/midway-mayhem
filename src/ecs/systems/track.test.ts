@@ -30,7 +30,8 @@ describe('generateTrack', () => {
 
   it('starts at the origin with zero heading', () => {
     const [first] = generateTrack(99);
-    expect(first?.startPose).toEqual({ x: 0, y: 0, z: 0, yaw: 0, pitch: 0 });
+    // Start is slightly elevated so the slab clears the arena ground plane.
+    expect(first?.startPose).toEqual({ x: 0, y: 0.5, z: 0, yaw: 0, pitch: 0 });
     expect(first?.distanceStart).toBe(0);
   });
 

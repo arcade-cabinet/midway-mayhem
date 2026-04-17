@@ -53,6 +53,14 @@ export const TrackSegment = trait({
   deltaPitch: 0,
   /** Lateral banking angle at piece midpoint (radians). */
   bank: 0,
+  /** Start pose, produced by the generator and stored verbatim so the
+   *  renderer never has to re-integrate. Re-integration in the renderer was
+   *  a source of drift that became a visible seam over 80 pieces. */
+  startX: 0,
+  startY: 0,
+  startZ: 0,
+  startYaw: 0,
+  startPitch: 0,
 });
 
 /** Lane count on this segment. Separate trait so straights can inherit. */

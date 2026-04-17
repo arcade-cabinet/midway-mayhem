@@ -1,111 +1,85 @@
 /**
- * Visual gate for the procedural track.
+ * Integration visual gate: composed track (all 80 pieces) from known seeds.
  *
- * Renders the Track for a known seed at several camera checkpoints and
- * captures screenshots. What we're testing:
- *   - the track actually produces visible meshes (non-trivial triangle count)
- *   - the track descends (camera low-down sees upward vanishing point)
- *   - the track winds (looking down from above, the ribbon visibly curves)
+ * This is strictly downstream of the single-archetype tests — if any
+ * archetype doesn't render right in isolation, this will lie about the
+ * whole track looking OK. We render the full composed track from multiple
+ * seeds so "it only works on 42" regressions get caught.
  *
- * Screenshots land in .test-screenshots/ (gitignored). Visual diffs are
- * the human review; the assertions here ensure geometry is present + finite.
+ * Screenshots dump via `writePngFromDataUrl` command at real canvas
+ * backing-buffer resolution (1280×720) for human review. Also asserts that
+ * the canvas actually drew something (non-trivial triangle count + non-zero
+ * PNG size) as a cheap oracle that composition didn't blow up.
  */
-import { useThree } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
+// @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
+import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
-import { useEffect } from 'react';
-import type * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { page } from 'vitest/browser';
 import { seedTrack } from '@/ecs/systems/track';
+import { BigTopEnvironment } from '@/render/Environment';
 import { Track } from '@/render/Track';
-import { Scene, waitFrames } from '@/test/scene';
+import { renderAndCapture, Scene, waitFrames } from '@/test/scene';
 
-function SceneCapture({ onReady }: { onReady: (scene: THREE.Scene, gl: THREE.WebGLRenderer) => void }) {
-  const { scene, gl } = useThree();
-  useEffect(() => onReady(scene, gl), [scene, gl, onReady]);
-  return null;
+interface View {
+  name: string;
+  cam: [number, number, number];
+  look: [number, number, number];
+  /** Wrap scene contents in <BigTopEnvironment> so the test matches the
+   *  look of the actual game. Skipped on the overhead camera because the
+   *  HDRI dominates an overhead framing and obscures the geometry we want
+   *  to judge. */
+  withEnv: boolean;
 }
 
-describe('Track (procedural geometry)', () => {
-  it('renders the full track for seed 42 and captures 3 checkpoints', async () => {
-    const world = createWorld();
-    seedTrack(world, 42);
+const VIEWS: View[] = [
+  // Track plunges heavily (pitch up to ±0.8 rad) over 80 pieces, so we need
+  // a very wide orbital that looks at the track body's midpoint in Y (~−300m)
+  // not at the starting origin (y=0). Otherwise most of the track is below
+  // the camera's frustum. Also pulled out on X/Z to frame 1000m+ of track.
+  { name: 'overhead', cam: [400, 400, 400], look: [-100, -300, -600], withEnv: false },
+  // Player POV: eye at y=1.8 (seated), just above track surface (y=0.5), looking
+  // 30m down the track so the first few pieces dominate the frame.
+  { name: 'pov', cam: [0, 2.3, 5], look: [0, 1.8, -30], withEnv: true },
+  { name: 'descent', cam: [0, 80, 60], look: [0, -30, -200], withEnv: true },
+];
 
-    let captured: { scene: THREE.Scene; gl: THREE.WebGLRenderer } | null = null;
+const SEEDS = [42, 7];
 
-    // Checkpoint 1: high overhead — check the ribbon winds
-    render(
-      <WorldProvider world={world}>
-        <Scene
-          size={{ width: 1280, height: 720 }}
-          cameraPosition={[0, 250, 120]}
-          lookAt={[0, -200, -500]}
-        >
-          <SceneCapture onReady={(s, g) => { captured = { scene: s, gl: g }; }} />
-          <Track />
-        </Scene>
-      </WorldProvider>,
-    );
+describe('Track (composed, full 80 pieces)', () => {
+  for (const seed of SEEDS) {
+    for (const view of VIEWS) {
+      it(`seed ${seed} — ${view.name}`, async () => {
+        const world = createWorld();
+        seedTrack(world, seed);
 
-    await waitFor(() => expect(captured).toBeTruthy(), { timeout: 5_000 });
-    await waitFrames(5);
+        render(
+          <WorldProvider world={world}>
+            <Scene
+              size={{ width: 1280, height: 720 }}
+              cameraPosition={view.cam}
+              lookAt={view.look}
+            >
+              {view.withEnv ? <BigTopEnvironment skipHdri /> : null}
+              <Track />
+            </Scene>
+          </WorldProvider>,
+        );
 
-    expect(captured!.gl.info.render.triangles).toBeGreaterThan(0);
+        await waitFor(() => expect(window.__mmTest).toBeTruthy());
+        await waitFrames(8);
 
-    // Find the track surface mesh and confirm it has bytes
-    let surface: THREE.Mesh | null = null;
-    captured!.scene.traverse((o) => {
-      if ((o as THREE.Mesh).name === 'track-surface') surface = o as THREE.Mesh;
-    });
-    expect(surface).not.toBeNull();
-    expect(surface!.geometry.attributes.position?.count ?? 0).toBeGreaterThan(100);
+        const gl = window.__mmTest!.gl;
+        expect(gl.info.render.triangles).toBeGreaterThan(500);
 
-    await page.screenshot({ path: '.test-screenshots/track-overhead.png' });
-  });
-
-  it('renders the track from ground level looking forward (player POV)', async () => {
-    const world = createWorld();
-    seedTrack(world, 42);
-
-    // Raise camera up to 2m (driver eye height) + pull back 12m behind the
-    // start so the track's surface is clearly visible below + ahead.
-    render(
-      <WorldProvider world={world}>
-        <Scene
-          size={{ width: 1280, height: 720 }}
-          cameraPosition={[0, 2, 12]}
-          lookAt={[0, -1, -40]}
-        >
-          <Track />
-        </Scene>
-      </WorldProvider>,
-    );
-
-    await waitFrames(5);
-    await page.screenshot({ path: '.test-screenshots/track-pov.png' });
-  });
-
-  it('mid-track POV — looking through segment 30 to see descent', async () => {
-    const world = createWorld();
-    seedTrack(world, 42);
-
-    // Segment 30 at seed 42 — known via logic-test output. Camera
-    // positioned near its start pose with forward-down gaze.
-    render(
-      <WorldProvider world={world}>
-        <Scene
-          size={{ width: 1280, height: 720 }}
-          cameraPosition={[0, 20, 0]}
-          lookAt={[0, -40, -150]}
-        >
-          <Track />
-        </Scene>
-      </WorldProvider>,
-    );
-
-    await waitFrames(5);
-    await page.screenshot({ path: '.test-screenshots/track-descent.png' });
-  });
+        const dataUrl = renderAndCapture();
+        const result = await commands.writePngFromDataUrl(
+          dataUrl,
+          `.test-screenshots/track/seed-${seed}-${view.name}.png`,
+        );
+        expect(result.bytes).toBeGreaterThan(10_000);
+      });
+    }
+  }
 });

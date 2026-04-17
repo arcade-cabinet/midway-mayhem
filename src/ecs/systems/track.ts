@@ -77,7 +77,10 @@ export function generateTrack(seed: number): GeneratedSegment[] {
   const weights = archetypes.map((a) => a.weight);
   const segments: GeneratedSegment[] = [];
 
-  let startPose: Pose = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 };
+  // Start elevated so the track slab (thickness ~0.45m + curb height ~0.18m)
+  // clears the ground plane at y=-4 with room for the camera's ground-level
+  // POV to sit just above the track surface, not below it.
+  let startPose: Pose = { x: 0, y: 0.5, z: 0, yaw: 0, pitch: 0 };
   let distanceStart = 0;
 
   for (let i = 0; i < trackArchetypes.runLength; i++) {
@@ -120,6 +123,11 @@ export function seedTrack(world: World, seed: number): void {
         deltaYaw: seg.archetype.deltaYaw,
         deltaPitch: seg.archetype.deltaPitch,
         bank: seg.archetype.bank,
+        startX: seg.startPose.x,
+        startY: seg.startPose.y,
+        startZ: seg.startPose.z,
+        startYaw: seg.startPose.yaw,
+        startPitch: seg.startPose.pitch,
       }),
       LaneCount({ value: trackArchetypes.lanes }),
     );

@@ -20,7 +20,7 @@
       "length": 24,
       "deltaYaw": -0.35,
       "deltaPitch": 0,
-      "bank": -0.08,
+      "bank": -0.22,
       "weight": 4
     },
     {
@@ -29,7 +29,7 @@
       "length": 24,
       "deltaYaw": 0.35,
       "deltaPitch": 0,
-      "bank": 0.08,
+      "bank": 0.22,
       "weight": 4
     },
     {
@@ -38,7 +38,7 @@
       "length": 28,
       "deltaYaw": -0.9,
       "deltaPitch": 0,
-      "bank": -0.18,
+      "bank": -0.55,
       "weight": 2
     },
     {
@@ -47,7 +47,7 @@
       "length": 28,
       "deltaYaw": 0.9,
       "deltaPitch": 0,
-      "bank": 0.18,
+      "bank": 0.55,
       "weight": 2
     },
     {

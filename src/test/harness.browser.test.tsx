@@ -9,6 +9,7 @@
  */
 import { render, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+// @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
 import { page } from 'vitest/browser';
 import { Scene, waitFrames } from './scene';
 

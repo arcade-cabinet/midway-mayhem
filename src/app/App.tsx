@@ -4,8 +4,10 @@
  */
 import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
+import { Suspense } from 'react';
 import { seedTrack } from '@/ecs/systems/track';
 import { world } from '@/ecs/world';
+import { BigTopEnvironment } from '@/render/Environment';
 import { Track } from '@/render/Track';
 
 // Seed the track into the world on module load. Deterministic + idempotent
@@ -30,8 +32,11 @@ export function App() {
           frameloop="always"
         >
           <color attach="background" args={['#0b0f1a']} />
-          <ambientLight intensity={0.5} color="#ffd6a8" />
-          <directionalLight position={[50, 100, 40]} intensity={1.4} color="#fff1db" />
+          <ambientLight intensity={0.35} color="#ffd6a8" />
+          <directionalLight position={[50, 100, 40]} intensity={1.2} color="#fff1db" />
+          <Suspense fallback={null}>
+            <BigTopEnvironment />
+          </Suspense>
           <Track />
         </Canvas>
       </div>
