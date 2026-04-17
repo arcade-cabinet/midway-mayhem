@@ -49,7 +49,7 @@ export default defineConfig({
     {
       name: 'gameplay-desktop',
       testMatch: '**/*.spec.ts',
-      testIgnore: '**/mobile.spec.ts',
+      testIgnore: ['**/mobile.spec.ts', '**/visual.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         browserName: 'chromium',
@@ -64,6 +64,49 @@ export default defineConfig({
       use: {
         ...devices['iPhone 14 Pro'],
         headless: false,
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
+    // Visual regression: one project per form-factor tier the responsive HUD targets.
+    // Baselines are stored per-project, so a resize regression surfaces as a
+    // failed screenshot diff scoped to the exact tier that broke.
+    {
+      name: 'visual-desktop',
+      testMatch: '**/visual.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 1440, height: 900 },
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
+    {
+      name: 'visual-tablet',
+      testMatch: '**/visual.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 820, height: 1180 },
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
+    {
+      name: 'visual-phone-portrait',
+      testMatch: '**/visual.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 390, height: 844 },
+        launchOptions: { args: GPU_ARGS },
+      },
+    },
+    {
+      name: 'visual-phone-landscape',
+      testMatch: '**/visual.spec.ts',
+      use: {
+        browserName: 'chromium',
+        headless: false,
+        viewport: { width: 844, height: 390 },
         launchOptions: { args: GPU_ARGS },
       },
     },

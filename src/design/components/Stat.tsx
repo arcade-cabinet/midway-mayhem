@@ -31,6 +31,7 @@ export function Stat({
     <div data-testid={testId}>
       <div style={{ ...typeStyle(ui.label), color: labelColor }}>{label}</div>
       <div
+        className="mm-stat-value"
         style={{
           ...typeStyle(display.score),
           color: valueColor,
