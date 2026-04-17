@@ -44,7 +44,6 @@ test.describe('NewRun modal → gameplay flow', () => {
 
     await page.goto('/?diag=1');
 
-
     // Landing is visible, modal is not yet open
     await expect(page.getByTestId('title-screen')).toBeVisible();
     await expect(page.getByTestId('new-run-modal')).toHaveCount(0);
