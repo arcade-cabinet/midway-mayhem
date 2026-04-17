@@ -8,7 +8,8 @@
  */
 import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
-import { Suspense, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
+import { useArcadeAudio } from '@/audio/useArcadeAudio';
 import { seedTrack } from '@/ecs/systems/track';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
@@ -31,11 +32,20 @@ function GameLoop({ active }: { active: boolean }) {
   return null;
 }
 
+function AudioBridge({ active, onHornReady }: { active: boolean; onHornReady: (fn: () => void) => void }) {
+  const { honk } = useArcadeAudio(world, active);
+  // Pass the honk function up so the keyboard hook (mounted outside the
+  // Canvas) can trigger it.
+  onHornReady(honk);
+  return null;
+}
+
 export function App() {
   const [titleVisible, setTitleVisible] = useState(true);
   const playing = !titleVisible;
+  const hornRef = useRef<() => void>(() => {});
 
-  useKeyboard({ world, enabled: playing });
+  useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
 
   return (
     <WorldProvider world={world}>
@@ -57,6 +67,12 @@ export function App() {
           <Track />
           <Cockpit />
           <GameLoop active={playing} />
+          <AudioBridge
+            active={playing}
+            onHornReady={(fn) => {
+              hornRef.current = fn;
+            }}
+          />
         </Canvas>
         {titleVisible ? <TitleScreen onDrive={() => setTitleVisible(false)} /> : null}
       </div>
