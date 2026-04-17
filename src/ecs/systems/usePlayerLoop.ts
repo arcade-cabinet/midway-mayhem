@@ -7,14 +7,19 @@
  */
 import { useFrame } from '@react-three/fiber';
 import type { World } from 'koota';
+import { stepCollisions } from './collisions';
 import { stepPlayer } from './playerMotion';
 
-export function usePlayerLoop(world: World, enabled: boolean): void {
+interface LoopHooks {
+  onObstacle?: (kind: 'cone' | 'oil') => void;
+  onPickup?: (kind: 'balloon' | 'boost') => void;
+}
+
+export function usePlayerLoop(world: World, enabled: boolean, hooks: LoopHooks = {}): void {
   useFrame((_state, dt) => {
     if (!enabled) return;
-    // Clamp pathological dts (tab-switch spikes): cap at 100ms so a long
-    // pause doesn't teleport the player kilometers forward.
     const clamped = Math.min(dt, 0.1);
     stepPlayer(world, clamped);
+    stepCollisions(world, clamped, hooks);
   });
 }

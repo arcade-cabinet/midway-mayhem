@@ -10,6 +10,7 @@ import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useRef, useState } from 'react';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
+import { seedContent } from '@/ecs/systems/seedContent';
 import { seedTrack } from '@/ecs/systems/track';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
@@ -18,18 +19,32 @@ import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment } from '@/render/Environment';
+import { PostFX } from '@/render/PostFX';
 import { Track } from '@/render/Track';
+import { TrackContent } from '@/render/TrackContent';
 import { TitleScreen } from '@/ui/TitleScreen';
 
 let bootstrapped = false;
 if (!bootstrapped) {
   seedTrack(world, 42);
+  seedContent(world, 42);
   spawnPlayer(world);
   bootstrapped = true;
 }
 
-function GameLoop({ active }: { active: boolean }) {
-  usePlayerLoop(world, active);
+function GameLoop({
+  active,
+  onHornNeeded,
+}: {
+  active: boolean;
+  onHornNeeded: () => void;
+}) {
+  usePlayerLoop(world, active, {
+    onPickup: (kind) => {
+      if (kind === 'balloon') onHornNeeded();
+    },
+    onObstacle: () => {},
+  });
   return null;
 }
 
@@ -66,8 +81,10 @@ export function App() {
             <BigTopEnvironment />
           </Suspense>
           <Track />
+          <TrackContent />
           <Cockpit />
-          <GameLoop active={playing} />
+          <PostFX />
+          <GameLoop active={playing} onHornNeeded={() => hornRef.current()} />
           <AudioBridge
             active={playing}
             onHornReady={(fn) => {

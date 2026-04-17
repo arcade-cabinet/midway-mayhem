@@ -65,3 +65,43 @@ export const TrackSegment = trait({
 
 /** Lane count on this segment. Separate trait so straights can inherit. */
 export const LaneCount = trait({ value: 4 });
+
+// ─── Obstacles + pickups ────────────────────────────────────────────────────
+
+export type ObstacleKind = 'cone' | 'oil';
+/**
+ * Obstacle sitting on the track. Collision check compares the player's
+ * Position (distance + lateral) against the obstacle's distance + lateral.
+ */
+export const Obstacle = trait({
+  kind: 'cone' as ObstacleKind,
+  distance: 0,
+  lateral: 0,
+  /** Set to true once player has hit this obstacle, so we don't re-trigger. */
+  consumed: false,
+});
+
+export type PickupKind = 'balloon' | 'boost';
+/**
+ * Collectible or buff pickup. Balloons grant score; boosts grant temporary
+ * speed cap increase. `consumed` gates double-fire.
+ */
+export const Pickup = trait({
+  kind: 'balloon' as PickupKind,
+  distance: 0,
+  lateral: 0,
+  consumed: false,
+});
+
+// ─── Scoring + status ───────────────────────────────────────────────────────
+
+export const Score = trait({
+  value: 0,
+  balloons: 0,
+  /** Non-zero while a boost pad is active; counts down each frame. */
+  boostRemaining: 0,
+  /** Hits taken (cones + oil). 3+ ends the run. */
+  damage: 0,
+  /** Seconds of clean driving since last hit — feeds the combo multiplier. */
+  cleanSeconds: 0,
+});

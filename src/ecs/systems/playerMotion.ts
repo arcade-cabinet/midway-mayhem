@@ -10,7 +10,7 @@
  */
 import type { World } from 'koota';
 import { trackArchetypes, tunables } from '@/config';
-import { Player, Position, Speed, Steer, Throttle } from '@/ecs/traits';
+import { Player, Position, Score, Speed, Steer, Throttle } from '@/ecs/traits';
 
 export function spawnPlayer(world: World): void {
   world.spawn(
@@ -19,6 +19,7 @@ export function spawnPlayer(world: World): void {
     Steer({ value: 0 }),
     Throttle({ value: 0 }),
     Position({ distance: 0, lateral: 0 }),
+    Score({ value: 0, balloons: 0, boostRemaining: 0, damage: 0, cleanSeconds: 0 }),
   );
 }
 
