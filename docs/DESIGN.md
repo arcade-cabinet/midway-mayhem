@@ -26,6 +26,7 @@ Target audience: mobile-first casual to midcore. Desktop session-extender. Plays
 The game's design was pinned across two conversations: Gemini (7 rounds of visual refinement on the HTML prototype) and ChatGPT (brand lock + elevation pass + full architecture spec). The user's redirects across those conversations ARE the design spec. See Appendix A for the full trail.
 
 ### From Gemini — gameplay + camera + controls
+
 - Cockpit framing with A-pillars, roof, dashboard (NOT third-person).
 - Mobile-first: touch/pointer steering, NO keyboard, NO "press arrow" instructions.
 - Dynamic banking: car yaws + rolls into turns; camera rides with the body.
@@ -38,6 +39,7 @@ The game's design was pinned across two conversations: Gemini (7 rounds of visua
 - Cockpit elements scaled as ONE group responsive to viewport.
 
 ### From ChatGPT — brand + identity + game spec
+
 - Name: **Midway Mayhem: Clown Car Chaos**.
 - Tagline: **Drive fast. Honk louder.**
 - Palette (strict):

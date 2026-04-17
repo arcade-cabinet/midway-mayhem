@@ -7,8 +7,10 @@ import { composeTrack, DEFAULT_TRACK, type PiecePlacement } from '../game/trackC
 import { audioBus } from '../systems/audioBus';
 import { reportCounts } from '../systems/diagnosticsBus';
 import { useGameStore } from '../systems/gameState';
+import { onHonk } from '../systems/honkBus';
 import { ObstacleSpawner } from '../systems/obstacleSpawner';
-import { laneCenterX, TRACK } from '../utils/constants';
+import type { CritterKind } from '../utils/constants';
+import { HONK, laneCenterX, TRACK } from '../utils/constants';
 import { createRng } from '../utils/rng';
 
 /**
@@ -36,6 +38,20 @@ export function ObstacleSystem() {
   const wallGltf = useGLTF(assetUrl('gltf:barrierWall')) as unknown as {
     scene: THREE.Object3D;
   };
+  const cowGltf = useGLTF(assetUrl('gltf:critter_cow')) as unknown as { scene: THREE.Object3D };
+  const horseGltf = useGLTF(assetUrl('gltf:critter_horse')) as unknown as {
+    scene: THREE.Object3D;
+  };
+  const llamaGltf = useGLTF(assetUrl('gltf:critter_llama')) as unknown as {
+    scene: THREE.Object3D;
+  };
+  const pigGltf = useGLTF(assetUrl('gltf:critter_pig')) as unknown as { scene: THREE.Object3D };
+  const critterScenes: Record<CritterKind, THREE.Object3D> = {
+    cow: cowGltf.scene,
+    horse: horseGltf.scene,
+    llama: llamaGltf.scene,
+    pig: pigGltf.scene,
+  };
 
   // Obstacle-group refs (one group per slot)
   const barrierGroupRef = useRef<THREE.Group>(null);
@@ -43,6 +59,7 @@ export function ObstacleSystem() {
   const gateGroupRef = useRef<THREE.Group>(null);
   const hammerGroupRef = useRef<THREE.Group>(null);
   const oilGroupRef = useRef<THREE.Group>(null);
+  const critterGroupRef = useRef<THREE.Group>(null);
 
   // Pool of clone-refs per type
   const barrierSlots = useRef<THREE.Object3D[]>([]);
@@ -50,6 +67,13 @@ export function ObstacleSystem() {
   const gateSlots = useRef<THREE.Object3D[]>([]);
   const hammerSlots = useRef<THREE.Object3D[]>([]);
   const oilSlots = useRef<THREE.Mesh[]>([]);
+  /** One pool per critter kind — 10 slots each, rotated in by spawn order. */
+  const critterSlots = useRef<Record<CritterKind, THREE.Object3D[]>>({
+    cow: [],
+    horse: [],
+    llama: [],
+    pig: [],
+  });
 
   const oilGeo = useMemo(() => new THREE.CylinderGeometry(1.6, 1.6, 0.08, 24), []);
   const oilMat = useMemo(
@@ -60,6 +84,19 @@ export function ObstacleSystem() {
   useEffect(() => {
     // biome-ignore lint/suspicious/noExplicitAny: diagnostics
     (window as any).__mmSpawner = spawner;
+  }, [spawner]);
+
+  // Wire honk → scare nearby critters
+  useEffect(() => {
+    return onHonk(() => {
+      const s = useGameStore.getState();
+      if (!s.running) return;
+      const scared = spawner.scareCritters(s.distance, performance.now());
+      if (scared > 0) {
+        // Bonus crowd reaction per scared critter — rewards skillful honking
+        useGameStore.setState((prev) => ({ crowdReaction: prev.crowdReaction + scared * 10 }));
+      }
+    });
   }, [spawner]);
 
   // Pre-populate pools on first frame
@@ -95,7 +132,32 @@ export function ObstacleSystem() {
       oilGroupRef.current?.add(o);
       oilSlots.current.push(o);
     }
-  }, [barrierGltf, coneGltf, pylonGltf, wallGltf, oilGeo, oilMat]);
+
+    // Critter pool — 10 slots per kind (cow/horse/llama/pig)
+    for (const kind of ['cow', 'horse', 'llama', 'pig'] as CritterKind[]) {
+      if (critterSlots.current[kind].length > 0) continue;
+      for (let i = 0; i < 10; i++) {
+        const c = critterScenes[kind].clone(true);
+        // Farm animal GLBs ship at real-world scale (~1m) — scale up to match
+        // the oversized-arcade proportions of the Kenney track (scale=10).
+        c.scale.setScalar(3.5);
+        c.position.set(0, -9999, 0);
+        critterGroupRef.current?.add(c);
+        critterSlots.current[kind].push(c);
+      }
+    }
+  }, [
+    barrierGltf,
+    coneGltf,
+    pylonGltf,
+    wallGltf,
+    oilGeo,
+    oilMat,
+    critterScenes.cow,
+    critterScenes.horse,
+    critterScenes.llama,
+    critterScenes.pig,
+  ]);
 
   useFrame(() => {
     const s = useGameStore.getState();
@@ -104,13 +166,65 @@ export function ObstacleSystem() {
     const list = spawner.getObstacles();
     const now = performance.now() * 0.001;
 
-    const counters = { barrier: 0, cones: 0, gate: 0, hammer: 0, oil: 0 };
+    const counters = { barrier: 0, cones: 0, gate: 0, hammer: 0, oil: 0, critter: 0 };
+    const critterCounters: Record<CritterKind, number> = { cow: 0, horse: 0, llama: 0, pig: 0 };
+    const nowMs = performance.now();
 
     for (const o of list) {
       const world = trackToWorld(composition, o.d, laneCenterX(o.lane));
       const y = world.y + 0.1;
       let x = world.x;
       if (o.type === 'hammer') x += Math.sin(now * 2 + o.swingPhase) * 3;
+
+      // Critter flee animation: lateral hop up-and-off-the-track, then a
+      // slapstick tumble off the edge. During phase 1 (0-1) they arc
+      // sideways and up. During phase 2 (>1) they keep drifting laterally
+      // while rotating + falling, selling the pratfall off the rails.
+      let extraLateral = 0;
+      let hopY = 0;
+      let tumble = 0;
+      if (o.type === 'critter' && o.fleeStartedAt && o.fleeDir) {
+        const elapsed = (nowMs - o.fleeStartedAt) / 1000;
+        const tHop = Math.min(1, elapsed / HONK.FLEE_DURATION_S);
+        const easeHop = 1 - (1 - tHop) ** 3;
+        extraLateral = o.fleeDir * HONK.FLEE_LATERAL_M * easeHop;
+        hopY = Math.sin(tHop * Math.PI) * 0.8;
+        if (elapsed > HONK.FLEE_DURATION_S) {
+          // Pratfall: keep sliding outward and drop below the track plane
+          const fall = elapsed - HONK.FLEE_DURATION_S;
+          extraLateral += o.fleeDir * fall * 6; // slide out
+          hopY -= fall * fall * 9; // gravity-ish drop
+          tumble = fall * 8; // radians/sec tumble
+        }
+      }
+
+      // For critters, apply extraLateral along the track-local right axis
+      if (o.type === 'critter') {
+        const rightX = Math.cos(world.heading);
+        const rightZ = -Math.sin(world.heading);
+        x += rightX * extraLateral;
+        const cz = world.z + rightZ * extraLateral;
+
+        const kind = o.critter ?? 'cow';
+        const i = critterCounters[kind];
+        const pool = critterSlots.current[kind];
+        if (i >= pool.length) continue;
+        const slot = pool[i] as THREE.Object3D;
+        slot.position.set(x, y + hopY, cz);
+        // Critters face along -forward (same heading as track) with a
+        // slight wobble to feel alive; when fleeing, rotate to face flee
+        // direction and apply a tumble around the track-right axis once
+        // they've gone over the edge.
+        const heading = world.heading + (o.fleeStartedAt ? (Math.PI / 2) * (o.fleeDir ?? 1) : 0);
+        slot.rotation.set(
+          tumble,
+          heading + Math.sin(now * 3 + o.swingPhase) * 0.08,
+          tumble * 0.6,
+        );
+        critterCounters[kind]++;
+        counters.critter++;
+        continue;
+      }
 
       const slots =
         o.type === 'barrier'
@@ -134,7 +248,7 @@ export function ObstacleSystem() {
       counters[o.type]++;
     }
 
-    // Hide unused slots
+    // Hide unused slots (including per-kind critter pools)
     for (const [kind, slots] of [
       ['barrier', barrierSlots.current],
       ['cones', conesSlots.current],
@@ -148,12 +262,22 @@ export function ObstacleSystem() {
         if (sl) sl.position.set(0, -9999, 0);
       }
     }
+    for (const kind of ['cow', 'horse', 'llama', 'pig'] as CritterKind[]) {
+      const pool = critterSlots.current[kind];
+      const used = critterCounters[kind];
+      for (let i = used; i < pool.length; i++) {
+        const sl = pool[i];
+        if (sl) sl.position.set(0, -9999, 0);
+      }
+    }
 
-    // Collision: player lateral vs obstacle lane center
+    // Collision: player lateral vs obstacle lane center. Fleeing critters
+    // pass through harmlessly — that's the whole point of honking.
     const playerLat = s.lateral;
     const laneHalfWidth = TRACK.LANE_WIDTH / 2;
     for (const o of list) {
       if (Math.abs(o.d - s.distance) > 3) continue;
+      if (o.type === 'critter' && o.fleeStartedAt) continue;
       const obsLat = laneCenterX(o.lane);
       if (Math.abs(obsLat - playerLat) > laneHalfWidth) continue;
       const heavy = o.type === 'barrier' || o.type === 'hammer';
@@ -184,6 +308,7 @@ export function ObstacleSystem() {
       <group ref={gateGroupRef} />
       <group ref={hammerGroupRef} />
       <group ref={oilGroupRef} />
+      <group ref={critterGroupRef} />
     </group>
   );
 }
@@ -193,6 +318,10 @@ useGLTF.preload(assetUrl('gltf:barrierWhite'));
 useGLTF.preload(assetUrl('gltf:barrierWall'));
 useGLTF.preload(assetUrl('gltf:cone'));
 useGLTF.preload(assetUrl('gltf:pylon'));
+useGLTF.preload(assetUrl('gltf:critter_cow'));
+useGLTF.preload(assetUrl('gltf:critter_horse'));
+useGLTF.preload(assetUrl('gltf:critter_llama'));
+useGLTF.preload(assetUrl('gltf:critter_pig'));
 
 /** Given a track-centerline distance `d` and lateral offset, return world-space pose. */
 export function trackToWorld(

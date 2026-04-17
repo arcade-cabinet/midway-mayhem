@@ -48,7 +48,7 @@ domain: technical
 ## Core invariants
 
 1. **Cockpit at world origin.** Never moves. World scrolls past.
-2. **Camera is a child of cockpit-body.** Banks + yaws + vibrates with it.
+2. **Camera is parented to the Cockpit group.** Banks + yaws + vibrates with it.
 3. **Track is scrolled, not rebuilt per frame.** Composed once in `composeTrack(DEFAULT_TRACK)`, placed in `<WorldScroller>` which only translates.
 4. **Player abstract position is (distance, lateral).** All world placement (obstacles, pickups, camera reaction) derives from these via `trackToWorld(composition, d, lat)`.
 

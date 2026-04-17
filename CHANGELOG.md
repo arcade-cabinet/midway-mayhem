@@ -12,12 +12,14 @@ All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangel
 ## [Unreleased]
 
 ### Added
+
 - Full test matrix: 75 tests across node + jsdom + real Chromium + Playwright desktop + Playwright mobile
 - Full docs decomposition (CLAUDE.md, AGENTS.md, STANDARDS.md, docs/ARCHITECTURE.md, docs/DESIGN.md, docs/TESTING.md, docs/DEPLOYMENT.md, docs/LORE.md, docs/STATE.md)
 
 ## [0.1.0] — 2026-04-16
 
 ### Added
+
 - Initial playable commit.
 - Cockpit-perspective R3F scene inside full circus_arena HDRI big-top.
 - Kenney Racing Kit track pieces baked with Midway Mayhem brand palette via `scripts/bake-kit.py`.

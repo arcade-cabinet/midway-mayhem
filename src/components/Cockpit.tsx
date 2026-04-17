@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { useResponsiveCockpitScale } from '../hooks/useResponsiveCockpitScale';
 import { useGameStore } from '../systems/gameState';
 import { STEER } from '../utils/constants';
-import { makeGaugeTexture, makePolkaDotTexture } from '../utils/proceduralTextures';
+import { makePolkaDotTexture } from '../utils/proceduralTextures';
 import { CockpitCamera } from './CockpitCamera';
 
 /**
@@ -23,8 +23,6 @@ export function Cockpit() {
   const bodyRef = useRef<THREE.Group>(null);
   const wheelRef = useRef<THREE.Group>(null);
   const ornamentRef = useRef<THREE.Group>(null);
-  const needleLaughsRef = useRef<THREE.Mesh>(null);
-  const needleFunRef = useRef<THREE.Mesh>(null);
   const diceRef = useRef<THREE.Group>(null);
   const rigLeftRef = useRef<THREE.Mesh>(null);
   const rigRightRef = useRef<THREE.Mesh>(null);
@@ -39,8 +37,6 @@ export function Cockpit() {
     t.repeat.set(2, 1);
     return t;
   }, []);
-  const laughsTex = useMemo(() => makeGaugeTexture('LAUGHS'), []);
-  const funTex = useMemo(() => makeGaugeTexture('FUN'), []);
 
   const hoodMat = useMemo(
     () => new THREE.MeshStandardMaterial({ map: polkaTex, roughness: 0.55 }),
@@ -120,12 +116,6 @@ export function Cockpit() {
     const orn = ornamentRef.current;
     if (orn) orn.rotation.y = t * 3;
 
-    if (needleLaughsRef.current) {
-      needleLaughsRef.current.rotation.z = -Math.PI / 4 + Math.sin(t * 12) * 0.15;
-    }
-    if (needleFunRef.current) {
-      needleFunRef.current.rotation.z = -Math.PI / 4 + (s.hype / 100) * Math.PI * 0.9;
-    }
     if (diceRef.current) {
       diceRef.current.rotation.z = Math.sin(t * 3) * 0.3;
       diceRef.current.rotation.x = Math.cos(t * 2) * 0.2;
@@ -136,13 +126,16 @@ export function Cockpit() {
 
   return (
     <group ref={rootRef} name="cockpit-root" data-testid="cockpit" scale={cockpitScale.scale}>
-      {/* Rigging cables anchoring the cockpit to the big-top rigging — retract after drop-in */}
-      <mesh ref={rigLeftRef} position={[-1.0, 12, 0]}>
-        <cylinderGeometry args={[0.03, 0.03, 24, 6]} />
+      {/* Rigging cables anchoring the cockpit roof (y≈2.4) to big-top rigging
+          at y≈14. Placed WELL BEHIND the camera (z>2) so they never slice
+          through the player's forward view — they're only glimpsed on the
+          drop-in and via the rear-view mirror. */}
+      <mesh ref={rigLeftRef} position={[-1.3, 8.2, 2.4]}>
+        <cylinderGeometry args={[0.025, 0.025, 11.6, 6]} />
         <meshStandardMaterial color="#2a1a2f" roughness={0.8} />
       </mesh>
-      <mesh ref={rigRightRef} position={[1.0, 12, 0]}>
-        <cylinderGeometry args={[0.03, 0.03, 24, 6]} />
+      <mesh ref={rigRightRef} position={[1.3, 8.2, 2.4]}>
+        <cylinderGeometry args={[0.025, 0.025, 11.6, 6]} />
         <meshStandardMaterial color="#2a1a2f" roughness={0.8} />
       </mesh>
       <group ref={bodyRef} name="cockpit-body">
@@ -170,39 +163,44 @@ export function Cockpit() {
           <boxGeometry args={[2.2, 0.08, 0.5]} />
         </mesh>
 
-        {/* Dashboard — curved half-cylinder (polka-dot livery) directly below windshield */}
+        {/* COWL — stripped clown-car has no dashboard, just a thin polka-dot
+            cowl where the hood meets the windshield, like a fairground kiddie
+            ride. No gauges (HUD handles that), no center console. */}
         <mesh
-          position={[0, 0.65, -0.55]}
-          rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+          position={[0, 0.75, -0.65]}
+          rotation={[-Math.PI / 2.4, 0, Math.PI / 2]}
           material={dashMat}
         >
-          <cylinderGeometry args={[0.55, 0.55, 2.1, 32, 1, false, 0, Math.PI]} />
+          <cylinderGeometry args={[0.32, 0.32, 2.0, 28, 1, false, 0, Math.PI]} />
         </mesh>
-        {/* Dashboard inner face (dark contrast toward driver) */}
-        <mesh position={[0, 0.7, -0.05]}>
-          <boxGeometry args={[2.2, 0.45, 0.06]} />
-          <meshStandardMaterial color="#160818" roughness={0.75} />
-        </mesh>
-        {/* Chrome trim top edge of dash */}
-        <mesh position={[0, 0.95, -0.42]} rotation={[-Math.PI / 2, 0, 0]} material={chromeMat}>
-          <torusGeometry args={[0.55, 0.025, 10, 24, Math.PI]} />
+        {/* Chrome piping along cowl edge — just a thin band, not a floating box */}
+        <mesh
+          position={[0, 0.95, -0.48]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          material={chromeMat}
+        >
+          <torusGeometry args={[0.32, 0.015, 8, 24, Math.PI]} />
         </mesh>
 
-        {/* HOOD — elongated bubbled shape (VW-Beetle + clown-car combo). Never extends behind dashboard. */}
-        <mesh position={[0, 0.15, -1.8]} material={hoodMat} scale={[1, 1, 1.2]}>
-          <sphereGeometry args={[0.95, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        {/* HOOD — elongated bubbled shape (VW-Beetle + clown-car combo).
+            Lowered (y=-0.1) and scaled down so the driver's forward view
+            opens up — hood reads as a rounded horizon rather than a wall. */}
+        <mesh position={[0, -0.1, -1.9]} material={hoodMat} scale={[0.95, 0.75, 1.25]}>
+          <sphereGeometry args={[0.92, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
         </mesh>
-        {/* Chrome ridge down hood center — longer now */}
-        <mesh position={[0, 0.95, -1.95]} material={chromeMat}>
-          <boxGeometry args={[0.08, 0.04, 1.85]} />
+        {/* Chrome ridge — now laid ON the hood surface (y=0.55, just above
+            the hood's peak of ~0.58) so it reads as a spine, not a
+            z-fighting line suspended in air. */}
+        <mesh position={[0, 0.55, -1.95]} material={chromeMat}>
+          <boxGeometry args={[0.06, 0.02, 1.6]} />
         </mesh>
         {/* Gold hood accent line toward headlights */}
-        <mesh position={[0, 0.55, -2.8]} material={windshieldArchMat}>
-          <boxGeometry args={[1.2, 0.04, 0.08]} />
+        <mesh position={[0, 0.15, -2.85]} material={windshieldArchMat}>
+          <boxGeometry args={[1.1, 0.04, 0.08]} />
         </mesh>
 
-        {/* Squirting flower hood ornament */}
-        <group ref={ornamentRef} position={[0, 1.05, -2.55]}>
+        {/* Squirting flower hood ornament — sits on the front lip of the hood */}
+        <group ref={ornamentRef} position={[0, 0.6, -2.7]}>
           <mesh material={chromeMat}>
             <cylinderGeometry args={[0.025, 0.025, 0.25, 8]} />
           </mesh>
@@ -218,10 +216,15 @@ export function Cockpit() {
           ))}
         </group>
 
-        {/* STEERING WHEEL — purple torus, 4 chrome spokes, red honkable horn */}
+        {/* STEERING WHEEL — purple torus, 4 chrome spokes, red honkable horn.
+            The column runs from the wheel hub BACK and DOWN into the dash
+            cowl — rotation[Math.PI/2, 0, 0] makes the cylinder's Y-axis align
+            with -Z (world-back), so a small positional offset of z=-0.35 tucks
+            the base of the column neatly inside the dashboard shell instead
+            of sticking out above the wheel as a stray line. */}
         <group ref={wheelRef} position={[0, 0.82, 0.2]} rotation={[-Math.PI / 4.3, 0, 0]}>
-          <mesh position={[0, -0.2, -0.4]} rotation={[Math.PI / 2, 0, 0]} material={chromeMat}>
-            <cylinderGeometry args={[0.04, 0.04, 0.9, 10]} />
+          <mesh position={[0, 0, -0.35]} rotation={[Math.PI / 2, 0, 0]} material={chromeMat}>
+            <cylinderGeometry args={[0.035, 0.035, 0.6, 10]} />
           </mesh>
           {/* Rim */}
           <mesh>
@@ -265,34 +268,10 @@ export function Cockpit() {
           </mesh>
         </group>
 
-        {/* LAUGHS gauge */}
-        <group position={[-0.72, 0.78, 0]} rotation={[-Math.PI / 5, 0, 0]}>
-          <mesh material={chromeMat}>
-            <torusGeometry args={[0.18, 0.03, 14, 28]} />
-          </mesh>
-          <mesh>
-            <circleGeometry args={[0.17, 28]} />
-            <meshBasicMaterial map={laughsTex} toneMapped={false} />
-          </mesh>
-          <mesh ref={needleLaughsRef} position={[0, 0.07, 0.02]}>
-            <boxGeometry args={[0.02, 0.14, 0.01]} />
-            <meshBasicMaterial color="#ff0000" toneMapped={false} />
-          </mesh>
-        </group>
-        {/* FUN gauge */}
-        <group position={[0.72, 0.78, 0]} rotation={[-Math.PI / 5, 0, 0]}>
-          <mesh material={chromeMat}>
-            <torusGeometry args={[0.18, 0.03, 14, 28]} />
-          </mesh>
-          <mesh>
-            <circleGeometry args={[0.17, 28]} />
-            <meshBasicMaterial map={funTex} toneMapped={false} />
-          </mesh>
-          <mesh ref={needleFunRef} position={[0, 0.07, 0.02]}>
-            <boxGeometry args={[0.02, 0.14, 0.01]} />
-            <meshBasicMaterial color="#ff0000" toneMapped={false} />
-          </mesh>
-        </group>
+        {/* No gauges — clown cars are stripped minimal. The HUD handles
+            hype/sanity/distance/crowd. Keeping the 3D dash clean lets the
+            sightline focus on the ACTUAL clown-car DNA: giant wheel, hood
+            ornament flower, polka-dot fender, windshield arch. */}
 
         {/* Rear-view mirror with fuzzy dice — chrome frame + reflective glass */}
         <group position={[0, 2.15, 0.2]}>
@@ -322,6 +301,20 @@ export function Cockpit() {
             </mesh>
           </group>
         </group>
+
+        {/* BENCH SEAT — clown-car style red patchwork bench you can see
+            peeking up at the very bottom of the driver's frame between
+            their knees. Small, forward, no tall seat back (real clown cars
+            have milk crates / stripped interiors). */}
+        <mesh position={[0, 0.9, 1.1]} rotation={[-0.12, 0, 0]}>
+          <boxGeometry args={[1.4, 0.12, 0.55]} />
+          <meshStandardMaterial color="#c21a1a" roughness={0.85} />
+        </mesh>
+        {/* Yellow piping along the seat's front roll — brand pop */}
+        <mesh position={[0, 0.94, 0.85]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 1.4, 12, 1, false, 0, Math.PI]} />
+          <meshStandardMaterial color="#ffd600" roughness={0.3} metalness={0.3} />
+        </mesh>
 
         {/* Headlights — spotlights cutting through the big-top interior */}
         <spotLight

@@ -11,7 +11,7 @@ domain: quality
 
 Four-tier pyramid, all CI-gated:
 
-```
+```text
                     ┌──────────────────┐
                     │  E2E (Playwright) │   ← 15 tests, full chromium + mobile
                     │  1.4 min full run │
@@ -100,7 +100,7 @@ pnpm test:surfaces     # everything, ordered
 
 ## Coverage targets (node unit)
 
-```
+```text
 branches:   ≥ 50%
 functions:  ≥ 65%
 lines:      ≥ 65%
@@ -122,7 +122,7 @@ Pixel tolerance 250px, color threshold 0.25 (permissive because HDRI lighting va
 
 ## Browser launch args (matches grailguard + marmalade-drops)
 
-```
+```text
 --no-sandbox
 --use-angle=default
 --enable-features=WebGL,WebGL2

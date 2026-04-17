@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { assetUrl } from '../assets/manifest';
 import { useSteering } from '../hooks/useSteering';
 import { audioBus } from '../systems/audioBus';
+import { honk } from '../systems/honkBus';
 import { useGameStore } from '../systems/gameState';
 import { Governor } from '../systems/governor/Governor';
 import { Cockpit } from './Cockpit';
@@ -26,7 +27,7 @@ export function Game() {
   useEffect(() => {
     startRun();
     // biome-ignore lint/suspicious/noExplicitAny: dev hook
-    (window as any).__mmHonk = () => audioBus.playHonk();
+    (window as any).__mmHonk = () => honk();
     // Drive the procedural conductor's zone key+arrangement from gameState
     const unsub = useGameStore.subscribe((s, prev) => {
       if (s.currentZone !== prev.currentZone) audioBus.setZone(s.currentZone);

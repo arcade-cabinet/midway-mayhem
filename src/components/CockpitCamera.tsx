@@ -20,7 +20,7 @@ const FOV_MAX = 110;
 const MAX_SPEED_MPS = 120;
 
 const LOOK_DIST = 30; // meters ahead of camera (camera-local -Z)
-const LOOK_DOWN = 0.2; // slight downward tilt — helps show track
+const LOOK_DOWN = 1.1; // moderate downward tilt — seat lip + cowl visible, horizon still clear
 const APEX_STEER_PULL = 4; // m lateral pull at max steer (into-apex effect)
 const LOOKAT_LERP = 5;
 
@@ -74,7 +74,7 @@ export function CockpitCamera() {
       fov={BASE_H_FOV}
       near={0.1}
       far={2000}
-      position={[0, 1.65, 0.9]}
+      position={[0, 1.72, 1.55]}
     />
   );
 }

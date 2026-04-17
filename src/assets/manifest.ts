@@ -82,6 +82,13 @@ export const ASSET_MANIFEST: readonly AssetEntry[] = [
     required: true,
   },
   { id: 'gltf:cone', kind: 'gltf', path: 'models/cone.glb', required: true },
+
+  // Live critters — obstacles you honk out of the way (farm-animals-animated,
+  // CC-BY, Ultimate Animated Animals pack)
+  { id: 'gltf:critter_cow', kind: 'gltf', path: 'models/critters/Cow.glb', required: true },
+  { id: 'gltf:critter_horse', kind: 'gltf', path: 'models/critters/Horse.glb', required: true },
+  { id: 'gltf:critter_llama', kind: 'gltf', path: 'models/critters/Llama.glb', required: true },
+  { id: 'gltf:critter_pig', kind: 'gltf', path: 'models/critters/Pig.glb', required: true },
 ] as const;
 
 function base(): string {

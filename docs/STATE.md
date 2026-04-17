@@ -1,6 +1,6 @@
 ---
 title: State
-updated: 2026-04-16
+updated: 2026-04-17
 status: current
 domain: context
 ---
@@ -58,7 +58,7 @@ Where the project stands right now. Updated as work lands.
 | HDRI size | 6.2 MB (2K resolution) |
 | All track GLBs combined | ~160 KB |
 
-No mobile perf data yet — awaiting Capacitor build + device test.
+Mobile targets: iPhone 14 Pro 45 FPS min, mid-tier Android 30 FPS min — measurements pending.
 
 ## Test matrix
 

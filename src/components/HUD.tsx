@@ -6,8 +6,8 @@ import { Stat } from '../design/components/Stat';
 import { color, safeArea, space } from '../design/tokens';
 import { display, typeStyle, ui } from '../design/typography';
 import { useFormFactor } from '../hooks/useFormFactor';
-import { audioBus } from '../systems/audioBus';
 import { useGameStore } from '../systems/gameState';
+import { honk } from '../systems/honkBus';
 
 export function HUD() {
   const hype = useGameStore((s) => s.hype);
@@ -136,7 +136,7 @@ function HonkButton() {
       <BrandButton
         kind="primary"
         size="md"
-        onClick={() => audioBus.playHonk()}
+        onClick={() => honk()}
         testId="honk-button"
       >
         HONK

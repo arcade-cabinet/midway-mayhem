@@ -50,7 +50,7 @@ These three files are the SOURCE OF TRUTH for the palette. If you edit one, edit
 
 ## Asset pipeline
 
-```
+```text
 /Volumes/home/assets/3DLowPoly/Vehicles/Cars/Racing Kit/*.glb   (source, CC0)
         ↓  scripts/bake-kit.py   (Python via Blender)
 public/models/*.glb                                            (baked, tracked in git)
@@ -62,7 +62,7 @@ The Kenney kit uses named materials (`road`, `grey`, `grass`, `_defaultMat`, etc
 
 ## State model
 
-```
+```text
 zustand store (src/systems/gameState.ts)
   session:    running, paused, gameOver, startedAt, seed
   player:     distance, lateral, speedMps, targetSpeedMps, steer
@@ -86,7 +86,7 @@ Every throw paths to `src/systems/errorBus.ts`:
 - audio init failure → reportError (title-screen START triggers it from user gesture)
 - WebGL unavailable → thrown from `useDeviceDetection.detect()`
 
-`<ErrorModal>` is always mounted in the App tree. Shows the first error's context + message + stack + cause chain + URL + UA + timestamp, with Copy Report / Reload / Dismiss buttons.
+`<ErrorModal>` is always mounted in the App tree. Shows the most recent error's context + message + stack + cause chain + URL + UA + timestamp, with Copy Report / Reload / Dismiss buttons.
 
 ## Testing discipline
 

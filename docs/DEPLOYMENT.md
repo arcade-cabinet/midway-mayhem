@@ -19,7 +19,7 @@ domain: ops
 
 ```bash
 pnpm build                  # web → dist/
-pnpm build:native           # CAPACITOR=true web build, base='/'
+pnpm build:native           # CAPACITOR=true web build, base='./'
 pnpm cap:sync               # sync into android/ + ios/
 pnpm native:android:debug   # APK at android/app/build/outputs/apk/debug/
 pnpm native:ios:build       # iOS simulator build via xcodebuild
@@ -30,7 +30,7 @@ pnpm native:ios:build       # iOS simulator build via xcodebuild
 - **Dev**: `pnpm dev` → http://localhost:5173/midway-mayhem/
 - **Preview**: `pnpm preview` → http://localhost:4175/midway-mayhem/ (what e2e tests hit)
 - **Production**: Vite build with `base: '/midway-mayhem/'` for GH Pages
-- **Capacitor**: Vite build with `base: './'` for file:// WKWebView
+- **Capacitor (native)**: Vite build with `base: './'` (relative) for file:// WKWebView
 
 ## Workflows (`.github/workflows/`, planned)
 
@@ -59,6 +59,7 @@ Never commit secrets. All keystore material stays in GitHub Secrets.
 - [ ] Game boots on iOS simulator (iPhone 15 Pro + iPad Pro)
 - [ ] Game boots on Android emulator (Pixel 7 phone + Pixel Tablet + fold)
 - [ ] Governor completes ≥30s run per device
+- [ ] Verify 60 FPS on M1 Mac / 45 FPS minimum on iPhone 14 Pro / 30 FPS on mid-tier Android
 - [ ] HONK button reaches user thumb on portrait phone
 - [ ] No ErrorModal during a 2-min play session
 - [ ] HDRI loads in-bundle (not a CORS miss)

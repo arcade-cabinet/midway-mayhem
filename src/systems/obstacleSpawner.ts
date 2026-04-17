@@ -1,5 +1,5 @@
-import type { ObstacleType, PickupType, ZoneId } from '../utils/constants';
-import { TRACK } from '../utils/constants';
+import type { CritterKind, ObstacleType, PickupType, ZoneId } from '../utils/constants';
+import { CRITTER_KINDS, HONK, TRACK } from '../utils/constants';
 import type { Rng } from '../utils/rng';
 import { laneCenterAt } from './trackGenerator';
 
@@ -13,6 +13,12 @@ export interface Obstacle {
   z: number;
   swingPhase: number; // hammer
   radius: number;
+  /** critter-only: which animal model */
+  critter?: CritterKind;
+  /** critter-only: performance.now() when honked (0 = not fleeing) */
+  fleeStartedAt?: number;
+  /** critter-only: which lateral direction to flee (-1 or +1) */
+  fleeDir?: -1 | 1;
 }
 
 export interface Pickup {
@@ -28,10 +34,10 @@ export interface Pickup {
 }
 
 const ZONE_WEIGHTS: Record<ZoneId, Record<ObstacleType, number>> = {
-  'midway-strip': { barrier: 1, cones: 2, gate: 1, oil: 1, hammer: 0 },
-  'balloon-alley': { barrier: 1, cones: 2, gate: 2, oil: 2, hammer: 1 },
-  'ring-of-fire': { barrier: 2, cones: 1, gate: 1, oil: 3, hammer: 2 },
-  'funhouse-frenzy': { barrier: 2, cones: 2, gate: 2, oil: 2, hammer: 3 },
+  'midway-strip': { barrier: 1, cones: 2, gate: 1, oil: 1, hammer: 0, critter: 2 },
+  'balloon-alley': { barrier: 1, cones: 2, gate: 2, oil: 2, hammer: 1, critter: 2 },
+  'ring-of-fire': { barrier: 2, cones: 1, gate: 1, oil: 3, hammer: 2, critter: 1 },
+  'funhouse-frenzy': { barrier: 2, cones: 2, gate: 2, oil: 2, hammer: 3, critter: 3 },
 };
 
 function weightedPick(weights: Record<ObstacleType, number>, rng: Rng): ObstacleType {
@@ -74,6 +80,10 @@ export class ObstacleSpawner {
     const type = weightedPick(ZONE_WEIGHTS[zone], this.rng);
     const lane = this.rng.int(0, TRACK.LANE_COUNT);
     const pos = laneCenterAt(d, lane);
+    const critter: CritterKind | undefined =
+      type === 'critter'
+        ? (CRITTER_KINDS[this.rng.int(0, CRITTER_KINDS.length)] ?? 'cow')
+        : undefined;
     this.obstacles.push({
       id: this.nextId++,
       type,
@@ -83,8 +93,27 @@ export class ObstacleSpawner {
       y: pos.y,
       z: pos.z,
       swingPhase: this.rng.range(0, Math.PI * 2),
-      radius: type === 'gate' ? 3 : type === 'oil' ? 2.2 : 1.6,
+      radius: type === 'gate' ? 3 : type === 'oil' ? 2.2 : type === 'critter' ? 1.8 : 1.6,
+      ...(critter ? { critter } : {}),
     });
+  }
+
+  /**
+   * Scare any critter within SCARE_RADIUS_M ahead of the player into fleeing.
+   * Returns the number of critters that started fleeing.
+   */
+  scareCritters(playerD: number, now: number): number {
+    let scared = 0;
+    for (const o of this.obstacles) {
+      if (o.type !== 'critter') continue;
+      if (o.fleeStartedAt) continue; // already fleeing
+      const ahead = o.d - playerD;
+      if (ahead < 0 || ahead > HONK.SCARE_RADIUS_M) continue;
+      o.fleeStartedAt = now;
+      o.fleeDir = this.rng.next() < 0.5 ? -1 : 1;
+      scared++;
+    }
+    return scared;
   }
 
   private spawnPickup(d: number) {

@@ -57,8 +57,29 @@ export const COLORS = {
   NIGHT: '#0b0f1a',
 } as const;
 
-export const OBSTACLE_TYPES = ['barrier', 'cones', 'gate', 'oil', 'hammer'] as const;
+export const OBSTACLE_TYPES = [
+  'barrier',
+  'cones',
+  'gate',
+  'oil',
+  'hammer',
+  'critter',
+] as const;
 export type ObstacleType = (typeof OBSTACLE_TYPES)[number];
+
+export const CRITTER_KINDS = ['cow', 'horse', 'llama', 'pig'] as const;
+export type CritterKind = (typeof CRITTER_KINDS)[number];
+
+export const HONK = {
+  /** Critters flee if honked within this many meters ahead. */
+  SCARE_RADIUS_M: 22,
+  /** Lateral flee distance (meters to hop aside) when honked. */
+  FLEE_LATERAL_M: 6,
+  /** Flee animation duration (seconds). */
+  FLEE_DURATION_S: 0.7,
+  /** Minimum seconds between honks (debounce). */
+  COOLDOWN_S: 0.35,
+} as const;
 
 export const PICKUP_TYPES = ['boost', 'ticket', 'mega'] as const;
 export type PickupType = (typeof PICKUP_TYPES)[number];
