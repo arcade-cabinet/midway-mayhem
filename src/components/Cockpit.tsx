@@ -19,12 +19,15 @@ import { CockpitCamera } from './CockpitCamera';
  * Position Z is ALWAYS negative to be in front of the camera.
  */
 export function Cockpit() {
+  const rootRef = useRef<THREE.Group>(null);
   const bodyRef = useRef<THREE.Group>(null);
   const wheelRef = useRef<THREE.Group>(null);
   const ornamentRef = useRef<THREE.Group>(null);
   const needleLaughsRef = useRef<THREE.Mesh>(null);
   const needleFunRef = useRef<THREE.Mesh>(null);
   const diceRef = useRef<THREE.Group>(null);
+  const rigLeftRef = useRef<THREE.Mesh>(null);
+  const rigRightRef = useRef<THREE.Mesh>(null);
 
   const polkaTex = useMemo(() => {
     const t = makePolkaDotTexture();
@@ -77,6 +80,27 @@ export function Cockpit() {
     const s = useGameStore.getState();
     const t = state.clock.elapsedTime;
 
+    // Drop-in animation: cockpit hangs at +12m, eases to 0 over dropProgress
+    const root = rootRef.current;
+    if (root) {
+      const dp = Math.max(0, Math.min(1, s.dropProgress));
+      // ease-in-cubic for the fall, then slight bounce settle
+      const fall = dp < 0.75 ? (dp / 0.75) ** 2 : 1 + Math.sin((dp - 0.75) * 12) * 0.06 * (1 - dp);
+      const y0 = 12;
+      root.position.y = y0 * (1 - fall);
+      // Subtle pre-drop sway while hanging
+      if (dp < 0.1) root.rotation.z = Math.sin(t * 2) * 0.02;
+      else root.rotation.z *= 0.9;
+    }
+    // Wire opacity fades out once settled
+    const rigL = rigLeftRef.current;
+    const rigR = rigRightRef.current;
+    if (rigL && rigR) {
+      const visible = s.dropProgress < 0.98;
+      rigL.visible = visible;
+      rigR.visible = visible;
+    }
+
     // Car body banks with steering: yaw + roll + camera rides it
     const body = bodyRef.current;
     if (body) {
@@ -111,7 +135,16 @@ export function Cockpit() {
   const cockpitScale = useResponsiveCockpitScale();
 
   return (
-    <group name="cockpit-root" data-testid="cockpit" scale={cockpitScale.scale}>
+    <group ref={rootRef} name="cockpit-root" data-testid="cockpit" scale={cockpitScale.scale}>
+      {/* Rigging cables anchoring the cockpit to the big-top rigging — retract after drop-in */}
+      <mesh ref={rigLeftRef} position={[-1.0, 12, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 24, 6]} />
+        <meshStandardMaterial color="#2a1a2f" roughness={0.8} />
+      </mesh>
+      <mesh ref={rigRightRef} position={[1.0, 12, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 24, 6]} />
+        <meshStandardMaterial color="#2a1a2f" roughness={0.8} />
+      </mesh>
       <group ref={bodyRef} name="cockpit-body">
         {/* CAMERA lives inside the body → banks with it. All camera logic (FOV, look-ahead, speed boost) in CockpitCamera. */}
         <CockpitCamera />

@@ -28,6 +28,11 @@ export interface GameState {
   boostUntil: number; // performance.now() epoch
   megaBoostUntil: number;
 
+  // drop-in intro: cockpit hangs from big-top rigging, then drops to track
+  // value goes 0 → 1 over DROP_DURATION_MS; gameplay stats frozen until >= 1
+  dropProgress: number;
+  dropStartedAt: number;
+
   // actions
   startRun(seed?: number): void;
   tick(dt: number, now: number): void;
@@ -58,27 +63,41 @@ const DEFAULTS = {
   currentZone: 'midway-strip' as ZoneId,
   boostUntil: 0,
   megaBoostUntil: 0,
+  dropProgress: 0,
+  dropStartedAt: 0,
 };
+
+export const DROP_DURATION_MS = 1800;
 
 export const useGameStore = create<GameState>((set, get) => ({
   ...DEFAULTS,
 
   startRun(seed = Math.floor(Math.random() * 2 ** 31)) {
+    const now = performance.now();
     set({
       ...DEFAULTS,
       running: true,
       paused: false,
       gameOver: false,
       seed,
-      startedAt: performance.now(),
+      startedAt: now,
       targetSpeedMps: 30,
       speedMps: 0,
+      dropProgress: 0,
+      dropStartedAt: now,
     });
   },
 
   tick(dt, now) {
     const s = get();
     if (!s.running || s.paused || s.gameOver) return;
+
+    // During drop-in, only advance dropProgress and freeze gameplay
+    if (s.dropProgress < 1) {
+      const p = Math.min(1, (now - s.dropStartedAt) / DROP_DURATION_MS);
+      set({ dropProgress: p });
+      return;
+    }
 
     // Speed interpolation toward target; target climbs slowly over time.
     const CRUISE = 70;

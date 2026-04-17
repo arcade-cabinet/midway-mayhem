@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { resetGameState, useGameStore } from '../gameState';
+import { DROP_DURATION_MS, resetGameState, useGameStore } from '../gameState';
+
+// Jump past the drop-in animation so distance-based tests can tick gameplay
+function skipDropIn() {
+  const s = useGameStore.getState();
+  useGameStore.setState({ dropProgress: 1, dropStartedAt: s.dropStartedAt - DROP_DURATION_MS });
+}
 
 describe('gameState store', () => {
   beforeEach(() => resetGameState());
@@ -23,6 +29,7 @@ describe('gameState store', () => {
 
   it('tick advances distance when running', () => {
     useGameStore.getState().startRun(1);
+    skipDropIn();
     const before = useGameStore.getState().distance;
     useGameStore.getState().tick(0.5, performance.now());
     const after = useGameStore.getState().distance;
@@ -31,10 +38,25 @@ describe('gameState store', () => {
 
   it('tick is no-op when paused', () => {
     useGameStore.getState().startRun(1);
+    skipDropIn();
     useGameStore.getState().pause();
     const before = useGameStore.getState().distance;
     useGameStore.getState().tick(0.5, performance.now());
     expect(useGameStore.getState().distance).toBe(before);
+  });
+
+  it('drop-in freezes distance for first ~1.8s', () => {
+    useGameStore.getState().startRun(1);
+    const t0 = useGameStore.getState().dropStartedAt;
+    useGameStore.getState().tick(0.5, t0 + 500);
+    expect(useGameStore.getState().distance).toBe(0);
+    expect(useGameStore.getState().dropProgress).toBeGreaterThan(0);
+    expect(useGameStore.getState().dropProgress).toBeLessThan(1);
+
+    useGameStore.getState().tick(0.5, t0 + DROP_DURATION_MS + 100);
+    expect(useGameStore.getState().dropProgress).toBe(1);
+    useGameStore.getState().tick(0.5, t0 + DROP_DURATION_MS + 600);
+    expect(useGameStore.getState().distance).toBeGreaterThan(0);
   });
 
   it('applyCrash reduces sanity and increments crash counter', () => {
