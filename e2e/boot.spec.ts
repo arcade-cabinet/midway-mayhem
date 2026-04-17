@@ -46,9 +46,12 @@ test.describe('Boot sequence', () => {
     });
     await page.goto('/?skip=1');
     await waitForHudReady(page);
-    // Tolerate one generic 404 from the favicon probe if any; halt on mm:halt or React errors
+    // Tolerate known-harmless upstream warnings; halt on mm:halt, React errors, or own code paths
     const serious = consoleErrors.filter(
-      (e) => !/404|favicon|AudioContext/i.test(e),
+      (e) =>
+        !/404|favicon|AudioContext/i.test(e) &&
+        // Kenney GLBs reference a colormap texture we don't ship — models use vertex colors
+        !/GLTFLoader.*colormap\.png/i.test(e),
     );
     expect(serious).toEqual([]);
   });

@@ -5,6 +5,7 @@ import { ErrorModal } from '../components/ErrorModal';
 import { ReactErrorBoundary } from '../components/ReactErrorBoundary';
 import { installDiagnosticsBus } from '../systems/diagnosticsBus';
 import { installGlobalErrorHandlers, reportError } from '../systems/errorBus';
+import { initHapticsSafely } from '../systems/hapticsBus';
 import { preloadAllAssets } from '../assets/preloader';
 
 type Scene = 'boot' | 'title' | 'play';
@@ -15,6 +16,7 @@ export function App() {
   useEffect(() => {
     installGlobalErrorHandlers();
     installDiagnosticsBus();
+    initHapticsSafely();
     preloadAllAssets()
       .then(() => {
         const params = new URLSearchParams(window.location.search);

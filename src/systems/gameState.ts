@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { ZoneId } from '../utils/constants';
+import { hapticsBus } from './hapticsBus';
 
 export interface GameState {
   // session
@@ -127,6 +128,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       gameOver: sanity <= 0,
       running: sanity > 0,
     });
+    hapticsBus.fire(heavy ? 'crash-heavy' : 'crash-light');
+    if (sanity <= 0) hapticsBus.fire('game-over');
   },
 
   applyPickup(kind) {
@@ -134,10 +137,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     const now = performance.now();
     if (kind === 'ticket') {
       set({ crowdReaction: s.crowdReaction + 50 });
+      hapticsBus.fire('pickup-ticket');
     } else if (kind === 'boost') {
       set({ boostUntil: now + 2200, crowdReaction: s.crowdReaction + 25 });
+      hapticsBus.fire('boost');
     } else if (kind === 'mega') {
       set({ megaBoostUntil: now + 3500, crowdReaction: s.crowdReaction + 200 });
+      hapticsBus.fire('mega-boost');
     }
   },
 

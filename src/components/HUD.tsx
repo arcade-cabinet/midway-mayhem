@@ -45,13 +45,8 @@ export function HUD() {
               testId="hud-hype"
             />
           </Panel>
-          <Panel variant="dark">
-            <Stat
-              label="DISTANCE"
-              value={distance.toFixed(0)}
-              unit="m"
-              testId="hud-stats"
-            />
+          <Panel variant="dark" testId="hud-stats">
+            <Stat label="DISTANCE" value={distance.toFixed(0)} unit="m" />
             <div style={{ marginTop: space.xs }}>
               <Stat label="CRASHES" value={crashes} labelColor={color.red} />
             </div>
@@ -102,8 +97,8 @@ export function HUD() {
         />
       </Panel>
 
-      <Panel corner="tr" variant="dark">
-        <Stat label="DISTANCE" value={distance.toFixed(0)} unit="m" testId="hud-stats" />
+      <Panel corner="tr" variant="dark" testId="hud-stats">
+        <Stat label="DISTANCE" value={distance.toFixed(0)} unit="m" />
         <div style={{ marginTop: space.sm }}>
           <Stat label="CRASHES" value={crashes} labelColor={color.red} />
         </div>

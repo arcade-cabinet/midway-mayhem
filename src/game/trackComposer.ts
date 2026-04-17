@@ -177,27 +177,27 @@ export function composeTrack(
 }
 
 /**
- * First-pass default track — mostly straight with two gentle ramps so the
- * player can see the road directly ahead of the cockpit. Corners require
- * a follow-camera (scheduled work) before they'll feel right; for now the
- * straight run nails the "I'm racing down a track" feel.
- *
- * Total distance: ~320m of driving time.
+ * Winding Hot Wheels course. Corners + ramps + straights. The WorldScroller's
+ * follow-camera rotation aligns the player's track heading with world -Z so
+ * corners feel natural from the cockpit.
  */
 export const DEFAULT_TRACK: readonly PieceKind[] = [
   'start',
   'straightLong',
   'straightLong',
   'straightArrow',
+  'cornerLarger',      // big left sweep
   'straightLong',
   'rampLong',
   'straightLong',
-  'straightLong',
+  'cornerLarge',       // tighter turn
   'straightLong',
   'straightArrow',
-  'rampLong',
+  'rampLongCurved',    // curving climb
   'straightLong',
+  'cornerLarge',       // back the other way
   'straightLong',
+  'cornerLarger',
   'straightLong',
   'straightLong',
   'end',

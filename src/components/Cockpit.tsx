@@ -52,7 +52,15 @@ export function Cockpit() {
     [],
   );
   const chromeMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.08, metalness: 0.95 }),
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        roughness: 0.05,
+        metalness: 1.0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        envMapIntensity: 1.5,
+      }),
     [],
   );
   const windshieldArchMat = useMemo(
@@ -72,12 +80,15 @@ export function Cockpit() {
     // Car body banks with steering: yaw + roll + camera rides it
     const body = bodyRef.current;
     if (body) {
-      const targetYaw = -s.steer * 0.12;
-      const targetRoll = s.steer * 0.18;
+      const targetYaw = -s.steer * 0.14;
+      const targetRoll = s.steer * 0.22;
       body.rotation.y += (targetYaw - body.rotation.y) * 0.15;
       body.rotation.z += (targetRoll - body.rotation.z) * 0.15;
-      body.position.x = Math.sin(t * 40) * 0.02;
-      body.position.y = Math.cos(t * 50) * 0.02;
+      // Engine idle + speed-driven shake. Louder at higher speed for visceral feel.
+      const speedNorm = Math.min(1, s.speedMps / 120);
+      const shakeAmp = 0.015 + speedNorm * 0.02;
+      body.position.x = Math.sin(t * 40) * shakeAmp;
+      body.position.y = Math.cos(t * 50) * shakeAmp + Math.sin(t * 130) * 0.005 * speedNorm;
     }
 
     const wh = wheelRef.current;
@@ -140,13 +151,17 @@ export function Cockpit() {
           <torusGeometry args={[0.55, 0.025, 10, 24, Math.PI]} />
         </mesh>
 
-        {/* HOOD — compact hemisphere in front of dashboard, Z safely < -0.9 so never behind dash */}
-        <mesh position={[0, 0.15, -1.8]} material={hoodMat}>
-          <sphereGeometry args={[0.95, 28, 18, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        {/* HOOD — elongated bubbled shape (VW-Beetle + clown-car combo). Never extends behind dashboard. */}
+        <mesh position={[0, 0.15, -1.8]} material={hoodMat} scale={[1, 1, 1.2]}>
+          <sphereGeometry args={[0.95, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
         </mesh>
-        {/* Chrome ridge down hood center */}
-        <mesh position={[0, 0.95, -1.8]} material={chromeMat}>
-          <boxGeometry args={[0.08, 0.04, 1.5]} />
+        {/* Chrome ridge down hood center — longer now */}
+        <mesh position={[0, 0.95, -1.95]} material={chromeMat}>
+          <boxGeometry args={[0.08, 0.04, 1.85]} />
+        </mesh>
+        {/* Gold hood accent line toward headlights */}
+        <mesh position={[0, 0.55, -2.8]} material={windshieldArchMat}>
+          <boxGeometry args={[1.2, 0.04, 0.08]} />
         </mesh>
 
         {/* Squirting flower hood ornament */}
@@ -166,20 +181,34 @@ export function Cockpit() {
           ))}
         </group>
 
-        {/* STEERING WHEEL — purple torus, chrome spokes, red honkable horn */}
+        {/* STEERING WHEEL — purple torus, 4 chrome spokes, red honkable horn */}
         <group ref={wheelRef} position={[0, 0.82, 0.2]} rotation={[-Math.PI / 4.3, 0, 0]}>
           <mesh position={[0, -0.2, -0.4]} rotation={[Math.PI / 2, 0, 0]} material={chromeMat}>
             <cylinderGeometry args={[0.04, 0.04, 0.9, 10]} />
           </mesh>
+          {/* Rim */}
           <mesh>
-            <torusGeometry args={[0.4, 0.06, 14, 28]} />
-            <meshStandardMaterial color="#9c27b0" roughness={0.25} />
+            <torusGeometry args={[0.4, 0.06, 18, 36]} />
+            <meshPhysicalMaterial
+              color="#9c27b0"
+              roughness={0.2}
+              metalness={0.3}
+              clearcoat={0.8}
+              clearcoatRoughness={0.1}
+            />
           </mesh>
+          {/* 4 chrome spokes in an X + horizontal + vertical */}
           <mesh material={chromeMat}>
-            <cylinderGeometry args={[0.02, 0.02, 0.78, 10]} />
+            <cylinderGeometry args={[0.022, 0.022, 0.78, 10]} />
           </mesh>
           <mesh rotation={[0, 0, Math.PI / 2]} material={chromeMat}>
-            <cylinderGeometry args={[0.02, 0.02, 0.78, 10]} />
+            <cylinderGeometry args={[0.022, 0.022, 0.78, 10]} />
+          </mesh>
+          <mesh rotation={[0, 0, Math.PI / 4]} material={chromeMat}>
+            <cylinderGeometry args={[0.018, 0.018, 0.78, 10]} />
+          </mesh>
+          <mesh rotation={[0, 0, -Math.PI / 4]} material={chromeMat}>
+            <cylinderGeometry args={[0.018, 0.018, 0.78, 10]} />
           </mesh>
           <mesh
             name="horn"
@@ -228,10 +257,10 @@ export function Cockpit() {
           </mesh>
         </group>
 
-        {/* Rear-view mirror with fuzzy dice */}
+        {/* Rear-view mirror with fuzzy dice — chrome frame + reflective glass */}
         <group position={[0, 2.15, 0.2]}>
           <mesh position={[0, 0.05, 0]} material={chromeMat}>
-            <cylinderGeometry args={[0.015, 0.015, 0.2, 6]} />
+            <cylinderGeometry args={[0.018, 0.018, 0.2, 8]} />
           </mesh>
           <mesh position={[0, -0.05, 0]}>
             <boxGeometry args={[0.7, 0.2, 0.05]} />

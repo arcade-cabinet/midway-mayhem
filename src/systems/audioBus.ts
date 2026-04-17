@@ -2,31 +2,50 @@ import * as Tone from 'tone';
 import type { PickupType, ZoneId } from '../utils/constants';
 import { reportError } from './errorBus';
 
+/**
+ * Procedural audio bus — Tone.js only, zero samples.
+ * Spatial: every sound can be positioned in 3D via Tone.Panner3D,
+ * placed around the listener (the cockpit).
+ */
+
 class AudioBus {
   private initialized = false;
   private enabled = true;
   private master: Tone.Volume | null = null;
+  private compressor: Tone.Compressor | null = null;
   private engineSynth: Tone.PolySynth | null = null;
   private ambient: Tone.PolySynth | null = null;
+  // biome-ignore lint/suspicious/noExplicitAny: Tone.Listener is a singleton, typing varies by version
+  private listener: any = null;
 
   async init(): Promise<void> {
     if (this.initialized) return;
     await Tone.start();
 
     this.master = new Tone.Volume(-6).toDestination();
-    const compressor = new Tone.Compressor(-18, 4).connect(this.master);
+    this.compressor = new Tone.Compressor(-18, 4).connect(this.master);
+    this.listener = Tone.Listener;
+    this.listener.positionX.value = 0;
+    this.listener.positionY.value = 0;
+    this.listener.positionZ.value = 0;
+    this.listener.forwardX.value = 0;
+    this.listener.forwardY.value = 0;
+    this.listener.forwardZ.value = -1;
+    this.listener.upX.value = 0;
+    this.listener.upY.value = 1;
+    this.listener.upZ.value = 0;
 
     this.engineSynth = new Tone.PolySynth(Tone.FMSynth, {
       envelope: { attack: 0.02, decay: 0.1, sustain: 0.7, release: 0.2 },
       modulationIndex: 6,
       harmonicity: 1.2,
-    }).connect(compressor);
+    }).connect(this.compressor);
     this.engineSynth.volume.value = -16;
     this.engineSynth.triggerAttack('A2');
     new Tone.LFO('6hz', -20, -10).connect(this.engineSynth.volume).start();
 
     this.ambient = new Tone.PolySynth(Tone.Synth).connect(
-      new Tone.Filter(800, 'lowpass').connect(compressor),
+      new Tone.Filter(800, 'lowpass').connect(this.compressor),
     );
     this.ambient.volume.value = -24;
 
@@ -43,6 +62,14 @@ class AudioBus {
     this.engineSynth.set({ detune: (speedMps - 40) * 8 });
   }
 
+  /** Update listener orientation to match camera forward vector */
+  setListenerOrientation(forward: { x: number; y: number; z: number }): void {
+    if (!this.listener) return;
+    this.listener.forwardX.value = forward.x;
+    this.listener.forwardY.value = forward.y;
+    this.listener.forwardZ.value = forward.z;
+  }
+
   playHonk(): void {
     if (!this.initialized || !this.enabled) return;
     const now = Tone.now();
@@ -56,24 +83,43 @@ class AudioBus {
     setTimeout(() => synth.dispose(), 800);
   }
 
-  playCrash(): void {
+  /** Play crash sound with optional spatial position (xLanes ∈ [-1, 1]) */
+  playCrash(xLanes = 0): void {
     if (!this.initialized || !this.enabled) return;
+    const panner = new Tone.Panner3D({
+      positionX: xLanes * 2,
+      positionY: 0,
+      positionZ: -1,
+      panningModel: 'HRTF',
+      distanceModel: 'inverse',
+      refDistance: 1,
+      rolloffFactor: 1,
+    }).toDestination();
     const noise = new Tone.NoiseSynth({
       noise: { type: 'brown' },
       envelope: { attack: 0.001, decay: 0.25, sustain: 0 },
-    }).toDestination();
+    }).connect(panner);
     noise.volume.value = -8;
     noise.triggerAttackRelease(0.25);
-    setTimeout(() => noise.dispose(), 700);
+    setTimeout(() => {
+      noise.dispose();
+      panner.dispose();
+    }, 700);
   }
 
-  playPickup(kind: PickupType): void {
+  playPickup(kind: PickupType, xLanes = 0): void {
     if (!this.initialized || !this.enabled) return;
     const now = Tone.now();
+    const panner = new Tone.Panner3D({
+      positionX: xLanes * 2,
+      positionY: 0.5,
+      positionZ: -1,
+      panningModel: 'HRTF',
+    }).toDestination();
     const synth = new Tone.Synth({
       oscillator: { type: kind === 'mega' ? 'sawtooth' : 'sine' },
       envelope: { attack: 0.005, decay: 0.2, sustain: 0.0, release: 0.2 },
-    }).toDestination();
+    }).connect(panner);
     synth.volume.value = kind === 'mega' ? -2 : -10;
     if (kind === 'mega') {
       synth.triggerAttackRelease('C5', 0.08, now);
@@ -84,7 +130,10 @@ class AudioBus {
     } else {
       synth.triggerAttackRelease('A5', 0.08, now);
     }
-    setTimeout(() => synth.dispose(), 700);
+    setTimeout(() => {
+      synth.dispose();
+      panner.dispose();
+    }, 700);
   }
 
   setZone(zone: ZoneId): void {
@@ -103,7 +152,6 @@ class AudioBus {
 
 export const audioBus = new AudioBus();
 
-// Error-routing wrapper: only tried on explicit init() call from a user gesture.
 export function initAudioBusSafely(): void {
   audioBus.init().catch((err: unknown) => reportError(err, 'audioBus.init'));
 }

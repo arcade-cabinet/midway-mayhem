@@ -1,37 +1,55 @@
 import { useFrame } from '@react-three/fiber';
-import { useRef, type ReactNode } from 'react';
+import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
+import { composeTrack, DEFAULT_TRACK } from '../game/trackComposer';
 import { useGameStore } from '../systems/gameState';
-import { STEER, TRACK } from '../utils/constants';
 import { reportScene } from '../systems/diagnosticsBus';
+import { TRACK } from '../utils/constants';
+import { trackToWorld } from './ObstacleSystem';
 
 /**
- * Translates the world opposite to the player's forward motion so that
- * the cockpit at world origin *appears* to race through the track.
+ * Follow-camera world-scroller. Places the PLAYER'S current track position
+ * at world origin AND aligns the current track heading with world -Z, so
+ * the cockpit (camera at origin looking -Z) always sees the road ahead
+ * regardless of how winding the composed track is.
  *
- * Forward axis is -Z. As distance increases, world translates +Z.
- * Lateral steer translates world on +X (opposite of car motion).
+ * Transform: rotate world around Y by -trackHeading, then translate by
+ * -playerWorldPos. The Three.js `group.rotation` + `group.position` apply
+ * as point' = R * p + T, so to achieve the desired inverse-of-player-pose
+ * transform we pre-rotate the negated player position.
  */
 export function WorldScroller({ children }: { children: ReactNode }) {
   const groupRef = useRef<THREE.Group>(null);
+  const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
 
   useFrame((state) => {
     const s = useGameStore.getState();
     const g = groupRef.current;
     if (!g) return;
-    const playerLat = Math.max(-TRACK.LATERAL_CLAMP, Math.min(TRACK.LATERAL_CLAMP, s.lateral));
-    g.position.set(-playerLat, -1.5, s.distance);
 
-    // diagnostics: count track meshes actually under the scroller + camera pose
+    const playerLat = Math.max(-TRACK.LATERAL_CLAMP, Math.min(TRACK.LATERAL_CLAMP, s.lateral));
+    const pose = trackToWorld(composition, s.distance, playerLat);
+
+    // The camera should end up at pose in the WORLD frame, looking along pose.heading.
+    // World rendering needs the inverse: group rotates by -pose.heading and translates
+    // so the player's world-position ends at origin.
+    const rotY = -pose.heading;
+    const cosH = Math.cos(rotY);
+    const sinH = Math.sin(rotY);
+    // Rotate the negated player position by rotY before applying as group translation
+    // so that rotation ∘ translation composes into the correct inverse transform.
+    const rx = cosH * -pose.x + sinH * -pose.z;
+    const rz = -sinH * -pose.x + cosH * -pose.z;
+    g.position.set(rx, -1.5, rz);
+    g.rotation.y = rotY;
+
     let trackPieces = 0;
     let meshes = 0;
-    // Find the named "track" group and count its immediate children (one group per piece)
     const trackGroup = g.getObjectByName('track');
     if (trackGroup) trackPieces = trackGroup.children.length;
     g.traverse((o) => {
       if (o.type === 'Mesh') meshes++;
     });
-    // Expose per-piece world positions for targeted debugging
     // biome-ignore lint/suspicious/noExplicitAny: dev diagnostic
     const w = window as any;
     if (w.__mmDebug !== false) {
@@ -48,7 +66,6 @@ export function WorldScroller({ children }: { children: ReactNode }) {
       cameraPos: [camPos.x, camPos.y, camPos.z],
       worldScrollerPos: [g.position.x, g.position.y, g.position.z],
     });
-    void STEER;
   });
 
   return <group ref={groupRef}>{children}</group>;
