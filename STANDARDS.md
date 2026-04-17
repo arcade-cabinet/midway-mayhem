@@ -50,7 +50,7 @@ domain: technical
 ## Never, ever
 
 - Never check secrets into git.
-- Never add runtime try/catch that swallows.
+- Never add runtime try/catch that swallows. (Carve-out: non-production cleanup paths like `resetDbForTests()` MAY ignore close() rejection because the DB handle is being nulled anyway — but such paths MUST be gated by an explicit "test-only" name + comment explaining why swallowing is safe here.)
 - Never add a fallback rendering path.
 - Never hand-drift the palette from `constants.ts`.
 - Never claim a fix works without a passing test or a screenshot proving it.
