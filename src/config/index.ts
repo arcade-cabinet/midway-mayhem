@@ -1,41 +1,15 @@
 /**
- * @/config — public barrel for the tunables sub-package.
- *
- * `tunables` is a mutable proxy backed by DEFAULT_TUNABLES initially.
- * After loadTunables() resolves, call applyLoadedTunables(t) to deep-merge
- * the fetched values. All consumers reading `tunables` at call-time (not
- * module-eval time) will see the live values automatically.
+ * Public config entry point. JSON files are imported at build time (Vite
+ * supports this via resolveJsonModule), validated with zod, and exported
+ * as immutable, typed data. No async loading, no runtime fetch — config
+ * ships with the bundle.
  */
 
-export { DEFAULT_TUNABLES } from './defaults';
-export { loadTunables } from './loader';
-export type { Tunables, ZoneTunable, ZoneWeights } from './schema';
-export { parseTunables } from './schema';
+import trackPiecesJson from './archetypes/track-pieces.json';
+import { TrackArchetypeSetSchema, TunablesSchema } from './schema';
+import tunablesJson from './tunables.json';
 
-import { DEFAULT_TUNABLES } from './defaults';
-import type { Tunables } from './schema';
+export const trackArchetypes = TrackArchetypeSetSchema.parse(trackPiecesJson);
+export const tunables = TunablesSchema.parse(tunablesJson);
 
-// Internal mutable store
-let _current: Tunables = DEFAULT_TUNABLES;
-
-/**
- * tunables — always returns the current live tunables.
- * Use as a function call: `tunables().speed.cruise`
- * This avoids holding stale references to the pre-load defaults.
- */
-export function tunables(): Tunables {
-  return _current;
-}
-
-/**
- * applyLoadedTunables — deep-merge `t` onto the current tunables.
- * Called once in App.tsx after loadTunables() resolves.
- */
-export function applyLoadedTunables(t: Tunables): void {
-  _current = Object.freeze({ ..._current, ...t }) as Tunables;
-}
-
-/** Reset to defaults (test helper). */
-export function resetTunablesToDefaults(): void {
-  _current = DEFAULT_TUNABLES;
-}
+export type { TrackArchetype, TrackArchetypeSet, Tunables } from './schema';

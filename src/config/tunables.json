@@ -1,0 +1,6 @@
+{
+  "$schema": "../../config/schema.ts#Tunables",
+  "cruiseMps": 42,
+  "maxSteerRate": 2.5,
+  "throttleResponse": 1.2
+}

@@ -1,0 +1,87 @@
+/**
+ * Hard-coded defaults matching public/config/tunables.json.
+ * Used as the initial value for the tunables proxy so that
+ * modules importing at module-eval time don't blow up before
+ * loadTunables() resolves.
+ */
+import type { Tunables } from './schema';
+
+export const DEFAULT_TUNABLES: Tunables = {
+  speed: {
+    base: 30,
+    cruise: 70,
+    boost: 90,
+    mega: 120,
+    crashDamping: 0.55,
+    boostDuration: 2.2,
+    megaDuration: 3.5,
+  },
+  steer: {
+    maxLateralMps: 18,
+    returnTau: 0.25,
+    wheelMaxDeg: 35,
+    sensitivity: 1.0,
+  },
+  track: {
+    laneCount: 3,
+    laneWidth: 3.3,
+    chunkLength: 40,
+    lookaheadChunks: 20,
+  },
+  honk: {
+    scareRadius: 22,
+    fleeLateral: 6,
+    fleeDuration: 0.7,
+    cooldown: 0.35,
+  },
+  critters: {
+    kinds: ['cow', 'horse', 'llama', 'pig'],
+    pickupMegaThreshold: 0.97,
+    pickupBoostThreshold: 0.55,
+  },
+  obstacles: {
+    spawn: {
+      minGap: 18,
+      jitter: 22,
+      pickupMinGap: 14,
+      pickupJitter: 20,
+    },
+    zoneWeights: {
+      'midway-strip': { barrier: 1, cones: 2, gate: 1, oil: 1, hammer: 0, critter: 2 },
+      'balloon-alley': { barrier: 1, cones: 2, gate: 2, oil: 2, hammer: 1, critter: 2 },
+      'ring-of-fire': { barrier: 2, cones: 1, gate: 1, oil: 3, hammer: 2, critter: 1 },
+      'funhouse-frenzy': { barrier: 2, cones: 2, gate: 2, oil: 2, hammer: 3, critter: 3 },
+    },
+  },
+  zones: {
+    'midway-strip': { root: 'C4', tempo: 132, colorGrade: '#e53935' },
+    'balloon-alley': { root: 'D4', tempo: 128, colorGrade: '#1e88e5' },
+    'ring-of-fire': { root: 'A3', tempo: 140, colorGrade: '#f36f21' },
+    'funhouse-frenzy': { root: 'F4', tempo: 148, colorGrade: '#8e24aa' },
+  },
+  audio: {
+    buses: {
+      masterDb: -6,
+      musicDb: -6,
+      sfxDb: -3,
+      ambDb: -14,
+    },
+    ducking: {
+      depthDb: -8,
+      thresholdDb: -24,
+    },
+  },
+  scoring: {
+    ticketReward: 50,
+    boostReward: 25,
+    megaReward: 200,
+    crashDamage: 10,
+    heavyCrashDamage: 25,
+    sanityRegen: 2,
+  },
+  combo: {
+    windowMs: 3000,
+    multiplierStep: 0.5,
+    maxMultiplier: 4.0,
+  },
+};

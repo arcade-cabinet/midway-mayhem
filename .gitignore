@@ -29,13 +29,6 @@ ios/App/Pods
 ios/App/App.xcworkspace/xcuserdata
 ios/DerivedData
 
-public/sql-wasm.wasm
-public/assets/sql-wasm.wasm
-
-# Soundfonts (large, fetched via scripts/fetch-soundfonts.ts)
-public/soundfonts/*.sf2
-public/soundfonts/*.sfz
-
 .env
 .env.local
 .env.*.local
@@ -52,7 +45,11 @@ Gemini-Conversation.md
 
 # Vitest browser test artifacts
 .vitest-attachments/
-src/__tests__/__screenshots__/
+**/__screenshots__/
+.test-screenshots/
 
-# Debug pause-and-capture output (Space in ?debug=1 mode)
+# Debug pause-and-capture output
 .capture/
+
+# v1 codebase moved here for reference; not a live module
+# (lint/tsc/tests all exclude it)

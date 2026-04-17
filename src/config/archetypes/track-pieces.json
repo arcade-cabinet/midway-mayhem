@@ -1,0 +1,81 @@
+{
+  "$schema": "../../config/schema.ts#TrackArchetypeSet",
+  "laneWidth": 3.2,
+  "lanes": 4,
+  "surfaceThickness": 0.3,
+  "runLength": 80,
+  "archetypes": [
+    {
+      "id": "straight",
+      "label": "Straight",
+      "length": 20,
+      "deltaYaw": 0,
+      "deltaPitch": 0,
+      "bank": 0,
+      "weight": 6
+    },
+    {
+      "id": "slight-left",
+      "label": "Slight left",
+      "length": 24,
+      "deltaYaw": -0.35,
+      "deltaPitch": 0,
+      "bank": -0.22,
+      "weight": 4
+    },
+    {
+      "id": "slight-right",
+      "label": "Slight right",
+      "length": 24,
+      "deltaYaw": 0.35,
+      "deltaPitch": 0,
+      "bank": 0.22,
+      "weight": 4
+    },
+    {
+      "id": "hard-left",
+      "label": "Hard left",
+      "length": 28,
+      "deltaYaw": -0.9,
+      "deltaPitch": 0,
+      "bank": -0.55,
+      "weight": 2
+    },
+    {
+      "id": "hard-right",
+      "label": "Hard right",
+      "length": 28,
+      "deltaYaw": 0.9,
+      "deltaPitch": 0,
+      "bank": 0.55,
+      "weight": 2
+    },
+    {
+      "id": "dip",
+      "label": "Dip down",
+      "length": 20,
+      "deltaYaw": 0,
+      "deltaPitch": -0.25,
+      "bank": 0,
+      "weight": 3
+    },
+    {
+      "id": "climb",
+      "label": "Climb",
+      "length": 20,
+      "deltaYaw": 0,
+      "deltaPitch": 0.12,
+      "bank": 0,
+      "weight": 1
+    },
+    {
+      "id": "plunge",
+      "label": "Steep plunge",
+      "length": 18,
+      "deltaYaw": 0,
+      "deltaPitch": -0.45,
+      "bank": 0,
+      "weight": 2
+    }
+  ]
+}

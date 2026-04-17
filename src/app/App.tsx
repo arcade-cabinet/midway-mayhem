@@ -1,81 +1,170 @@
-import { Suspense, useEffect, useState } from 'react';
-import { preloadAllAssets } from '@/assets/preloader';
-import { applyLoadedTunables, loadTunables } from '@/config/index';
-import { STARTER_ITEMS } from '@/config/shopCatalog';
-import { installDiagnosticsBus } from '@/game/diagnosticsBus';
-import { installGlobalErrorHandlers, reportError } from '@/game/errorBus';
-import { Game } from '@/game/Game';
-import { initHapticsSafely } from '@/game/hapticsBus';
-import { useLoadoutStore } from '@/hooks/useLoadout';
-import { AchievementToast } from '@/hud/AchievementToast';
-import { ErrorModal } from '@/hud/ErrorModal';
-import { ReactErrorBoundary } from '@/hud/ReactErrorBoundary';
-import { TitleScreen } from '@/hud/TitleScreen';
-import { initDb } from '@/persistence/db';
-import { grantUnlock } from '@/persistence/profile';
-import { hydrateTutorialFlags } from '@/persistence/tutorial';
-import { initDailyRouteFromUrl } from '@/track/dailyRoute';
+/**
+ * Root component. Landing surface + 3D scene + per-frame game loop.
+ *
+ * The canvas always renders the live cockpit + track scene. The
+ * TitleScreen sits on top until the user clicks DRIVE, then fades away.
+ * Input listeners + motion loop are mounted unconditionally so the player
+ * entity's state always reflects reality; gating is purely visual.
+ */
+import { Canvas, useFrame } from '@react-three/fiber';
+import { WorldProvider } from 'koota/react';
+import { Suspense, useRef, useState } from 'react';
+import { useArcadeAudio } from '@/audio/useArcadeAudio';
+import { type EndReason, resetGameOver, stepGameOver } from '@/ecs/systems/gameOver';
+import { spawnPlayer } from '@/ecs/systems/playerMotion';
+import { seedContent } from '@/ecs/systems/seedContent';
+import { seedTrack } from '@/ecs/systems/track';
+import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
+import { Player, Score } from '@/ecs/traits';
+import { world } from '@/ecs/world';
+import { haptic } from '@/input/haptics';
+import { TouchControls } from '@/input/TouchControls';
+import { useKeyboard } from '@/input/useKeyboard';
+import { Cockpit } from '@/render/cockpit/Cockpit';
+import { BigTopEnvironment } from '@/render/Environment';
+import { PostFX } from '@/render/PostFX';
+import { SpeedLines } from '@/render/SpeedLines';
+import { Track } from '@/render/Track';
+import { TrackContent } from '@/render/TrackContent';
+import { saveScore } from '@/storage/scores';
+import { GameOverOverlay } from '@/ui/GameOverOverlay';
+import { TitleScreen } from '@/ui/TitleScreen';
 
-type Scene = 'title' | 'play';
+// Seed the world once at module load. ES modules are evaluated exactly
+// once per process, so this block runs only once even with React StrictMode
+// double-invoking child components — no guard flag needed.
+seedTrack(world, 42);
+seedContent(world, 42);
+spawnPlayer(world);
+
+function GameLoop({
+  active,
+  onPickup,
+  onObstacle,
+  onEnd,
+}: {
+  active: boolean;
+  onPickup: (kind: 'balloon' | 'boost') => void;
+  onObstacle: (kind: 'cone' | 'oil') => void;
+  onEnd: (reason: EndReason) => void;
+}) {
+  usePlayerLoop(world, active, { onPickup, onObstacle });
+  useFrame(() => {
+    if (!active) return;
+    stepGameOver(world, { onEnd });
+  });
+  return null;
+}
+
+function AudioBridge({
+  active,
+  onReady,
+}: {
+  active: boolean;
+  onReady: (fns: { honk: () => void; ding: () => void; thud: () => void }) => void;
+}) {
+  const api = useArcadeAudio(world, active);
+  onReady(api);
+  return null;
+}
 
 export function App() {
-  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const [scene, setScene] = useState<Scene>(params?.get('skip') === '1' ? 'play' : 'title');
-  const initLoadout = useLoadoutStore((s) => s.initLoadout);
+  const [titleVisible, setTitleVisible] = useState(true);
+  const [endReason, setEndReason] = useState<EndReason | null>(null);
+  const playing = !titleVisible && endReason === null;
+  const hornRef = useRef<() => void>(() => {});
+  const dingRef = useRef<() => void>(() => {});
+  const thudRef = useRef<() => void>(() => {});
 
-  useEffect(() => {
-    installGlobalErrorHandlers();
-    installDiagnosticsBus();
-    initHapticsSafely();
-    initDailyRouteFromUrl();
-
-    // Bootstrap runs in the background while TitleScreen is visible.
-    // TitleScreen owns its own initDb() call (idempotent), so it renders
-    // instantly and becomes interactive once its deps resolve.
-    const bootstrap = async () => {
-      await initDb();
-      await Promise.all(STARTER_ITEMS.map((item) => grantUnlock(item.kind, item.slug)));
-      await initLoadout();
-      await hydrateTutorialFlags().catch((err: unknown) =>
-        reportError(err, 'App.hydrateTutorialFlags'),
-      );
-      const t = await loadTunables();
-      applyLoadedTunables(t);
-      await preloadAllAssets();
-      const seedParam = params?.get('seed');
-      if (seedParam) {
-        const seedNum = parseInt(seedParam, 10);
-        if (!Number.isNaN(seedNum)) {
-          // biome-ignore lint/suspicious/noExplicitAny: test hook
-          (window as any).__mmSeed = seedNum;
-        }
-      }
-    };
-
-    bootstrap().catch((err: unknown) => reportError(err, 'App.bootstrap'));
-  }, [initLoadout, params]);
+  useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
 
   return (
-    <div className="mm-app" data-testid="mm-app">
-      <ReactErrorBoundary context="app-root">
-        <Suspense fallback={<div className="mm-loading">loading…</div>}>
-          {scene === 'title' ? (
-            <TitleScreen
-              onStart={(cfg) => {
-                if (cfg) {
-                  // biome-ignore lint/suspicious/noExplicitAny: window bridge to Game.tsx
-                  (window as any).__mmRunConfig = cfg;
-                }
-                setScene('play');
-              }}
-            />
-          ) : (
-            <Game />
-          )}
-        </Suspense>
-      </ReactErrorBoundary>
-      <AchievementToast />
-      <ErrorModal />
-    </div>
+    <WorldProvider world={world}>
+      <div
+        data-testid="mm-app"
+        style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
+      >
+        <Canvas
+          gl={{ antialias: true, preserveDrawingBuffer: true }}
+          frameloop="always"
+          style={{ position: 'absolute', inset: 0 }}
+        >
+          <color attach="background" args={['#0b0f1a']} />
+          <ambientLight intensity={0.45} color="#ffd6a8" />
+          <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
+          <Suspense fallback={null}>
+            <BigTopEnvironment />
+          </Suspense>
+          <Track />
+          <TrackContent />
+          <Cockpit />
+          <SpeedLines />
+          <PostFX />
+          <GameLoop
+            active={playing}
+            onPickup={(kind) => {
+              if (kind === 'balloon') {
+                dingRef.current();
+                void haptic('light');
+              } else {
+                dingRef.current();
+                void haptic('medium');
+              }
+            }}
+            onObstacle={() => {
+              thudRef.current();
+              void haptic('heavy');
+            }}
+            onEnd={(r) => {
+              setEndReason(r);
+              const score = world.query(Player, Score)[0]?.get(Score);
+              if (score) {
+                void saveScore({
+                  score: score.value,
+                  balloons: score.balloons,
+                  seed: 42,
+                  timestamp: Date.now(),
+                });
+              }
+            }}
+          />
+          <AudioBridge
+            active={playing}
+            onReady={(fns) => {
+              hornRef.current = fns.honk;
+              dingRef.current = fns.ding;
+              thudRef.current = fns.thud;
+            }}
+          />
+        </Canvas>
+        {titleVisible ? (
+          <TitleScreen onDrive={() => setTitleVisible(false)} />
+        ) : (
+          <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+        )}
+        {endReason !== null ? (
+          <GameOverEnd
+            reason={endReason}
+            onRestart={() => {
+              // Simplest reliable reset: hard reload.
+              resetGameOver();
+              window.location.reload();
+            }}
+          />
+        ) : null}
+      </div>
+    </WorldProvider>
+  );
+}
+
+function GameOverEnd({ reason, onRestart }: { reason: EndReason; onRestart: () => void }) {
+  const score = world.query(Player, Score)[0]?.get(Score);
+  return (
+    <GameOverOverlay
+      reason={reason}
+      score={score?.value ?? 0}
+      balloons={score?.balloons ?? 0}
+      onRestart={onRestart}
+    />
   );
 }

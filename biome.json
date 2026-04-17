@@ -17,7 +17,9 @@
       "!**/playwright-report",
       "!**/test-results",
       "!**/coverage",
-      "!**/public/sql-wasm.wasm"
+      "!**/reference",
+      "!**/public/sql-wasm.wasm",
+      "!**/.capture"
     ]
   },
   "formatter": {
@@ -47,16 +49,7 @@
       "style": {
         "useConst": "error",
         "useImportType": "error",
-        "useNamingConvention": "off",
-        "noRestrictedGlobals": {
-          "level": "error",
-          "options": {
-            "deniedGlobals": {
-              "localStorage": "Use @capacitor/preferences via src/persistence/preferences.ts. Storage stack is OPFS + SQLite — no localStorage anywhere.",
-              "sessionStorage": "Use @capacitor/preferences instead. Everything persists; nothing ephemeral."
-            }
-          }
-        }
+        "useNamingConvention": "off"
       },
       "correctness": {
         "noUnusedVariables": "error",
@@ -74,5 +67,16 @@
   "assist": {
     "enabled": true,
     "actions": { "source": { "organizeImports": "on" } }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "scripts/**/*.ts", "src/test/**/*"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" },
+          "suspicious": { "noConsole": "off", "noArrayIndexKey": "off" }
+        }
+      }
+    }
+  ]
 }
