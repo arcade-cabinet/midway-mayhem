@@ -42,7 +42,8 @@ test.describe('NewRun modal → gameplay flow', () => {
       consoleErrors.push(`pageerror: ${err.message}`);
     });
 
-    await page.goto('/');
+    await page.goto('/?diag=1');
+
 
     // Landing is visible, modal is not yet open
     await expect(page.getByTestId('title-screen')).toBeVisible();

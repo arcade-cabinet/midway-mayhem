@@ -35,9 +35,12 @@ test.describe('Boot sequence', () => {
     await expectNoErrorModal(page); // exit
   });
 
-  test('title START button enters gameplay', async ({ page }) => {
-    await page.goto('/');
+  test('title START button → NewRunModal → PLAY enters gameplay', async ({ page }) => {
+    await page.goto('/?diag=1');
     await page.getByTestId('start-button').click();
+    // NewRunModal now gates the run. Click PLAY to commit the default config.
+    await page.getByTestId('new-run-modal').waitFor({ state: 'visible' });
+    await page.getByTestId('new-run-play').click();
     await waitForHudReady(page);
     await expectNoErrorModal(page); // entry
     await expectNoErrorModal(page); // exit
