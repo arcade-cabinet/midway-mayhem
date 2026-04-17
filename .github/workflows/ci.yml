@@ -124,6 +124,66 @@ jobs:
           name: dist
           path: dist/
 
+  android-smoke:
+    name: Android Smoke (Maestro)
+    runs-on: ubuntu-latest
+    # Only run when an android/ directory is present (Capacitor project initialized).
+    # The check is done inside the step so the job always shows in the workflow graph
+    # but exits cleanly when native isn't set up yet.
+    needs: [build]
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Skip if no android/ directory
+        id: check
+        run: |
+          if [ ! -d "android" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No android/ directory — skipping Maestro smoke test."
+          fi
+      - name: Download build artifact
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Set up JDK 21
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Android SDK
+        if: steps.check.outputs.skip != 'true'
+        uses: android-actions/setup-android@v3
+      - name: Install Maestro
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Build debug APK
+        if: steps.check.outputs.skip != 'true'
+        run: ./gradlew assembleDebug
+        working-directory: android
+      - name: Boot Android emulator
+        if: steps.check.outputs.skip != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            adb install android/app/build/outputs/apk/debug/app-debug.apk
+            maestro test maestro/android-smoke.yaml
+      - name: Upload Maestro screenshots
+        if: steps.check.outputs.skip != 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-android-screenshots
+          path: ~/.maestro/tests/
+
   e2e-tests:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
