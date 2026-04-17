@@ -6,11 +6,9 @@
  * `reference/` (archived v1 code). It points testDir at a dir that
  * doesn't exist, so Playwright finds zero specs and exits 0.
  */
-import { defineConfig } from '@playwright/test';
-
-export default defineConfig({
+export default {
   testDir: './e2e',
   testIgnore: ['**/reference/**', '**/node_modules/**'],
   reporter: 'list',
   use: { trace: 'off' },
-});
+};
