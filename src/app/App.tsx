@@ -35,13 +35,12 @@ import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
 import { TitleScreen } from '@/ui/TitleScreen';
 
-let bootstrapped = false;
-if (!bootstrapped) {
-  seedTrack(world, 42);
-  seedContent(world, 42);
-  spawnPlayer(world);
-  bootstrapped = true;
-}
+// Seed the world once at module load. ES modules are evaluated exactly
+// once per process, so this block runs only once even with React StrictMode
+// double-invoking child components — no guard flag needed.
+seedTrack(world, 42);
+seedContent(world, 42);
+spawnPlayer(world);
 
 function GameLoop({
   active,

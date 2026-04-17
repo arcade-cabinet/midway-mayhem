@@ -28,9 +28,20 @@ export class Rng {
     return this.nextU32() / 0x100000000;
   }
 
-  /** Uniform integer in [min, max]. */
+  /**
+   * Uniform integer in [min, max]. Uses rejection sampling to avoid the
+   * modulo bias that kicks in when (max-min+1) does not evenly divide 2^32
+   * — critical for deterministic obstacle/pickup lane selection where the
+   * range (e.g. 0..3) is not a power of two.
+   */
   nextInt(min: number, max: number): number {
-    return min + (this.nextU32() % (max - min + 1));
+    const range = max - min + 1;
+    const limit = Math.floor(0x100000000 / range) * range;
+    let val = this.nextU32();
+    while (val >= limit) {
+      val = this.nextU32();
+    }
+    return min + (val % range);
   }
 
   /** Pick an entry from `items` weighted by each `weights[i]`. */
