@@ -49,7 +49,6 @@ interface CompactProps {
   orientation: 'portrait' | 'landscape';
   tickets: number;
   onStart: () => void;
-  onTour?: () => void;
   onOpen: (o: TitleOverlay) => void;
   startButtonRef: React.RefObject<HTMLButtonElement | null>;
   children: React.ReactNode;
@@ -59,7 +58,6 @@ export function TitleCompactLayout({
   orientation,
   tickets,
   onStart,
-  onTour,
   onOpen,
   startButtonRef,
   children,
@@ -114,11 +112,6 @@ export function TitleCompactLayout({
         >
           NEW RUN
         </BrandButton>
-        {onTour && (
-          <BrandButton kind="balloon" hue="blue" size="md" onClick={onTour} testId="tour-button">
-            VISIT THE MIDWAY
-          </BrandButton>
-        )}
         <BrandButton
           kind="balloon"
           hue="yellow"

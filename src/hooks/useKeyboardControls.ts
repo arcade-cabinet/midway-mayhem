@@ -29,6 +29,9 @@ import { damp } from '@/utils/math';
 let _kbSteerTarget = 0;
 
 function triggerCapture(): void {
+  // Cut throttle immediately so the captured moment is literally the car
+  // coming to rest; the capture itself then snapshots the frame + state.
+  useGameStore.getState().setThrottle(0);
   // biome-ignore lint/suspicious/noExplicitAny: registered by DebugCaptureBridge
   const fn = (window as any).__mmCapture as
     | ((label?: string) => Promise<unknown>)
@@ -139,13 +142,11 @@ export function useKeyboardControls(): void {
  * Wire keyboard navigation to TitleScreen.
  *
  * Enter / Space → START
- * T → VISIT THE MIDWAY (debug walk-around)
  * S → SHOP
  * Esc → close open panel
  */
 export function useTitleKeyboard(opts: {
   onStart: () => void;
-  onTour?: () => void;
   onShop: () => void;
   onEsc: () => void;
 }): void {
@@ -154,8 +155,6 @@ export function useTitleKeyboard(opts: {
       if (e.key === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         opts.onStart();
-      } else if (e.key === 't' || e.key === 'T') {
-        opts.onTour?.();
       } else if (e.key === 's' || e.key === 'S') {
         opts.onShop();
       } else if (e.key === 'Escape') {

@@ -56,14 +56,15 @@ export function Game() {
       data-testid="mm-game"
       style={{ position: 'absolute', inset: 0 }}
       onPointerDown={(e) => {
-        // Tap-anywhere-on-canvas (except the horn mesh) triggers a debug
-        // pause+capture. The horn's R3F pointerDown fires first and sets
-        // __mmHornPressedAt; we skip the DOM event if that was just now.
+        // Tap-anywhere-on-canvas (except the horn mesh) cuts throttle to 0
+        // AND triggers a debug capture. The horn's R3F pointerDown fires
+        // first and stamps __mmHornPressedAt; we skip if that's recent.
         const target = e.target as HTMLElement | null;
         if (!target || target.tagName !== 'CANVAS') return;
         // biome-ignore lint/suspicious/noExplicitAny: dev hook
         const lastHorn = (window as any).__mmHornPressedAt as number | undefined;
         if (lastHorn && performance.now() - lastHorn < 50) return;
+        useGameStore.getState().setThrottle(0);
         // biome-ignore lint/suspicious/noExplicitAny: registered by DebugCaptureBridge
         const fn = (window as any).__mmCapture as
           | ((label?: string) => Promise<unknown>)

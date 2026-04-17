@@ -54,21 +54,7 @@ describe('<TitleScreen />', () => {
     expect(typeof cfg.difficulty).toBe('string');
   });
 
-  it('shows VISIT THE MIDWAY button when onTour is provided', () => {
-    render(<TitleScreen onStart={() => {}} onTour={() => {}} />);
-    expect(screen.getByTestId('tour-button')).toBeInTheDocument();
-    expect(screen.getByText(/VISIT THE MIDWAY/i)).toBeInTheDocument();
-  });
-
-  it('calls onTour when VISIT THE MIDWAY clicked', async () => {
-    const onTour = vi.fn();
-    const user = userEvent.setup();
-    render(<TitleScreen onStart={() => {}} onTour={onTour} />);
-    await user.click(screen.getByTestId('tour-button'));
-    expect(onTour).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not show tour button when onTour is not provided', () => {
+  it('does not render the Visit Midway button (feature removed)', () => {
     render(<TitleScreen onStart={() => {}} />);
     expect(screen.queryByTestId('tour-button')).not.toBeInTheDocument();
   });

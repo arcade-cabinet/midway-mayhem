@@ -15,9 +15,8 @@ import { initDb } from '@/persistence/db';
 import { grantUnlock } from '@/persistence/profile';
 import { hydrateTutorialFlags } from '@/persistence/tutorial';
 import { initDailyRouteFromUrl } from '@/track/dailyRoute';
-import { BigTopTour } from '../modes/BigTopTour';
 
-type Scene = 'title' | 'play' | 'tour';
+type Scene = 'title' | 'play';
 
 export function App() {
   const params =
@@ -70,10 +69,7 @@ export function App() {
                 }
                 setScene('play');
               }}
-              onTour={() => setScene('tour')}
             />
-          ) : scene === 'tour' ? (
-            <BigTopTour onExit={() => setScene('title')} />
           ) : (
             <Game />
           )}

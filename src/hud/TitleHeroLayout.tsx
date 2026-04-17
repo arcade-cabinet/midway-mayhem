@@ -23,7 +23,6 @@ const HERO_ART_URL = `${BASE}/ui/background-landing.png`;
 interface HeroProps {
   tickets: number;
   onStart: () => void;
-  onTour?: () => void;
   onOpen: (o: TitleOverlay) => void;
   startButtonRef: React.RefObject<HTMLButtonElement | null>;
   children: React.ReactNode;
@@ -32,7 +31,6 @@ interface HeroProps {
 export function TitleHeroLayout({
   tickets,
   onStart,
-  onTour,
   onOpen,
   startButtonRef,
   children,
@@ -161,11 +159,6 @@ export function TitleHeroLayout({
           >
             NEW RUN
           </BrandButton>
-          {onTour && (
-            <BrandButton kind="balloon" hue="blue" size="lg" onClick={onTour} testId="tour-button">
-              VISIT THE MIDWAY
-            </BrandButton>
-          )}
           <BrandButton
             kind="balloon"
             hue="yellow"
