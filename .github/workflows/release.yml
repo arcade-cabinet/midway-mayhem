@@ -62,6 +62,9 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Build native bundle (rewrites base to "/" for Capacitor)
+        run: pnpm build:native
+
       - name: Assemble Android release APK
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}

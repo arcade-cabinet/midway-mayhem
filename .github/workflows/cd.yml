@@ -120,6 +120,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build web bundle for Capacitor
+        run: pnpm build:native
+
       - name: Sync Capacitor Android project
         run: pnpm exec cap sync android
 
