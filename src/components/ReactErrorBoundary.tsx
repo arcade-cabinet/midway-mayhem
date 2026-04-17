@@ -18,9 +18,12 @@ export class ReactErrorBoundary extends Component<
 
   componentDidCatch(error: Error, info: { componentStack?: string | null }) {
     const err = error as Error & { cause?: unknown };
-    const augmented = new Error(`${err.message}\n\nComponent stack:\n${info.componentStack ?? ''}`, {
-      cause: err,
-    });
+    const augmented = new Error(
+      `${err.message}\n\nComponent stack:\n${info.componentStack ?? ''}`,
+      {
+        cause: err,
+      },
+    );
     reportError(augmented, this.props.context);
   }
 

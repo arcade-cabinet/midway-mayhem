@@ -1,9 +1,9 @@
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, type ReactNode } from 'react';
+import { type ReactNode, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { composeTrack, DEFAULT_TRACK } from '../game/trackComposer';
-import { useGameStore } from '../systems/gameState';
 import { reportScene } from '../systems/diagnosticsBus';
+import { useGameStore } from '../systems/gameState';
 import { TRACK } from '../utils/constants';
 import { trackToWorld } from './ObstacleSystem';
 

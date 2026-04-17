@@ -1,12 +1,12 @@
 import { Suspense, useEffect, useState } from 'react';
-import { Game } from '../components/Game';
-import { TitleScreen } from '../components/TitleScreen';
+import { preloadAllAssets } from '../assets/preloader';
 import { ErrorModal } from '../components/ErrorModal';
+import { Game } from '../components/Game';
 import { ReactErrorBoundary } from '../components/ReactErrorBoundary';
+import { TitleScreen } from '../components/TitleScreen';
 import { installDiagnosticsBus } from '../systems/diagnosticsBus';
 import { installGlobalErrorHandlers, reportError } from '../systems/errorBus';
 import { initHapticsSafely } from '../systems/hapticsBus';
-import { preloadAllAssets } from '../assets/preloader';
 
 type Scene = 'boot' | 'title' | 'play';
 

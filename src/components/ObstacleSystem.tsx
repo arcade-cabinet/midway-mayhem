@@ -3,13 +3,13 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { assetUrl } from '../assets/manifest';
-import { DEFAULT_TRACK, composeTrack, type PiecePlacement } from '../game/trackComposer';
-import { useGameStore } from '../systems/gameState';
-import { reportCounts } from '../systems/diagnosticsBus';
+import { composeTrack, DEFAULT_TRACK, type PiecePlacement } from '../game/trackComposer';
 import { audioBus } from '../systems/audioBus';
+import { reportCounts } from '../systems/diagnosticsBus';
+import { useGameStore } from '../systems/gameState';
 import { ObstacleSpawner } from '../systems/obstacleSpawner';
-import { createRng } from '../utils/rng';
 import { laneCenterX, TRACK } from '../utils/constants';
+import { createRng } from '../utils/rng';
 
 /**
  * Obstacles rendered via Kenney Racing Kit GLBs (baked with brand palette).

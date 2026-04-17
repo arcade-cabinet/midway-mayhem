@@ -57,7 +57,7 @@ function startDuckingLoop(b: Buses): void {
 
   const loop = () => {
     const level = b.sfxMeter.getValue();
-    const levelDb = typeof level === 'number' ? level : level[0] ?? -Infinity;
+    const levelDb = typeof level === 'number' ? level : (level[0] ?? -Infinity);
     const over = Math.max(0, levelDb - DUCK_THRESHOLD_DB);
     const duck = Math.min(1, over / 10) * DUCK_DEPTH_DB;
     const target = REST_VOL_DB + duck;

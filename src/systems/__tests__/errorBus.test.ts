@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  clearErrorsForTests,
-  isHalted,
-  reportError,
-  subscribeErrors,
-} from '../errorBus';
+import { clearErrorsForTests, isHalted, reportError, subscribeErrors } from '../errorBus';
 
 describe('errorBus', () => {
   beforeEach(() => {

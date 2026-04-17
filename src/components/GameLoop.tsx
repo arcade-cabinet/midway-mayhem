@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
-import { useGameStore } from '../systems/gameState';
 import { reportFrame } from '../systems/diagnosticsBus';
+import { useGameStore } from '../systems/gameState';
 import { STEER } from '../utils/constants';
 import { damp } from '../utils/math';
 

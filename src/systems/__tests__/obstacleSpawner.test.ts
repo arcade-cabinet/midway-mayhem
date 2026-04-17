@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ObstacleSpawner } from '../obstacleSpawner';
 import { createRng } from '../../utils/rng';
+import { ObstacleSpawner } from '../obstacleSpawner';
 
 describe('ObstacleSpawner', () => {
   let spawner: ObstacleSpawner;

@@ -41,9 +41,7 @@ export function Stat({
         }}
       >
         {value}
-        {unit && (
-          <span style={{ ...typeStyle(ui.small), color: valueColor }}>{unit}</span>
-        )}
+        {unit && <span style={{ ...typeStyle(ui.small), color: valueColor }}>{unit}</span>}
       </div>
       {bar && (
         <div style={{ marginTop: space.xs }}>

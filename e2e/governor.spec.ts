@@ -4,9 +4,7 @@ import { expectNoErrorModal, readDiag, waitForHudReady } from './helpers';
 test.describe('Yuka governor autonomous playthrough', () => {
   test.setTimeout(120_000);
 
-  test('autonomous run drives > 300m before game-over or 45s elapsed', async ({
-    page,
-  }) => {
+  test('autonomous run drives > 300m before game-over or 45s elapsed', async ({ page }) => {
     await page.goto('/?skip=1&governor=1&diag=1');
     await waitForHudReady(page);
     await expectNoErrorModal(page);

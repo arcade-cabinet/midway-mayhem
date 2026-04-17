@@ -145,7 +145,13 @@ export function triggerCrowdGasp(): void {
  */
 export function startApplauseBed(volume = -16): () => void {
   const { ambBus } = getBuses();
-  const layers: Array<{ noise: Tone.Noise; filter: Tone.Filter; clapMod: Tone.LFO; panner: Tone.Panner; gain: Tone.Gain }> = [];
+  const layers: Array<{
+    noise: Tone.Noise;
+    filter: Tone.Filter;
+    clapMod: Tone.LFO;
+    panner: Tone.Panner;
+    gain: Tone.Gain;
+  }> = [];
 
   for (const pan of [-0.85, 0, 0.85]) {
     const noise = new Tone.Noise('pink').start();

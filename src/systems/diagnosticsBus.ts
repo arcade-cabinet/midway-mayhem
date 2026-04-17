@@ -39,7 +39,8 @@ const bus = {
 export function installDiagnosticsBus() {
   if (typeof window === 'undefined') return;
   const params = new URLSearchParams(window.location.search);
-  const enabled = import.meta.env.DEV || params.get('diag') === '1' || params.get('governor') === '1';
+  const enabled =
+    import.meta.env.DEV || params.get('diag') === '1' || params.get('governor') === '1';
   if (!enabled) return;
 
   // biome-ignore lint/suspicious/noExplicitAny: diagnostic handle

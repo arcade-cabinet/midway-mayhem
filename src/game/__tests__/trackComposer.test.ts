@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  composeTrack,
-  DEFAULT_TRACK,
-  PIECE_SPECS,
-  type PieceKind,
-} from '../trackComposer';
+import { composeTrack, DEFAULT_TRACK, PIECE_SPECS, type PieceKind } from '../trackComposer';
 
 describe('trackComposer', () => {
   it('composes a single straight piece at world origin', () => {
@@ -47,7 +42,7 @@ describe('trackComposer', () => {
   it('applies lateral after cornerLarge and turns heading 90°', () => {
     const r = composeTrack(['cornerLarge'], 10);
     // Heading started at PI; adds 90° → 3π/2 (3.1415+1.5708 mod 2π = 4.71 mod 2π ≈ 4.71)
-    const expected = ((Math.PI + Math.PI / 2) % (Math.PI * 2));
+    const expected = (Math.PI + Math.PI / 2) % (Math.PI * 2);
     expect(r.endHeadingRad).toBeCloseTo(expected, 3);
     // Cursor moved 2 forward (old heading) then 2 lateral (new heading)
     // Total XZ distance from origin should be ~2.83 * 10 (diagonal of 2x2)

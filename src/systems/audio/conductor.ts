@@ -77,7 +77,14 @@ class CircusConductor {
       oscillator: { type: 'triangle' },
       filter: { Q: 2, frequency: 600, type: 'lowpass' },
       envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.08 },
-      filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1, baseFrequency: 100, octaves: 2 },
+      filterEnvelope: {
+        attack: 0.01,
+        decay: 0.1,
+        sustain: 0,
+        release: 0.1,
+        baseFrequency: 100,
+        octaves: 2,
+      },
     }).connect(musicBus);
     this.tuba.volume.value = -10;
   }

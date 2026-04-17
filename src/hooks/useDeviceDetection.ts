@@ -49,15 +49,16 @@ async function detect(): Promise<DeviceInfo> {
   }
 
   const isTouch =
-    typeof window !== 'undefined' &&
-    ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
   // WebGL is REQUIRED — hard-fail if unavailable
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
   if (!gl) {
-    throw new Error('[device] WebGL not available — Midway Mayhem requires a WebGL-capable browser');
+    throw new Error(
+      '[device] WebGL not available — Midway Mayhem requires a WebGL-capable browser',
+    );
   }
   const ext = gl.getExtension('WEBGL_debug_renderer_info');
   const gpuRenderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : null;

@@ -4,10 +4,7 @@ import { GovernorDriver } from '../GovernorDriver';
 describe('GovernorDriver', () => {
   it('returns a steer value in [-1, 1]', () => {
     const driver = new GovernorDriver();
-    const result = driver.step(
-      { playerD: 0, playerLateral: 0, obstacles: [], pickups: [] },
-      0.016,
-    );
+    const result = driver.step({ playerD: 0, playerLateral: 0, obstacles: [], pickups: [] }, 0.016);
     expect(result.steer).toBeGreaterThanOrEqual(-1);
     expect(result.steer).toBeLessThanOrEqual(1);
   });
@@ -49,10 +46,7 @@ describe('GovernorDriver', () => {
 
   it('converges to a target lane with clear road (bounded steering)', () => {
     const driver = new GovernorDriver();
-    const result = driver.step(
-      { playerD: 0, playerLateral: 0, obstacles: [], pickups: [] },
-      0.016,
-    );
+    const result = driver.step({ playerD: 0, playerLateral: 0, obstacles: [], pickups: [] }, 0.016);
     // No obstacles, no pickups — governor still picks a lane; steer stays within [-1, 1]
     expect(Math.abs(result.steer)).toBeLessThanOrEqual(1);
     // At minimum, produces some steer value (not stuck at 0)

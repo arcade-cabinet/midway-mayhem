@@ -20,9 +20,8 @@ describe('<TrackSystem /> browser', () => {
         </Suspense>
       </Canvas>,
     );
-    await waitFor(
-      () => expect(container.querySelector('canvas')).toBeInTheDocument(),
-      { timeout: 10000 },
-    );
+    await waitFor(() => expect(container.querySelector('canvas')).toBeInTheDocument(), {
+      timeout: 10000,
+    });
   });
 });

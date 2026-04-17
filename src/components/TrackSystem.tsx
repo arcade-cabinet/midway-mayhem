@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei';
 import { useMemo } from 'react';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { assetUrl } from '../assets/manifest';
 import { composeTrack, DEFAULT_TRACK, type PiecePlacement } from '../game/trackComposer';
 
@@ -30,11 +30,7 @@ function TrackPiece({ placement }: { placement: PiecePlacement }) {
   const cloned = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
 
   return (
-    <group
-      position={placement.position}
-      rotation={[0, placement.rotationY, 0]}
-      scale={10}
-    >
+    <group position={placement.position} rotation={[0, placement.rotationY, 0]} scale={10}>
       <primitive object={cloned} />
     </group>
   );

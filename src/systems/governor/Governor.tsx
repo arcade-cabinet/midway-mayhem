@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { GovernorDriver } from './GovernorDriver';
+import { useEffect, useRef } from 'react';
 import { useGameStore } from '../gameState';
+import { GovernorDriver } from './GovernorDriver';
 
 /**
  * R3F component that injects Governor steering input when ?governor=1 is set.

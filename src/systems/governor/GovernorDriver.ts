@@ -1,5 +1,5 @@
-import { laneCenterAt, sampleLookahead } from '../trackGenerator';
 import { TRACK } from '../../utils/constants';
+import { laneCenterAt, sampleLookahead } from '../trackGenerator';
 
 export interface GovernorInput {
   playerD: number;
@@ -39,8 +39,13 @@ export class GovernorDriver {
   step(input: GovernorInput, dt: number): GovernorOutput {
     // 1. Sample upcoming track center; pick a point ahead to aim at
     const samples = sampleLookahead(input.playerD, 8, 5);
-    const target = samples[Math.min(samples.length - 1, Math.floor(this.params.lookaheadMeters / 5))];
-    if (!target) return { steer: 0, debug: { targetLane: 0, targetX: 0, avoidedObstacles: 0, seekingPickup: false } };
+    const target =
+      samples[Math.min(samples.length - 1, Math.floor(this.params.lookaheadMeters / 5))];
+    if (!target)
+      return {
+        steer: 0,
+        debug: { targetLane: 0, targetX: 0, avoidedObstacles: 0, seekingPickup: false },
+      };
 
     // 2. Evaluate each lane for "safety" in the avoid window
     const laneScores: number[] = [];

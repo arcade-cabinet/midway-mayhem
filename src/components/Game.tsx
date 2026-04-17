@@ -4,8 +4,8 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { assetUrl } from '../assets/manifest';
 import { useSteering } from '../hooks/useSteering';
-import { useGameStore } from '../systems/gameState';
 import { audioBus } from '../systems/audioBus';
+import { useGameStore } from '../systems/gameState';
 import { Governor } from '../systems/governor/Governor';
 import { Cockpit } from './Cockpit';
 import { GameLoop } from './GameLoop';
@@ -15,8 +15,8 @@ import { PickupSystem } from './PickupSystem';
 import { PostFX } from './PostFX';
 import { ReactErrorBoundary } from './ReactErrorBoundary';
 import { TrackSystem } from './TrackSystem';
-import { ZoneBanner } from './ZoneBanner';
 import { WorldScroller } from './WorldScroller';
+import { ZoneBanner } from './ZoneBanner';
 
 export function Game() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);

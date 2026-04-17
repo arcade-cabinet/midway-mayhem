@@ -19,15 +19,35 @@ export const ASSET_MANIFEST: readonly AssetEntry[] = [
   // Kenney Racing Kit — road pieces (the TRACK)
   { id: 'gltf:roadStart', kind: 'gltf', path: 'models/roadStart.glb', required: true },
   { id: 'gltf:roadStraight', kind: 'gltf', path: 'models/roadStraight.glb', required: true },
-  { id: 'gltf:roadStraightLong', kind: 'gltf', path: 'models/roadStraightLong.glb', required: true },
-  { id: 'gltf:roadStraightArrow', kind: 'gltf', path: 'models/roadStraightArrow.glb', required: true },
+  {
+    id: 'gltf:roadStraightLong',
+    kind: 'gltf',
+    path: 'models/roadStraightLong.glb',
+    required: true,
+  },
+  {
+    id: 'gltf:roadStraightArrow',
+    kind: 'gltf',
+    path: 'models/roadStraightArrow.glb',
+    required: true,
+  },
   { id: 'gltf:roadEnd', kind: 'gltf', path: 'models/roadEnd.glb', required: true },
   { id: 'gltf:roadCornerLarge', kind: 'gltf', path: 'models/roadCornerLarge.glb', required: true },
-  { id: 'gltf:roadCornerLarger', kind: 'gltf', path: 'models/roadCornerLarger.glb', required: true },
+  {
+    id: 'gltf:roadCornerLarger',
+    kind: 'gltf',
+    path: 'models/roadCornerLarger.glb',
+    required: true,
+  },
   { id: 'gltf:roadCornerSmall', kind: 'gltf', path: 'models/roadCornerSmall.glb', required: true },
   { id: 'gltf:roadRamp', kind: 'gltf', path: 'models/roadRamp.glb', required: true },
   { id: 'gltf:roadRampLong', kind: 'gltf', path: 'models/roadRampLong.glb', required: true },
-  { id: 'gltf:roadRampLongCurved', kind: 'gltf', path: 'models/roadRampLongCurved.glb', required: true },
+  {
+    id: 'gltf:roadRampLongCurved',
+    kind: 'gltf',
+    path: 'models/roadRampLongCurved.glb',
+    required: true,
+  },
   { id: 'gltf:roadCurved', kind: 'gltf', path: 'models/roadCurved.glb', required: true },
 
   // Racing Kit — roadside props
@@ -37,15 +57,30 @@ export const ASSET_MANIFEST: readonly AssetEntry[] = [
   { id: 'gltf:tent', kind: 'gltf', path: 'models/tent.glb', required: true },
   { id: 'gltf:tentClosed', kind: 'gltf', path: 'models/tentClosed.glb', required: true },
   { id: 'gltf:bannerTowerRed', kind: 'gltf', path: 'models/bannerTowerRed.glb', required: true },
-  { id: 'gltf:bannerTowerGreen', kind: 'gltf', path: 'models/bannerTowerGreen.glb', required: true },
+  {
+    id: 'gltf:bannerTowerGreen',
+    kind: 'gltf',
+    path: 'models/bannerTowerGreen.glb',
+    required: true,
+  },
   { id: 'gltf:flagCheckers', kind: 'gltf', path: 'models/flagCheckers.glb', required: true },
   { id: 'gltf:lightPostLarge', kind: 'gltf', path: 'models/lightPostLarge.glb', required: true },
   { id: 'gltf:lightRed', kind: 'gltf', path: 'models/lightRed.glb', required: true },
   { id: 'gltf:grandStand', kind: 'gltf', path: 'models/grandStand.glb', required: true },
-  { id: 'gltf:grandStandCovered', kind: 'gltf', path: 'models/grandStandCovered.glb', required: true },
+  {
+    id: 'gltf:grandStandCovered',
+    kind: 'gltf',
+    path: 'models/grandStandCovered.glb',
+    required: true,
+  },
   { id: 'gltf:billboard', kind: 'gltf', path: 'models/billboard.glb', required: true },
   { id: 'gltf:pylon', kind: 'gltf', path: 'models/pylon.glb', required: true },
-  { id: 'gltf:overheadRoundColored', kind: 'gltf', path: 'models/overheadRoundColored.glb', required: true },
+  {
+    id: 'gltf:overheadRoundColored',
+    kind: 'gltf',
+    path: 'models/overheadRoundColored.glb',
+    required: true,
+  },
   { id: 'gltf:cone', kind: 'gltf', path: 'models/cone.glb', required: true },
 ] as const;
 

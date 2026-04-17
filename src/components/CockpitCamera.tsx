@@ -13,15 +13,15 @@ import { useGameStore } from '../systems/gameState';
  * Spec: memory/reference_r3f_racer_camera_spec.md
  */
 
-const BASE_H_FOV = 88;             // arcade sweet spot
-const FOV_SPEED_BOOST_MAX = 8;     // +8° at top speed
+const BASE_H_FOV = 88; // arcade sweet spot
+const FOV_SPEED_BOOST_MAX = 8; // +8° at top speed
 const FOV_MIN = 50;
 const FOV_MAX = 110;
 const MAX_SPEED_MPS = 120;
 
-const LOOK_DIST = 30;              // meters ahead of camera (camera-local -Z)
-const LOOK_DOWN = 0.2;              // slight downward tilt — helps show track
-const APEX_STEER_PULL = 4;         // m lateral pull at max steer (into-apex effect)
+const LOOK_DIST = 30; // meters ahead of camera (camera-local -Z)
+const LOOK_DOWN = 0.2; // slight downward tilt — helps show track
+const APEX_STEER_PULL = 4; // m lateral pull at max steer (into-apex effect)
 const LOOKAT_LERP = 5;
 
 export function CockpitCamera() {

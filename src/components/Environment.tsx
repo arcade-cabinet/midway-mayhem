@@ -1,8 +1,8 @@
-import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { sampleTrack } from '../systems/trackGenerator';
 import { useGameStore } from '../systems/gameState';
+import { sampleTrack } from '../systems/trackGenerator';
 import { themeFor } from '../systems/zoneSystem';
 import { TRACK } from '../utils/constants';
 import { makeStripeTexture } from '../utils/proceduralTextures';

@@ -46,18 +46,54 @@ export interface PieceSpec {
 }
 
 export const PIECE_SPECS: Record<PieceKind, PieceSpec> = {
-  start:          { length: 2.0, lateral: 0, headingChangeDeg: 0,  zRise: 0.0,  assetId: 'roadStart' },
-  straight:       { length: 1.0, lateral: 0, headingChangeDeg: 0,  zRise: 0.0,  assetId: 'roadStraight' },
-  straightLong:   { length: 2.0, lateral: 0, headingChangeDeg: 0,  zRise: 0.0,  assetId: 'roadStraightLong' },
-  straightArrow:  { length: 2.0, lateral: 0, headingChangeDeg: 0,  zRise: 0.0,  assetId: 'roadStraightArrow' },
-  end:            { length: 1.5, lateral: 0, headingChangeDeg: 0,  zRise: 0.0,  assetId: 'roadEnd' },
-  cornerSmall:    { length: 1.0, lateral: 1, headingChangeDeg: 90, zRise: 0.0,  assetId: 'roadCornerSmall' },
-  cornerLarge:    { length: 2.0, lateral: 2, headingChangeDeg: 90, zRise: 0.0,  assetId: 'roadCornerLarge' },
-  cornerLarger:   { length: 3.0, lateral: 3, headingChangeDeg: 90, zRise: 0.0,  assetId: 'roadCornerLarger' },
-  ramp:           { length: 1.0, lateral: 0, headingChangeDeg: 0,  zRise: 0.27, assetId: 'roadRamp' },
-  rampLong:       { length: 2.0, lateral: 0, headingChangeDeg: 0,  zRise: 0.52, assetId: 'roadRampLong' },
-  rampLongCurved: { length: 2.0, lateral: 2, headingChangeDeg: 90, zRise: 0.52, assetId: 'roadRampLongCurved' },
-  curved:         { length: 2.0, lateral: 0, headingChangeDeg: 0,  zRise: 0.0,  assetId: 'roadCurved' },
+  start: { length: 2.0, lateral: 0, headingChangeDeg: 0, zRise: 0.0, assetId: 'roadStart' },
+  straight: { length: 1.0, lateral: 0, headingChangeDeg: 0, zRise: 0.0, assetId: 'roadStraight' },
+  straightLong: {
+    length: 2.0,
+    lateral: 0,
+    headingChangeDeg: 0,
+    zRise: 0.0,
+    assetId: 'roadStraightLong',
+  },
+  straightArrow: {
+    length: 2.0,
+    lateral: 0,
+    headingChangeDeg: 0,
+    zRise: 0.0,
+    assetId: 'roadStraightArrow',
+  },
+  end: { length: 1.5, lateral: 0, headingChangeDeg: 0, zRise: 0.0, assetId: 'roadEnd' },
+  cornerSmall: {
+    length: 1.0,
+    lateral: 1,
+    headingChangeDeg: 90,
+    zRise: 0.0,
+    assetId: 'roadCornerSmall',
+  },
+  cornerLarge: {
+    length: 2.0,
+    lateral: 2,
+    headingChangeDeg: 90,
+    zRise: 0.0,
+    assetId: 'roadCornerLarge',
+  },
+  cornerLarger: {
+    length: 3.0,
+    lateral: 3,
+    headingChangeDeg: 90,
+    zRise: 0.0,
+    assetId: 'roadCornerLarger',
+  },
+  ramp: { length: 1.0, lateral: 0, headingChangeDeg: 0, zRise: 0.27, assetId: 'roadRamp' },
+  rampLong: { length: 2.0, lateral: 0, headingChangeDeg: 0, zRise: 0.52, assetId: 'roadRampLong' },
+  rampLongCurved: {
+    length: 2.0,
+    lateral: 2,
+    headingChangeDeg: 90,
+    zRise: 0.52,
+    assetId: 'roadRampLongCurved',
+  },
+  curved: { length: 2.0, lateral: 0, headingChangeDeg: 0, zRise: 0.0, assetId: 'roadCurved' },
 };
 
 export interface PiecePlacement {
@@ -89,10 +125,7 @@ export interface ComposedTrack {
  */
 const LOCAL_ANCHOR = { x: 0.15, y: 0.65 }; // Kenney-local XY of the front-seam midpoint
 
-export function composeTrack(
-  kinds: readonly PieceKind[],
-  worldScale = 10,
-): ComposedTrack {
+export function composeTrack(kinds: readonly PieceKind[], worldScale = 10): ComposedTrack {
   const placements: PiecePlacement[] = [];
   // Cursor tracks the END of the last piece (= START of the next piece), in WORLD coords
   let cursorX = 0;
@@ -186,16 +219,16 @@ export const DEFAULT_TRACK: readonly PieceKind[] = [
   'straightLong',
   'straightLong',
   'straightArrow',
-  'cornerLarger',      // big left sweep
+  'cornerLarger', // big left sweep
   'straightLong',
   'rampLong',
   'straightLong',
-  'cornerLarge',       // tighter turn
+  'cornerLarge', // tighter turn
   'straightLong',
   'straightArrow',
-  'rampLongCurved',    // curving climb
+  'rampLongCurved', // curving climb
   'straightLong',
-  'cornerLarge',       // back the other way
+  'cornerLarge', // back the other way
   'straightLong',
   'cornerLarger',
   'straightLong',

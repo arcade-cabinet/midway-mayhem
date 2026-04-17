@@ -171,7 +171,11 @@ export function Cockpit() {
         </mesh>
 
         {/* Dashboard — curved half-cylinder (polka-dot livery) directly below windshield */}
-        <mesh position={[0, 0.65, -0.55]} rotation={[-Math.PI / 2, 0, Math.PI / 2]} material={dashMat}>
+        <mesh
+          position={[0, 0.65, -0.55]}
+          rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+          material={dashMat}
+        >
           <cylinderGeometry args={[0.55, 0.55, 2.1, 32, 1, false, 0, Math.PI]} />
         </mesh>
         {/* Dashboard inner face (dark contrast toward driver) */}

@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ZoneBanner } from '../../components/ZoneBanner';
 import { resetGameState, useGameStore } from '../../systems/gameState';
-import { beforeEach } from 'vitest';
 
 describe('<ZoneBanner />', () => {
   beforeEach(() => resetGameState());
@@ -17,9 +16,7 @@ describe('<ZoneBanner />', () => {
   it('updates when zone changes', () => {
     useGameStore.setState({ currentZone: 'midway-strip' });
     const { rerender } = render(<ZoneBanner />);
-    expect(screen.getByTestId('zone-banner')).toHaveTextContent(
-      'The Midway Strip',
-    );
+    expect(screen.getByTestId('zone-banner')).toHaveTextContent('The Midway Strip');
     useGameStore.setState({ currentZone: 'ring-of-fire' });
     rerender(<ZoneBanner />);
     expect(screen.getByTestId('zone-banner')).toHaveTextContent('Ring of Fire');

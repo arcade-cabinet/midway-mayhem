@@ -196,12 +196,7 @@ function GameOverOverlay({
           Crowd Reaction: {crowd.toFixed(0)}
         </div>
         <div style={{ marginTop: space.xl }}>
-          <BrandButton
-            kind="primary"
-            size="lg"
-            onClick={onRestart}
-            testId="restart-button"
-          >
+          <BrandButton kind="primary" size="lg" onClick={onRestart} testId="restart-button">
             AGAIN!
           </BrandButton>
         </div>

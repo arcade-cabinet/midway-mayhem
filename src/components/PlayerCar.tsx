@@ -2,8 +2,8 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useGameStore } from '../systems/gameState';
-import { STEER } from '../utils/constants';
 import { sampleTrack } from '../systems/trackGenerator';
+import { STEER } from '../utils/constants';
 import { makeGaugeTexture, makePolkaDotTexture } from '../utils/proceduralTextures';
 
 /**

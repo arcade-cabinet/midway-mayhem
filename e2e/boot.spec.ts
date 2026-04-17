@@ -26,16 +26,12 @@ test.describe('Boot sequence', () => {
     await expectNoErrorModal(page);
   });
 
-  test('asset preload succeeds — circus_arena HDRI available', async ({
-    page,
-  }) => {
+  test('asset preload succeeds — circus_arena HDRI available', async ({ page }) => {
     const requestedUrls: string[] = [];
     page.on('request', (r) => requestedUrls.push(r.url()));
     await page.goto('/?skip=1');
     await waitForHudReady(page);
-    expect(requestedUrls.some((u) => u.includes('circus_arena_2k.hdr'))).toBe(
-      true,
-    );
+    expect(requestedUrls.some((u) => u.includes('circus_arena_2k.hdr'))).toBe(true);
     await expectNoErrorModal(page);
   });
 

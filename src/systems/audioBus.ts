@@ -1,6 +1,6 @@
 import * as Tone from 'tone';
 import type { PickupType, ZoneId } from '../utils/constants';
-import { initBuses, getBuses } from './audio/buses';
+import { getBuses, initBuses } from './audio/buses';
 import { conductor } from './audio/conductor';
 import {
   triggerClownHorn,

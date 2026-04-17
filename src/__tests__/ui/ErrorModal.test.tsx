@@ -17,10 +17,7 @@ describe('<ErrorModal />', () => {
   it('is invisible when there are no errors', () => {
     render(<ErrorModal />);
     expect(screen.queryByTestId('error-modal')).not.toBeInTheDocument();
-    expect(screen.getByTestId('error-modal-root')).toHaveAttribute(
-      'data-error-count',
-      '0',
-    );
+    expect(screen.getByTestId('error-modal-root')).toHaveAttribute('data-error-count', '0');
   });
 
   it('appears on reportError with context + message visible', async () => {
@@ -29,12 +26,8 @@ describe('<ErrorModal />', () => {
       reportError(new Error('HDRI 404'), 'preloadAllAssets');
     });
     expect(screen.getByTestId('error-modal')).toBeInTheDocument();
-    expect(screen.getByTestId('error-modal-context')).toHaveTextContent(
-      'preloadAllAssets',
-    );
-    expect(screen.getByTestId('error-modal-message')).toHaveTextContent(
-      'HDRI 404',
-    );
+    expect(screen.getByTestId('error-modal-context')).toHaveTextContent('preloadAllAssets');
+    expect(screen.getByTestId('error-modal-message')).toHaveTextContent('HDRI 404');
   });
 
   it('stack trace is rendered in details', async () => {
