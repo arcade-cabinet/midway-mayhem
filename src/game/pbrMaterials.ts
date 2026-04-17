@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assetUrl } from '../assets/manifest';
+import { assetUrl } from '@/assets/manifest';
 
 /**
  * PBR material factory — modeled on marmalade-drops/src/game/pbrMaterials.ts.

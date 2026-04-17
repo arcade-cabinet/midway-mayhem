@@ -1,8 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ErrorModal } from '../../components/ErrorModal';
-import { clearErrorsForTests, reportError } from '../../systems/errorBus';
+import { ErrorModal } from '@/hud/ErrorModal';
+import { clearErrorsForTests, reportError } from '@/game/errorBus';
 
 describe('<ErrorModal />', () => {
   beforeEach(() => {

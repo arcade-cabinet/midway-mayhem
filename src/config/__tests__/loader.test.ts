@@ -3,7 +3,7 @@ import { DEFAULT_TUNABLES } from '../defaults';
 import { loadTunables } from '../loader';
 import { parseTunables } from '../schema';
 import { applyLoadedTunables, resetTunablesToDefaults, tunables } from '../index';
-import { clearErrorsForTests } from '../../systems/errorBus';
+import { clearErrorsForTests } from '@/game/errorBus';
 
 // ---------------------------------------------------------------------------
 // parseTunables — unit tests (no fetch needed)

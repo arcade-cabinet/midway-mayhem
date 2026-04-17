@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { Cockpit } from '../components/Cockpit';
+import { Cockpit } from '@/cockpit/Cockpit';
 
 describe('<Cockpit /> browser', () => {
   it('mounts inside a Canvas without throwing', async () => {

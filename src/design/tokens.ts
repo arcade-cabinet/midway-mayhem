@@ -10,7 +10,7 @@
  * src/app/global.css (--mm-* variables), and scripts/bake-kit.py (PALETTE).
  */
 
-import { COLORS } from '../utils/constants';
+import { COLORS } from '@/utils/constants';
 
 export const color = {
   // Brand palette — derived from COLORS (constants.ts is the source of truth)

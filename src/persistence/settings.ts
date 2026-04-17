@@ -10,7 +10,7 @@
  */
 
 import { Preferences } from '@capacitor/preferences';
-import { hapticsBus } from '../systems/hapticsBus';
+import { hapticsBus } from '@/game/hapticsBus';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

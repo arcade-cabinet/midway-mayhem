@@ -7,8 +7,8 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef, useState } from 'react';
 import * as THREE from 'three';
-import { grantUnlock } from '../persistence/profile';
-import { reportError } from '../systems/errorBus';
+import { grantUnlock } from '@/persistence/profile';
+import { reportError } from '@/game/errorBus';
 
 export type ZoneCollectibleId = 'tour-strip' | 'tour-balloons' | 'tour-fire' | 'tour-funhouse';
 

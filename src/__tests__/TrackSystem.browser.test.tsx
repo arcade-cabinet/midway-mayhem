@@ -2,8 +2,8 @@ import { Canvas } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
 import { Suspense } from 'react';
 import { describe, expect, it } from 'vitest';
-import { TrackSystem } from '../components/TrackSystem';
-import { composeTrack, DEFAULT_TRACK } from '../game/trackComposer';
+import { TrackSystem } from '@/track/TrackSystem';
+import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 
 describe('<TrackSystem /> browser', () => {
   it('produces a sane composition for DEFAULT_TRACK', () => {

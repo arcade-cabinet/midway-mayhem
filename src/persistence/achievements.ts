@@ -13,7 +13,7 @@
  */
 
 import { eq } from 'drizzle-orm';
-import { publishAchievement } from '../systems/achievementBus';
+import { publishAchievement } from '@/game/achievementBus';
 import { db } from './db';
 import { achievements } from './schema';
 

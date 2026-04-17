@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { composeTrack, DEFAULT_TRACK, PIECE_SPECS, type PieceKind } from '../trackComposer';
+import { composeTrack, DEFAULT_TRACK, PIECE_SPECS, type PieceKind } from '@/track/trackComposer';
 
 describe('trackComposer', () => {
   it('composes a single straight piece at world origin', () => {

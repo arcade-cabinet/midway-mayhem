@@ -1,30 +1,30 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { TitleScreen } from '../../components/TitleScreen';
+import { TitleScreen } from '@/hud/TitleScreen';
 
 // Title3D uses @react-three/fiber Canvas which requires WebGL — mock it for jsdom
-vi.mock('../../components/Title3D', () => ({
+vi.mock('@/hud/Title3D', () => ({
   Title3D: () => null,
 }));
 
 // Leaderboard fetches from db — mock it for unit tests
-vi.mock('../../components/Leaderboard', () => ({
+vi.mock('@/hud/Leaderboard', () => ({
   Leaderboard: () => null,
 }));
 
 // TicketShop uses Canvas internals — mock it for unit tests
-vi.mock('../../components/TicketShop', () => ({
+vi.mock('@/hud/TicketShop', () => ({
   TicketShop: () => null,
 }));
 
 // AchievementsPanel — mock it for unit tests
-vi.mock('../../components/AchievementsPanel', () => ({
+vi.mock('@/hud/AchievementsPanel', () => ({
   AchievementsPanel: () => null,
 }));
 
 // SettingsPanel — mock it for unit tests
-vi.mock('../../components/SettingsPanel', () => ({
+vi.mock('@/hud/SettingsPanel', () => ({
   SettingsPanel: () => null,
 }));
 

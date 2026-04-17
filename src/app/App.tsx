@@ -1,21 +1,21 @@
 import { Suspense, useEffect, useState } from 'react';
-import { preloadAllAssets } from '../assets/preloader';
-import { applyLoadedTunables, loadTunables } from '../config/index';
-import { AchievementToast } from '../components/AchievementToast';
-import { ErrorModal } from '../components/ErrorModal';
-import { Game } from '../components/Game';
-import { ReactErrorBoundary } from '../components/ReactErrorBoundary';
-import { TitleScreen } from '../components/TitleScreen';
+import { preloadAllAssets } from '@/assets/preloader';
+import { applyLoadedTunables, loadTunables } from '@/config/index';
+import { AchievementToast } from '@/hud/AchievementToast';
+import { ErrorModal } from '@/hud/ErrorModal';
+import { Game } from '@/game/Game';
+import { ReactErrorBoundary } from '@/hud/ReactErrorBoundary';
+import { TitleScreen } from '@/hud/TitleScreen';
 import { BigTopTour } from '../modes/BigTopTour';
-import { STARTER_ITEMS } from '../config/shopCatalog';
-import { initDailyRouteFromUrl } from '../game/dailyRoute';
-import { initDb } from '../persistence/db';
-import { grantUnlock } from '../persistence/profile';
-import { hydrateTutorialFlags } from '../persistence/tutorial';
-import { installDiagnosticsBus } from '../systems/diagnosticsBus';
-import { installGlobalErrorHandlers, reportError } from '../systems/errorBus';
-import { initHapticsSafely } from '../systems/hapticsBus';
-import { useLoadoutStore } from '../hooks/useLoadout';
+import { STARTER_ITEMS } from '@/config/shopCatalog';
+import { initDailyRouteFromUrl } from '@/track/dailyRoute';
+import { initDb } from '@/persistence/db';
+import { grantUnlock } from '@/persistence/profile';
+import { hydrateTutorialFlags } from '@/persistence/tutorial';
+import { installDiagnosticsBus } from '@/game/diagnosticsBus';
+import { installGlobalErrorHandlers, reportError } from '@/game/errorBus';
+import { initHapticsSafely } from '@/game/hapticsBus';
+import { useLoadoutStore } from '@/hooks/useLoadout';
 
 type Scene = 'boot' | 'title' | 'play' | 'tour';
 

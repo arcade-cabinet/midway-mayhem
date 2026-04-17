@@ -15,7 +15,7 @@
  * The "classic" slug of each kind is the free starter item.
  */
 
-import type { UnlockKind } from '../persistence/schema';
+import type { UnlockKind } from '@/persistence/schema';
 
 export interface PalettePreview {
   bg: string;

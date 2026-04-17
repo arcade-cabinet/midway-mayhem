@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetAchievementBusForTests, subscribeAchievements } from '../../systems/achievementBus';
+import { resetAchievementBusForTests, subscribeAchievements } from '@/game/achievementBus';
 import { initDb, resetDbForTests } from '../db';
 import {
   ACHIEVEMENT_CATALOG,

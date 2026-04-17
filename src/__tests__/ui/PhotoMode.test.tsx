@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { PhotoModeOverlay } from '../../components/PhotoMode';
-import { resetGameState, useGameStore } from '../../systems/gameState';
+import { PhotoModeOverlay } from '@/hud/PhotoMode';
+import { resetGameState, useGameStore } from '@/game/gameState';
 
 describe('<PhotoModeOverlay />', () => {
   beforeEach(() => {

@@ -4,7 +4,7 @@
  * The function-based approach avoids circular deps (config → constants → config).
  */
 
-import { tunables } from '../config/index';
+import { tunables } from '@/config/index';
 
 export const TRACK = {
   get LANE_COUNT() { return tunables().track.laneCount; },

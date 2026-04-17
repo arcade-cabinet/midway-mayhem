@@ -5,8 +5,8 @@ import {
   permuteTrack,
   setDailyRoute,
   utcDateString,
-} from '../dailyRoute';
-import type { PieceKind } from '../trackComposer';
+} from '@/track/dailyRoute';
+import type { PieceKind } from '@/track/trackComposer';
 
 describe('utcDateString', () => {
   it('returns yyyy-mm-dd format', () => {

@@ -1,8 +1,8 @@
 /**
  * @/hud — public barrel for HUD, title screen, error modal, design system.
  */
-export { HUD } from '../components/HUD';
-export { TitleScreen } from '../components/TitleScreen';
-export { ErrorModal } from '../components/ErrorModal';
-export { ReactErrorBoundary } from '../components/ReactErrorBoundary';
-export { ZoneBanner } from '../components/ZoneBanner';
+export { HUD } from '@/hud/HUD';
+export { TitleScreen } from '@/hud/TitleScreen';
+export { ErrorModal } from '@/hud/ErrorModal';
+export { ReactErrorBoundary } from '@/hud/ReactErrorBoundary';
+export { ZoneBanner } from '@/hud/ZoneBanner';

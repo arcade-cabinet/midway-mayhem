@@ -9,11 +9,11 @@ import { Canvas } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
 import { Suspense } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { BalloonLayer } from '../components/BalloonLayer';
-import { BarkerCrowd } from '../components/BarkerCrowd';
-import { FireHoopGate } from '../components/FireHoopGate';
-import { MirrorLayer } from '../components/MirrorLayer';
-import { resetGameState, useGameStore } from '../systems/gameState';
+import { BalloonLayer } from '@/obstacles/BalloonLayer';
+import { BarkerCrowd } from '@/obstacles/BarkerCrowd';
+import { FireHoopGate } from '@/obstacles/FireHoopGate';
+import { MirrorLayer } from '@/obstacles/MirrorLayer';
+import { resetGameState, useGameStore } from '@/game/gameState';
 
 describe('Zone Gimmick Layers (browser)', () => {
   beforeEach(() => {

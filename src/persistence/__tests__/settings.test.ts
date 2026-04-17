@@ -13,7 +13,7 @@ vi.mock('@capacitor/preferences', () => ({
 }));
 
 // Mock hapticsBus to avoid import-chain issues in node env
-vi.mock('../../systems/hapticsBus', () => ({
+vi.mock('@/game/hapticsBus', () => ({
   hapticsBus: { setEnabled: vi.fn() },
 }));
 
@@ -98,7 +98,7 @@ describe('singleton behavior', () => {
 
 describe('hapticsBus wiring', () => {
   it('calls hapticsBus.setEnabled with the hapticsEnabled value', async () => {
-    const { hapticsBus } = await import('../../systems/hapticsBus');
+    const { hapticsBus } = await import('@/game/hapticsBus');
     await updateSettings({ hapticsEnabled: false });
     expect(hapticsBus.setEnabled).toHaveBeenCalledWith(false);
   });

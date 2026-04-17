@@ -1,7 +1,7 @@
 /**
  * @/obstacles — public barrel for the obstacles sub-package.
  */
-export { ObstacleSpawner } from '../systems/obstacleSpawner';
-export type { Obstacle, Pickup } from '../systems/obstacleSpawner';
-export { ObstacleSystem } from '../components/ObstacleSystem';
-export { PickupSystem } from '../components/PickupSystem';
+export { ObstacleSpawner } from '@/obstacles/obstacleSpawner';
+export type { Obstacle, Pickup } from '@/obstacles/obstacleSpawner';
+export { ObstacleSystem } from '@/obstacles/ObstacleSystem';
+export { PickupSystem } from '@/obstacles/PickupSystem';

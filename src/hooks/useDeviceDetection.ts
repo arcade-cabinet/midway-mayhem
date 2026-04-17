@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { reportError } from '../systems/errorBus';
+import { reportError } from '@/game/errorBus';
 
 export interface DeviceInfo {
   isNative: boolean;

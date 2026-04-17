@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { breakpoints } from '../design/tokens';
+import { breakpoints } from '@/design/tokens';
 
 export type FormFactorTier =
   | 'phone-portrait'

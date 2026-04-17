@@ -18,11 +18,11 @@
  *   3. Updates zustand store.
  */
 import { create } from 'zustand';
-import type { UnlockKind } from '../persistence/schema';
-import { getLoadout, setLoadout, type LoadoutRow } from '../persistence/profile';
-import { PREF_KEYS, prefGetJSON, prefSetJSON } from '../persistence/preferences';
-import { reportError } from '../systems/errorBus';
-import { setHornSlug } from '../systems/honkBus';
+import type { UnlockKind } from '@/persistence/schema';
+import { getLoadout, setLoadout, type LoadoutRow } from '@/persistence/profile';
+import { PREF_KEYS, prefGetJSON, prefSetJSON } from '@/persistence/preferences';
+import { reportError } from '@/game/errorBus';
+import { setHornSlug } from '@/audio/honkBus';
 
 export interface LoadoutStore {
   loadout: LoadoutRow | null;

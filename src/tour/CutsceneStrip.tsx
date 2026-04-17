@@ -6,9 +6,9 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { color, space } from '../design/tokens';
-import { display, typeStyle } from '../design/typography';
-import { triggerClownHorn } from '../systems/audio/sfx';
+import { color, space } from '@/design/tokens';
+import { display, typeStyle } from '@/design/typography';
+import { triggerClownHorn } from '@/audio/sfx';
 
 interface Props {
   onDismiss: () => void;

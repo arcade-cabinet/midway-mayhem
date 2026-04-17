@@ -1,4 +1,4 @@
-import { reportError } from '../systems/errorBus';
+import { reportError } from '@/game/errorBus';
 import { type Tunables, parseTunables } from './schema';
 
 /**

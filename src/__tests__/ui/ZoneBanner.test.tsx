@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ZoneBanner } from '../../components/ZoneBanner';
-import { resetGameState, useGameStore } from '../../systems/gameState';
+import { ZoneBanner } from '@/hud/ZoneBanner';
+import { resetGameState, useGameStore } from '@/game/gameState';
 
 describe('<ZoneBanner />', () => {
   beforeEach(() => resetGameState());

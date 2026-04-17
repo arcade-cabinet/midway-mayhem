@@ -11,9 +11,9 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { color, space } from '../design/tokens';
-import { display, typeStyle } from '../design/typography';
-import { triggerSlideWhistle } from '../systems/audio/sfx';
+import { color, space } from '@/design/tokens';
+import { display, typeStyle } from '@/design/typography';
+import { triggerSlideWhistle } from '@/audio/sfx';
 
 const DURATION = 5.0;
 const BALLOON_COUNT = 12;
