@@ -17,7 +17,9 @@ import { seedTrack } from '@/ecs/systems/track';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
 import { seedZones } from '@/ecs/systems/seedZones';
 import { resetAchievementsRun, stepAchievements } from '@/game/achievements';
+import { commitGhost, resetGhostRecorder, stepGhostRecorder } from '@/game/ghost';
 import { AchievementToasts } from '@/ui/AchievementToasts';
+import { GhostCar } from '@/render/GhostCar';
 import { ZoneBanners } from '@/render/ZoneBanners';
 import { Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
@@ -43,6 +45,7 @@ seedContent(world, 42);
 seedZones(world);
 spawnPlayer(world);
 resetAchievementsRun();
+resetGhostRecorder();
 
 function GameLoop({
   active,
@@ -60,6 +63,7 @@ function GameLoop({
     if (!active) return;
     stepGameOver(world, { onEnd });
     stepAchievements(world);
+    stepGhostRecorder(world);
   });
   return null;
 }
@@ -106,6 +110,7 @@ export function App() {
           <Track />
           <TrackContent />
           <ZoneBanners />
+          <GhostCar />
           <Cockpit />
           <SpeedLines />
           <BoostRush />
@@ -136,6 +141,7 @@ export function App() {
                   timestamp: Date.now(),
                 });
               }
+              commitGhost(world);
             }}
           />
           <AudioBridge
