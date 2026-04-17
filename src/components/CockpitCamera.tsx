@@ -2,6 +2,7 @@ import { PerspectiveCamera } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { audioBus } from '../systems/audioBus';
 import { useGameStore } from '../systems/gameState';
 
 /**
@@ -28,6 +29,7 @@ export function CockpitCamera() {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const lookAtTarget = useRef(new THREE.Vector3(0, -LOOK_DOWN, -LOOK_DIST));
   const tempTarget = useMemo(() => new THREE.Vector3(), []);
+  const tempForward = useMemo(() => new THREE.Vector3(), []);
   const { size } = useThree();
 
   useFrame((_, delta) => {
@@ -65,6 +67,10 @@ export function CockpitCamera() {
     tempTarget.set(apex, -LOOK_DOWN, -LOOK_DIST);
     lookAtTarget.current.lerp(tempTarget, Math.min(1, delta * LOOKAT_LERP));
     cam.lookAt(lookAtTarget.current);
+
+    // 4. Keep Tone.js listener orientation in sync with camera forward vector.
+    cam.getWorldDirection(tempForward);
+    audioBus.setListenerOrientation(tempForward);
   });
 
   return (

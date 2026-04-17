@@ -35,7 +35,13 @@ describe('<HUD />', () => {
     useGameStore.setState({ gameOver: true, running: false, distance: 200 });
     const { rerender } = render(<HUD />);
     rerender(<HUD />);
-    expect(screen.getAllByTestId('game-over').length).toBeGreaterThan(0);
+    const overlays = screen.getAllByTestId('game-over');
+    expect(overlays.length).toBeGreaterThan(0);
+    // Overlay must contain the crowd-lost headline and the final distance
+    expect(overlays[0]).toHaveTextContent(/crowd lost it/i);
+    expect(overlays[0]).toHaveTextContent(/200/);
+    // Restart button must be present inside the overlay
+    expect(overlays[0]?.querySelector('[data-testid="restart-button"]')).toBeInTheDocument();
   });
 
   it('shows crowd reaction from store', () => {

@@ -52,10 +52,11 @@ export function WorldScroller({ children }: { children: ReactNode }) {
     });
     // biome-ignore lint/suspicious/noExplicitAny: dev diagnostic
     const w = window as any;
-    if (w.__mmDebug !== false) {
+    if (w.__mmDebug === true) {
+      const _tmp = new THREE.Vector3();
       w.__mmDebugTrack = trackGroup?.children.map((c, i) => ({
         index: i,
-        worldPos: c.getWorldPosition(new THREE.Vector3()).toArray(),
+        worldPos: c.getWorldPosition(_tmp.clone()).toArray(),
         visible: c.visible,
       }));
     }

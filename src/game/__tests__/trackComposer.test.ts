@@ -77,7 +77,8 @@ describe('trackComposer', () => {
       expect(prev).toBeDefined();
       expect(cur).toBeDefined();
       if (!prev || !cur) continue;
-      expect(cur.distanceAtStart).toBeGreaterThanOrEqual(prev.distanceAtStart);
+      // Each piece must start exactly where the previous one ends (no gap, no overlap)
+      expect(cur.distanceAtStart).toBeGreaterThanOrEqual(prev.distanceAtStart + prev.length);
     }
   });
 });

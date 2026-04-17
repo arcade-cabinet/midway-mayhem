@@ -1,0 +1,157 @@
+name: CI
+
+# Triggers on every push to main AND every pull request regardless of
+# target branch. Per governance rules: no branches filter on the
+# pull_request event — CI gates must run on PRs into feature branches,
+# release branches, or any other target equally.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      refresh_snapshots:
+        description: "Update missing snapshots"
+        type: boolean
+        default: false
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Biome lint + format check
+        run: pnpm exec biome ci .
+      - name: TypeScript type check
+        run: pnpm exec tsc --noEmit
+
+  node-tests:
+    name: Node Tests (Vitest)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Run node-surface Vitest tests
+        run: pnpm test:node
+
+  jsdom-tests:
+    name: jsdom Tests (Vitest)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Run jsdom-surface Vitest tests
+        run: pnpm test:jsdom
+
+  browser-smoke:
+    name: Browser Smoke Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        run: pnpm test:browser smoke --passWithNoTests
+        continue-on-error: false
+
+  browser-snapshots:
+    name: Browser Snapshot Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run browser snapshot tests
+        run: pnpm test:browser
+        continue-on-error: true
+
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, node-tests, jsdom-tests, browser-smoke]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build production bundle
+        run: pnpm build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Install xvfb for headed browser
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: pnpm build
+      - name: Run E2E tests (headed via xvfb)
+        env:
+          REFRESH_SNAPSHOTS: ${{ inputs.refresh_snapshots }}
+        run: |
+          pnpm copywasm
+          if [ "$REFRESH_SNAPSHOTS" == "true" ]; then
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots missing
+          else
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/

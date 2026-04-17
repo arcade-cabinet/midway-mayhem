@@ -67,8 +67,8 @@ export function installDiagnosticsBus() {
         drawCalls: bus.drawCalls,
         trackPieces: bus.trackPieces,
         meshesRendered: bus.meshesRendered,
-        cameraPos: bus.cameraPos,
-        worldScrollerPos: bus.worldScrollerPos,
+        cameraPos: [...bus.cameraPos] as [number, number, number],
+        worldScrollerPos: [...bus.worldScrollerPos] as [number, number, number],
       };
     },
     setSteer(v: number) {

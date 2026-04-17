@@ -5,19 +5,21 @@
  * layering, and breakpoints. Every HUD/UI/dialog component reads from
  * here — nothing inline, nothing guessed.
  *
- * Palette is locked per docs/DESIGN.md. Changing palette values here must
- * also update src/app/global.css (--mm-* variables) and
- * scripts/bake-kit.py (PALETTE dict).
+ * Brand palette is derived from COLORS in src/utils/constants.ts (source
+ * of truth). Changing palette values must update constants.ts,
+ * src/app/global.css (--mm-* variables), and scripts/bake-kit.py (PALETTE).
  */
 
+import { COLORS } from '../utils/constants';
+
 export const color = {
-  // Brand palette (locked per docs/DESIGN.md)
-  red: '#E53935',
-  yellow: '#FFD600',
-  blue: '#1E88E5',
-  purple: '#8E24AA',
-  orange: '#F36F21',
-  night: '#0B0F1A',
+  // Brand palette — derived from COLORS (constants.ts is the source of truth)
+  red: COLORS.RED,
+  yellow: COLORS.YELLOW,
+  blue: COLORS.BLUE,
+  purple: COLORS.PURPLE,
+  orange: COLORS.ORANGE,
+  night: COLORS.NIGHT,
 
   // Supporting
   walnut: '#120718',
@@ -129,7 +131,8 @@ export const safeArea = {
   left: 'env(safe-area-inset-left, 0px)',
 } as const;
 
-export type DesignToken =
+/** A union of all design token value types (strings, numbers, objects). */
+export type DesignTokenGroup =
   | typeof color
   | typeof radius
   | typeof space

@@ -275,15 +275,19 @@ export function ObstacleSystem() {
     // pass through harmlessly — that's the whole point of honking.
     const playerLat = s.lateral;
     const laneHalfWidth = TRACK.LANE_WIDTH / 2;
+    const toRecycle: { o: (typeof list)[number]; heavy: boolean; oil: boolean }[] = [];
     for (const o of list) {
       if (Math.abs(o.d - s.distance) > 3) continue;
       if (o.type === 'critter' && o.fleeStartedAt) continue;
       const obsLat = laneCenterX(o.lane);
       if (Math.abs(obsLat - playerLat) > laneHalfWidth) continue;
       const heavy = o.type === 'barrier' || o.type === 'hammer';
+      toRecycle.push({ o, heavy, oil: o.type === 'oil' });
+    }
+    for (const { o, heavy, oil } of toRecycle) {
       useGameStore.getState().applyCrash(heavy);
       audioBus.playCrash();
-      if (o.type === 'oil') {
+      if (oil) {
         useGameStore.getState().setLateral(playerLat + (Math.random() - 0.5) * 4);
       }
       o.d = s.distance - 1000;

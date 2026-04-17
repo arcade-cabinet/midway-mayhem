@@ -249,8 +249,10 @@ export function Cockpit() {
 
         {/* HOOD — elongated bubbled shape (VW-Beetle + clown-car combo).
             Lowered (y=-0.1) and scaled down so the driver's forward view
-            opens up — hood reads as a rounded horizon rather than a wall. */}
-        <mesh position={[0, -0.1, -1.9]} material={hoodMat} scale={[0.95, 0.75, 1.25]}>
+            opens up — hood reads as a rounded horizon rather than a wall.
+            hoodZOffset pushes the hood forward on narrow form factors so
+            more track is visible through the windshield. */}
+        <mesh position={[0, -0.1, -1.9 + cockpitScale.hoodZOffset]} material={hoodMat} scale={[0.95, 0.75, 1.25]}>
           <sphereGeometry args={[0.92, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
         </mesh>
         {/* Chrome ridge — now laid ON the hood surface (y=0.55, just above

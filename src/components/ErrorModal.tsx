@@ -34,7 +34,7 @@ export function ErrorModal() {
   };
 
   return (
-    <Dialog tone="danger" testId="error-modal">
+    <Dialog tone="danger" testId="error-modal" role="alertdialog">
       <div
         style={{
           display: 'flex',

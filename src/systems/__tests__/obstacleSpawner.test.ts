@@ -22,7 +22,8 @@ describe('ObstacleSpawner', () => {
   it('consumePickup marks it as consumed', () => {
     spawner.update(0, 'midway-strip');
     const pickups = spawner.getPickups();
-    if (pickups.length === 0) return; // seed might skip
+    // Seed 42 must produce at least one pickup; if the spawner changes this test should surface it
+    expect(pickups.length).toBeGreaterThan(0);
     const first = pickups[0];
     expect(first).toBeDefined();
     if (!first) return;

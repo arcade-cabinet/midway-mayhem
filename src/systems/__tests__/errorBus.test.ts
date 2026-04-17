@@ -7,6 +7,7 @@ describe('errorBus', () => {
   });
   afterEach(() => {
     clearErrorsForTests();
+    vi.restoreAllMocks();
   });
 
   it('starts unhalted with no errors', () => {

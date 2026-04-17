@@ -6,6 +6,9 @@ interface Props {
   tone?: 'danger' | 'info';
   testId?: string;
   style?: CSSProperties;
+  role?: 'dialog' | 'alertdialog';
+  ariaLabel?: string;
+  ariaDescribedBy?: string;
 }
 
 const BORDER: Record<'danger' | 'info', string> = {
@@ -18,12 +21,22 @@ const SHADOW: Record<'danger' | 'info', string> = {
   info: elevation.success,
 };
 
-export function Dialog({ children, tone = 'danger', testId, style }: Props) {
+export function Dialog({
+  children,
+  tone = 'danger',
+  testId,
+  style,
+  role = 'dialog',
+  ariaLabel,
+  ariaDescribedBy,
+}: Props) {
   return (
     <div
       data-testid={testId}
-      role="alertdialog"
-      aria-live="assertive"
+      role={role}
+      aria-live={role === 'alertdialog' ? 'assertive' : undefined}
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
       style={{
         position: 'fixed',
         inset: 0,

@@ -1,4 +1,8 @@
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const sharedVitestConfig = {
   resolve: {

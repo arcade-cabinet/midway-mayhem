@@ -74,21 +74,23 @@ class HapticsBus {
         notification?: (opts: { type: string }) => Promise<void>;
         selectionChanged?: () => Promise<void>;
       };
-      try {
-        if (p.impact && H.impact) {
-          void H.impact({ style: p.impact.toUpperCase() });
-          return;
-        }
-        if (p.notify && H.notification) {
-          void H.notification({ type: p.notify.toUpperCase() });
-          return;
-        }
-        if (p.selection && H.selectionChanged) {
-          void H.selectionChanged();
-          return;
-        }
-      } catch (err) {
-        reportError(err, `hapticsBus.fire(${event}) — Capacitor`);
+      if (p.impact && H.impact) {
+        H.impact({ style: p.impact.toUpperCase() }).catch((err: unknown) =>
+          reportError(err, `hapticsBus.fire(${event}) — Capacitor impact`),
+        );
+        return;
+      }
+      if (p.notify && H.notification) {
+        H.notification({ type: p.notify.toUpperCase() }).catch((err: unknown) =>
+          reportError(err, `hapticsBus.fire(${event}) — Capacitor notification`),
+        );
+        return;
+      }
+      if (p.selection && H.selectionChanged) {
+        H.selectionChanged().catch((err: unknown) =>
+          reportError(err, `hapticsBus.fire(${event}) — Capacitor selectionChanged`),
+        );
+        return;
       }
     }
     // Web Vibration API — works on mobile browsers, no-op on desktop

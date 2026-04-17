@@ -5,11 +5,11 @@ export const TRACK = {
     return this.LANE_COUNT * this.LANE_WIDTH;
   },
   get HALF_WIDTH() {
-    return (this.LANE_COUNT * this.LANE_WIDTH) / 2;
+    return this.WIDTH / 2;
   },
   /** World-space lateral clamp on player position. */
   get LATERAL_CLAMP() {
-    return (this.LANE_COUNT * this.LANE_WIDTH) / 2 - 0.5;
+    return this.WIDTH / 2 - 0.5;
   },
   CHUNK_LENGTH: 40,
   LOOKAHEAD_CHUNKS: 20,

@@ -76,7 +76,9 @@ export function clearErrorsForTests(): void {
   state.errors = [];
   state.halted = false;
   state.nextId = 1;
+  // Notify remaining listeners before clearing them so any pending assertions resolve cleanly
   for (const fn of state.listeners) fn(state.errors);
+  state.listeners.clear();
 }
 
 let installed = false;

@@ -42,7 +42,8 @@
     "test:maestro": "bash scripts/maestro-smoke.sh",
     "audit:balance": "tsx scripts/run-balance-audit.ts",
     "audit:balance:compare": "tsx scripts/compare-balance-audits.ts",
-    "capture:marketing": "tsx scripts/capture-marketing.ts"
+    "capture:marketing": "tsx scripts/capture-marketing.ts",
+    "deploy:check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.0",
