@@ -1,11 +1,11 @@
-import { PerspectiveCamera } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useResponsiveFov } from '../hooks/useResponsiveFov';
+import { useResponsiveCockpitScale } from '../hooks/useResponsiveCockpitScale';
 import { useGameStore } from '../systems/gameState';
 import { STEER } from '../utils/constants';
 import { makeGaugeTexture, makePolkaDotTexture } from '../utils/proceduralTextures';
+import { CockpitCamera } from './CockpitCamera';
 
 /**
  * World-origin cockpit. The camera is a child of this group; the cockpit
@@ -25,8 +25,6 @@ export function Cockpit() {
   const needleLaughsRef = useRef<THREE.Mesh>(null);
   const needleFunRef = useRef<THREE.Mesh>(null);
   const diceRef = useRef<THREE.Group>(null);
-
-  const fov = useResponsiveFov(95);
 
   const polkaTex = useMemo(() => {
     const t = makePolkaDotTexture();
@@ -99,17 +97,13 @@ export function Cockpit() {
     }
   });
 
+  const cockpitScale = useResponsiveCockpitScale();
+
   return (
-    <group name="cockpit-root" data-testid="cockpit">
+    <group name="cockpit-root" data-testid="cockpit" scale={cockpitScale.scale}>
       <group ref={bodyRef} name="cockpit-body">
-        {/* CAMERA lives inside the body → banks with it. Positioned at driver's head height. */}
-        <PerspectiveCamera
-          makeDefault
-          fov={fov}
-          near={0.05}
-          far={2000}
-          position={[0, 1.65, 0.9]}
-        />
+        {/* CAMERA lives inside the body → banks with it. All camera logic (FOV, look-ahead, speed boost) in CockpitCamera. */}
+        <CockpitCamera />
 
         {/* A-pillars framing the forward view (from driver's POV looking -Z) */}
         <mesh position={[-1.1, 1.55, -0.2]} rotation={[0.25, 0, 0.12]} material={frameMat}>

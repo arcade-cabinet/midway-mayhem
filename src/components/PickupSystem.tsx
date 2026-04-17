@@ -3,6 +3,7 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { composeTrack, DEFAULT_TRACK } from '../game/trackComposer';
 import { useGameStore } from '../systems/gameState';
+import { laneCenterX } from '../utils/constants';
 import { trackToWorld } from './ObstacleSystem';
 
 export function PickupSystem() {
@@ -33,7 +34,7 @@ export function PickupSystem() {
       if (!m) continue;
       const i = counts[p.type] ?? 0;
       if (i >= m.count) continue;
-      const world = trackToWorld(composition, p.d, (p.lane - 1.5) * 1.3);
+      const world = trackToWorld(composition, p.d, laneCenterX(p.lane));
       dummy.position.set(world.x, world.y + 1.8, world.z);
       dummy.rotation.set(0, spin + world.heading, p.type === 'boost' ? Math.PI / 2 : 0);
       dummy.scale.set(1, 1, 1);

@@ -1,13 +1,26 @@
 export const TRACK = {
-  LANE_COUNT: 4,
-  LANE_WIDTH: 5.5,
+  LANE_COUNT: 3,
+  LANE_WIDTH: 3.3, // 3 lanes × 3.3m = ~10m track width (matches Kenney scale=10 pieces)
   get WIDTH() {
     return this.LANE_COUNT * this.LANE_WIDTH;
+  },
+  get HALF_WIDTH() {
+    return (this.LANE_COUNT * this.LANE_WIDTH) / 2;
+  },
+  /** World-space lateral clamp on player position. */
+  get LATERAL_CLAMP() {
+    return (this.LANE_COUNT * this.LANE_WIDTH) / 2 - 0.5;
   },
   CHUNK_LENGTH: 40,
   LOOKAHEAD_CHUNKS: 20,
   BEHIND_CHUNKS: 3,
 } as const;
+
+/** Index of each lane's center X, in the order [-halfWidth → +halfWidth]. */
+export function laneCenterX(laneIndex: number): number {
+  const half = (TRACK.LANE_COUNT - 1) / 2;
+  return (laneIndex - half) * TRACK.LANE_WIDTH;
+}
 
 export const SPEED = {
   BASE_MPS: 30,

@@ -176,22 +176,28 @@ export function composeTrack(
   };
 }
 
-/** The opening circuit — 130m+ of winding Hot Wheels chaos */
+/**
+ * First-pass default track — mostly straight with two gentle ramps so the
+ * player can see the road directly ahead of the cockpit. Corners require
+ * a follow-camera (scheduled work) before they'll feel right; for now the
+ * straight run nails the "I'm racing down a track" feel.
+ *
+ * Total distance: ~320m of driving time.
+ */
 export const DEFAULT_TRACK: readonly PieceKind[] = [
   'start',
   'straightLong',
   'straightLong',
-  'cornerLarger',
-  'straightLong',
+  'straightArrow',
   'straightLong',
   'rampLong',
   'straightLong',
-  'cornerLarge',
   'straightLong',
-  'cornerLarge',
   'straightLong',
   'straightArrow',
-  'cornerLarger',
+  'rampLong',
+  'straightLong',
+  'straightLong',
   'straightLong',
   'straightLong',
   'end',

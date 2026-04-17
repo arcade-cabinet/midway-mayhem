@@ -18,6 +18,10 @@ export interface DiagnosticsDump {
   obstacleCount: number;
   pickupCount: number;
   drawCalls: number;
+  trackPieces: number;
+  meshesRendered: number;
+  cameraPos: [number, number, number];
+  worldScrollerPos: [number, number, number];
 }
 
 const bus = {
@@ -26,6 +30,10 @@ const bus = {
   obstacleCount: 0,
   pickupCount: 0,
   drawCalls: 0,
+  trackPieces: 0,
+  meshesRendered: 0,
+  cameraPos: [0, 0, 0] as [number, number, number],
+  worldScrollerPos: [0, 0, 0] as [number, number, number],
 };
 
 export function installDiagnosticsBus() {
@@ -56,6 +64,10 @@ export function installDiagnosticsBus() {
         obstacleCount: bus.obstacleCount,
         pickupCount: bus.pickupCount,
         drawCalls: bus.drawCalls,
+        trackPieces: bus.trackPieces,
+        meshesRendered: bus.meshesRendered,
+        cameraPos: bus.cameraPos,
+        worldScrollerPos: bus.worldScrollerPos,
       };
     },
     setSteer(v: number) {
@@ -78,4 +90,15 @@ export function reportCounts(obstacles: number, pickups: number, drawCalls: numb
   bus.obstacleCount = obstacles;
   bus.pickupCount = pickups;
   bus.drawCalls = drawCalls;
+}
+export function reportScene(info: {
+  trackPieces: number;
+  meshesRendered: number;
+  cameraPos: [number, number, number];
+  worldScrollerPos: [number, number, number];
+}) {
+  bus.trackPieces = info.trackPieces;
+  bus.meshesRendered = info.meshesRendered;
+  bus.cameraPos = info.cameraPos;
+  bus.worldScrollerPos = info.worldScrollerPos;
 }

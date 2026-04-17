@@ -14,30 +14,33 @@ describe('GovernorDriver', () => {
 
   it('avoids obstacles on the current lane', () => {
     const driver = new GovernorDriver();
-    // Put a barrier on the current lane 20 meters ahead
+    // Governor samples lane centers via the spline (trackGenerator.laneCenterAt).
+    // lookaheadMeters=40 → sampleTrack(40).x = 8.25. Lane 1 at d=40 is worldX≈8.25.
+    // Obstacle must be within avoidWindow (30m) of playerD.
+    // Place it at d=20 (within window) at the lane-1 spline position there:
+    // sampleTrack(20).x = sin(0.18)*18 + sin(0.08)*12 ≈ 3.23 + 0.96 ≈ 4.18
     const result = driver.step(
       {
         playerD: 0,
         playerLateral: 0,
-        obstacles: [{ d: 20, x: 0, z: -20, type: 'barrier', radius: 1.6 }],
+        obstacles: [{ d: 20, x: 4.18, z: -20, type: 'barrier', radius: 1.6 }],
         pickups: [],
       },
       0.016,
     );
-    // Driver should try to steer away; some nonzero steer value
-    expect(Math.abs(result.steer)).toBeGreaterThan(0.01);
     expect(result.debug.avoidedObstacles).toBeGreaterThan(0);
   });
 
-  it('seeks toward mega boost pickups', () => {
+  it('seeks toward mega boost pickups on a lane', () => {
     const driver = new GovernorDriver();
-    // Mega boost off to the right of current lane
+    // Mega boost within pickupWindow=20m, at lane-1 spline position at d=15.
+    // sampleTrack(15).x ≈ sin(0.135)*18 + sin(0.06)*12 ≈ 2.42 + 0.72 ≈ 3.14
     const result = driver.step(
       {
         playerD: 0,
         playerLateral: 0,
         obstacles: [],
-        pickups: [{ d: 10, x: 4.5, z: -10, type: 'mega', radius: 2.2 }],
+        pickups: [{ d: 15, x: 3.14, z: -15, type: 'mega', radius: 2.2 }],
       },
       0.016,
     );

@@ -1,5 +1,13 @@
-import { useGameStore } from '../systems/gameState';
+import { Banner } from '../design/components/Banner';
+import { BrandButton } from '../design/components/BrandButton';
+import { HUDFrame } from '../design/components/HUDFrame';
+import { Panel } from '../design/components/Panel';
+import { Stat } from '../design/components/Stat';
+import { color, safeArea, space } from '../design/tokens';
+import { display, typeStyle, ui } from '../design/typography';
+import { useFormFactor } from '../hooks/useFormFactor';
 import { audioBus } from '../systems/audioBus';
+import { useGameStore } from '../systems/gameState';
 
 export function HUD() {
   const hype = useGameStore((s) => s.hype);
@@ -9,150 +17,203 @@ export function HUD() {
   const crowd = useGameStore((s) => s.crowdReaction);
   const gameOver = useGameStore((s) => s.gameOver);
   const startRun = useGameStore((s) => s.startRun);
+  const ff = useFormFactor();
 
-  return (
-    <div
-      data-testid="hud"
-      style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        fontFamily: 'Rajdhani, sans-serif',
-        color: '#fff',
-        zIndex: 20,
-      }}
-    >
-      <div data-testid="hud-hype" style={panelStyle('tl')}>
-        <div style={labelStyle}>HYPE</div>
-        <div style={valueStyle}>{hype.toFixed(0)}</div>
-        <div style={barOuter}>
-          <div style={{ ...barInner, width: `${Math.min(100, hype)}%`, background: '#FFD600' }} />
-        </div>
-      </div>
+  const isPhonePortrait = ff.tier === 'phone-portrait';
 
-      <div data-testid="hud-stats" style={panelStyle('tr')}>
-        <div style={labelStyle}>DISTANCE</div>
-        <div style={valueStyle}>{distance.toFixed(0)}m</div>
-        <div style={{ ...labelStyle, marginTop: 10 }}>CRASHES</div>
-        <div style={valueStyle}>{crashes}</div>
-      </div>
-
-      <div data-testid="hud-sanity" style={panelStyle('bl')}>
-        <div style={labelStyle}>SANITY</div>
-        <div style={barOuter}>
-          <div style={{ ...barInner, width: `${sanity}%`, background: '#E53935' }} />
-        </div>
-      </div>
-
-      <div data-testid="hud-crowd" style={panelStyle('br')}>
-        <div style={labelStyle}>CROWD</div>
-        <div style={valueStyle}>{crowd.toFixed(0)}</div>
-      </div>
-
-      <button
-        data-testid="honk-button"
-        onClick={() => audioBus.playHonk()}
-        style={{
-          position: 'absolute',
-          bottom: 'calc(20px + env(safe-area-inset-bottom, 0))',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          pointerEvents: 'auto',
-          padding: '16px 32px',
-          border: '3px solid #ffd600',
-          background: '#E53935',
-          color: '#fff',
-          fontFamily: 'Bangers, sans-serif',
-          fontSize: '1.5rem',
-          letterSpacing: '0.08em',
-          borderRadius: 12,
-          cursor: 'pointer',
-        }}
-        type="button"
-      >
-        HONK
-      </button>
-
-      {gameOver && (
+  // Phone portrait — stacked two rows
+  if (isPhonePortrait) {
+    return (
+      <HUDFrame testId="hud">
+        {/* Top row: HYPE + DISTANCE/CRASHES side-by-side */}
         <div
-          data-testid="game-over"
           style={{
             position: 'absolute',
-            inset: 0,
+            top: `calc(${space.md}px + ${safeArea.top})`,
+            left: `calc(${space.md}px + ${safeArea.left})`,
+            right: `calc(${space.md}px + ${safeArea.right})`,
             display: 'grid',
-            placeItems: 'center',
-            background: 'rgba(11,15,26,0.8)',
-            pointerEvents: 'auto',
+            gridTemplateColumns: '1fr 1fr',
+            gap: space.md,
           }}
         >
-          <div style={{ textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: 'Bangers, sans-serif',
-                fontSize: 'clamp(3rem, 10vw, 6rem)',
-                color: '#E53935',
-                letterSpacing: '0.08em',
-              }}
-            >
-              CROWD LOST IT!
+          <Panel variant="dark">
+            <Stat
+              label="HYPE"
+              value={hype.toFixed(0)}
+              bar={{ value: Math.min(100, hype), tone: 'yellow' }}
+              testId="hud-hype"
+            />
+          </Panel>
+          <Panel variant="dark">
+            <Stat
+              label="DISTANCE"
+              value={distance.toFixed(0)}
+              unit="m"
+              testId="hud-stats"
+            />
+            <div style={{ marginTop: space.xs }}>
+              <Stat label="CRASHES" value={crashes} labelColor={color.red} />
             </div>
-            <div style={{ marginTop: 12, fontSize: '1.4rem' }}>Distance: {distance.toFixed(0)}m</div>
-            <div style={{ fontSize: '1.4rem' }}>Crowd Reaction: {crowd.toFixed(0)}</div>
-            <button
-              data-testid="restart-button"
-              type="button"
-              onClick={() => startRun()}
-              style={{
-                marginTop: 24,
-                padding: '16px 32px',
-                background: '#ffd600',
-                color: '#0b0f1a',
-                border: 'none',
-                fontFamily: 'Bangers, sans-serif',
-                fontSize: '1.8rem',
-                letterSpacing: '0.08em',
-                cursor: 'pointer',
-                borderRadius: 12,
-              }}
-            >
-              AGAIN!
-            </button>
-          </div>
+          </Panel>
         </div>
-      )}
+
+        {/* Bottom row: SANITY bar + CROWD score + HONK */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: `calc(${space.md}px + ${safeArea.bottom})`,
+            left: `calc(${space.md}px + ${safeArea.left})`,
+            right: `calc(${space.md}px + ${safeArea.right})`,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: space.md,
+            marginBottom: 80,
+          }}
+        >
+          <Panel variant="dark" testId="hud-sanity">
+            <Stat
+              label="SANITY"
+              value={sanity.toFixed(0)}
+              bar={{ value: sanity, tone: 'red' }}
+              labelColor={color.red}
+            />
+          </Panel>
+          <Panel variant="dark" testId="hud-crowd">
+            <Stat label="CROWD" value={crowd.toFixed(0)} valueColor={color.blue} />
+          </Panel>
+        </div>
+
+        <HonkButton />
+        {gameOver && <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />}
+      </HUDFrame>
+    );
+  }
+
+  // Desktop / landscape / tablet — classic 4-corner layout
+  return (
+    <HUDFrame testId="hud">
+      <Panel corner="tl" variant="dark">
+        <Stat
+          label="HYPE"
+          value={hype.toFixed(0)}
+          bar={{ value: Math.min(100, hype), tone: 'yellow' }}
+          testId="hud-hype"
+        />
+      </Panel>
+
+      <Panel corner="tr" variant="dark">
+        <Stat label="DISTANCE" value={distance.toFixed(0)} unit="m" testId="hud-stats" />
+        <div style={{ marginTop: space.sm }}>
+          <Stat label="CRASHES" value={crashes} labelColor={color.red} />
+        </div>
+      </Panel>
+
+      <Panel corner="bl" variant="dark" testId="hud-sanity">
+        <Stat
+          label="SANITY"
+          value={sanity.toFixed(0)}
+          bar={{ value: sanity, tone: 'red' }}
+          labelColor={color.red}
+        />
+      </Panel>
+
+      <Panel corner="br" variant="dark" testId="hud-crowd">
+        <Stat label="CROWD" value={crowd.toFixed(0)} valueColor={color.blue} />
+      </Panel>
+
+      <HonkButton />
+      {gameOver && <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />}
+    </HUDFrame>
+  );
+}
+
+function HonkButton() {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: `calc(${space.lg}px + ${safeArea.bottom})`,
+        left: '50%',
+        transform: 'translateX(-50%)',
+      }}
+    >
+      <BrandButton
+        kind="primary"
+        size="md"
+        onClick={() => audioBus.playHonk()}
+        testId="honk-button"
+      >
+        HONK
+      </BrandButton>
     </div>
   );
 }
 
-const panelStyle = (corner: 'tl' | 'tr' | 'bl' | 'br'): React.CSSProperties => ({
-  position: 'absolute',
-  padding: 16,
-  background: 'rgba(11,15,26,0.6)',
-  border: '2px solid rgba(255,214,0,0.4)',
-  borderRadius: 10,
-  backdropFilter: 'blur(6px)',
-  minWidth: 140,
-  ...(corner.includes('t') ? { top: 'calc(20px + env(safe-area-inset-top, 0))' } : { bottom: 'calc(120px + env(safe-area-inset-bottom, 0))' }),
-  ...(corner.includes('l') ? { left: 20 } : { right: 20 }),
-});
-const labelStyle: React.CSSProperties = {
-  fontSize: 11,
-  letterSpacing: '0.15em',
-  color: '#1E88E5',
-  fontWeight: 700,
-};
-const valueStyle: React.CSSProperties = {
-  fontFamily: 'Bangers, sans-serif',
-  fontSize: '2rem',
-  color: '#FFD600',
-  lineHeight: 1,
-};
-const barOuter: React.CSSProperties = {
-  marginTop: 6,
-  width: '100%',
-  height: 8,
-  background: 'rgba(255,255,255,0.1)',
-  borderRadius: 4,
-  overflow: 'hidden',
-};
-const barInner: React.CSSProperties = { height: '100%', transition: 'width 0.2s ease' };
+function GameOverOverlay({
+  distance,
+  crowd,
+  onRestart,
+}: {
+  distance: number;
+  crowd: number;
+  onRestart: () => void;
+}) {
+  return (
+    <div
+      data-testid="game-over"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'grid',
+        placeItems: 'center',
+        background: color.overlayDim,
+        pointerEvents: 'auto',
+      }}
+    >
+      <div style={{ textAlign: 'center', padding: space.xl }}>
+        <div
+          style={{
+            ...typeStyle(display.hero),
+            color: color.red,
+            fontSize: 'clamp(3rem, 10vw, 6rem)',
+          }}
+        >
+          CROWD LOST IT!
+        </div>
+        <div
+          style={{
+            ...typeStyle(ui.body),
+            marginTop: space.md,
+            fontSize: '1.2rem',
+            color: color.white,
+          }}
+        >
+          Distance: {distance.toFixed(0)}m
+        </div>
+        <div
+          style={{
+            ...typeStyle(ui.body),
+            fontSize: '1.2rem',
+            color: color.white,
+          }}
+        >
+          Crowd Reaction: {crowd.toFixed(0)}
+        </div>
+        <div style={{ marginTop: space.xl }}>
+          <BrandButton
+            kind="primary"
+            size="lg"
+            onClick={onRestart}
+            testId="restart-button"
+          >
+            AGAIN!
+          </BrandButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// re-export so `Banner` is available when needed (ZoneBanner now uses it)
+export { Banner };

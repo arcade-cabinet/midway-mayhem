@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react';
+import { BrandButton } from '../design/components/BrandButton';
+import { Dialog } from '../design/components/Dialog';
+import { color, space } from '../design/tokens';
+import { display, mono, typeStyle, ui } from '../design/typography';
 import { type GameError, subscribeErrors } from '../systems/errorBus';
 
 export function ErrorModal() {
@@ -30,264 +34,215 @@ export function ErrorModal() {
   };
 
   return (
-    <div
-      data-testid="error-modal"
-      role="alertdialog"
-      aria-live="assertive"
-      style={overlay}
-    >
-      <div style={panel}>
-        <div style={header}>
-          <div style={title}>MAYHEM HALTED</div>
-          <div style={subtitle}>{errors.length === 1 ? '1 error' : `${errors.length} errors`}</div>
+    <Dialog tone="danger" testId="error-modal">
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: space.base,
+          borderBottom: `2px solid ${color.borderAccent}`,
+          paddingBottom: space.md,
+        }}
+      >
+        <div
+          style={{
+            ...typeStyle(display.banner),
+            color: color.red,
+            fontSize: '2.5rem',
+            textShadow: '3px 3px 0 #000',
+          }}
+        >
+          MAYHEM HALTED
         </div>
-
-        <div style={contextRow}>
-          <span style={contextLabel}>Context:</span>
-          <span data-testid="error-modal-context" style={contextValue}>
-            {latest.context}
-          </span>
-        </div>
-
-        <div data-testid="error-modal-message" style={message}>
-          {latest.message}
-        </div>
-
-        {latest.cause && (
-          <div style={causeBlock}>
-            <div style={causeLabel}>Caused by</div>
-            <div style={causeText}>{latest.cause}</div>
-          </div>
-        )}
-
-        <details style={stackDetails}>
-          <summary style={stackSummary}>Stack trace</summary>
-          <pre data-testid="error-modal-stack" style={stackPre}>
-            {latest.stack}
-          </pre>
-        </details>
-
-        {errors.length > 1 && (
-          <details style={stackDetails}>
-            <summary style={stackSummary}>All {errors.length} errors</summary>
-            <pre style={stackPre}>
-              {errors
-                .map(
-                  (e, i) => `${i + 1}. [${e.context}] ${e.message}\n    ${e.stack.split('\n')[1]?.trim() ?? ''}`,
-                )
-                .join('\n\n')}
-            </pre>
-          </details>
-        )}
-
-        <div style={metaRow}>
-          <div>
-            <span style={metaLabel}>URL:</span> {latest.url}
-          </div>
-          <div>
-            <span style={metaLabel}>When:</span> {new Date(latest.at).toLocaleTimeString()}
-          </div>
-        </div>
-
-        <div style={actionRow}>
-          <button
-            type="button"
-            data-testid="error-modal-copy"
-            onClick={copyToClipboard}
-            style={buttonPrimary}
-          >
-            Copy report
-          </button>
-          <button
-            type="button"
-            data-testid="error-modal-reload"
-            onClick={() => window.location.reload()}
-            style={buttonSecondary}
-          >
-            Reload
-          </button>
-          <button
-            type="button"
-            data-testid="error-modal-dismiss"
-            onClick={() => setDismissed(true)}
-            style={buttonGhost}
-            title="Dismiss modal (game stays halted; reload to restart)"
-          >
-            Dismiss
-          </button>
+        <div style={{ ...typeStyle(ui.label), color: color.yellow }}>
+          {errors.length === 1 ? '1 error' : `${errors.length} errors`}
         </div>
       </div>
-    </div>
+
+      <div
+        style={{
+          display: 'flex',
+          gap: space.sm,
+          alignItems: 'baseline',
+          marginBottom: space.md,
+        }}
+      >
+        <span style={{ ...typeStyle(ui.label), color: color.blue }}>Context:</span>
+        <span
+          data-testid="error-modal-context"
+          style={{ ...typeStyle(mono.inline), color: color.yellow }}
+        >
+          {latest.context}
+        </span>
+      </div>
+
+      <div
+        data-testid="error-modal-message"
+        style={{
+          padding: `${space.md}px ${space.base}px`,
+          background: 'rgba(229, 57, 53, 0.15)',
+          borderLeft: `4px solid ${color.red}`,
+          borderRadius: 4,
+          marginBottom: space.sm,
+          ...typeStyle(mono.inline),
+          fontSize: '1.05rem',
+          lineHeight: 1.4,
+          wordBreak: 'break-word',
+        }}
+      >
+        {latest.message}
+      </div>
+
+      {latest.cause && (
+        <div
+          style={{
+            marginBottom: space.sm,
+            padding: space.md,
+            background: 'rgba(30, 136, 229, 0.12)',
+            borderLeft: `4px solid ${color.blue}`,
+            borderRadius: 4,
+          }}
+        >
+          <div
+            style={{
+              ...typeStyle(ui.label),
+              color: color.blue,
+              marginBottom: space.xs,
+            }}
+          >
+            Caused by
+          </div>
+          <div style={{ ...typeStyle(mono.inline) }}>{latest.cause}</div>
+        </div>
+      )}
+
+      <details
+        style={{
+          marginBottom: space.md,
+          background: 'rgba(255, 255, 255, 0.04)',
+          borderRadius: 6,
+          padding: space.sm + 2,
+        }}
+      >
+        <summary
+          style={{
+            cursor: 'pointer',
+            ...typeStyle(ui.small),
+            color: color.purple,
+            fontWeight: 700,
+          }}
+        >
+          Stack trace
+        </summary>
+        <pre
+          data-testid="error-modal-stack"
+          style={{
+            ...typeStyle(mono.stack),
+            marginTop: space.sm + 2,
+            color: '#bbb',
+            overflow: 'auto',
+            maxHeight: 260,
+            padding: space.sm + 2,
+            background: 'rgba(0, 0, 0, 0.5)',
+            borderRadius: 4,
+          }}
+        >
+          {latest.stack}
+        </pre>
+      </details>
+
+      {errors.length > 1 && (
+        <details
+          style={{
+            marginBottom: space.md,
+            background: 'rgba(255, 255, 255, 0.04)',
+            borderRadius: 6,
+            padding: space.sm + 2,
+          }}
+        >
+          <summary
+            style={{
+              cursor: 'pointer',
+              ...typeStyle(ui.small),
+              color: color.purple,
+              fontWeight: 700,
+            }}
+          >
+            All {errors.length} errors
+          </summary>
+          <pre
+            style={{
+              ...typeStyle(mono.stack),
+              marginTop: space.sm + 2,
+              color: '#bbb',
+              overflow: 'auto',
+              maxHeight: 260,
+              padding: space.sm + 2,
+              background: 'rgba(0, 0, 0, 0.5)',
+              borderRadius: 4,
+            }}
+          >
+            {errors
+              .map(
+                (e, i) =>
+                  `${i + 1}. [${e.context}] ${e.message}\n    ${e.stack.split('\n')[1]?.trim() ?? ''}`,
+              )
+              .join('\n\n')}
+          </pre>
+        </details>
+      )}
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: space.md,
+          ...typeStyle(ui.meta),
+          color: 'rgba(255, 255, 255, 0.5)',
+          marginBottom: space.base,
+          paddingTop: space.md,
+          borderTop: `1px solid ${color.borderSubtle}`,
+        }}
+      >
+        <div>
+          <span style={{ color: color.blue, fontWeight: 700 }}>URL:</span> {latest.url}
+        </div>
+        <div>
+          <span style={{ color: color.blue, fontWeight: 700 }}>When:</span>{' '}
+          {new Date(latest.at).toLocaleTimeString()}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          gap: space.md,
+          justifyContent: 'flex-end',
+          flexWrap: 'wrap',
+        }}
+      >
+        <BrandButton kind="primary" size="sm" onClick={copyToClipboard} testId="error-modal-copy">
+          Copy report
+        </BrandButton>
+        <BrandButton
+          kind="secondary"
+          size="sm"
+          onClick={() => window.location.reload()}
+          testId="error-modal-reload"
+        >
+          Reload
+        </BrandButton>
+        <BrandButton
+          kind="ghost"
+          size="sm"
+          onClick={() => setDismissed(true)}
+          testId="error-modal-dismiss"
+        >
+          Dismiss
+        </BrandButton>
+      </div>
+    </Dialog>
   );
 }
-
-const overlay: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(10, 0, 15, 0.88)',
-  display: 'grid',
-  placeItems: 'center',
-  zIndex: 10000,
-  padding: 24,
-  fontFamily: 'Rajdhani, system-ui, sans-serif',
-  color: '#fff',
-};
-
-const panel: React.CSSProperties = {
-  width: 'min(780px, 100%)',
-  maxHeight: '90vh',
-  overflowY: 'auto',
-  background: '#120718',
-  border: '3px solid #E53935',
-  borderRadius: 12,
-  padding: 24,
-  boxShadow: '0 0 64px rgba(229, 57, 53, 0.45)',
-};
-
-const header: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-  marginBottom: 16,
-  borderBottom: '2px solid rgba(255, 214, 0, 0.3)',
-  paddingBottom: 12,
-};
-
-const title: React.CSSProperties = {
-  fontFamily: 'Bangers, Impact, sans-serif',
-  fontSize: '2.5rem',
-  letterSpacing: '0.08em',
-  color: '#E53935',
-  textShadow: '3px 3px 0 #000',
-};
-
-const subtitle: React.CSSProperties = {
-  fontSize: '0.9rem',
-  color: '#FFD600',
-  letterSpacing: '0.15em',
-  textTransform: 'uppercase',
-};
-
-const contextRow: React.CSSProperties = {
-  display: 'flex',
-  gap: 8,
-  alignItems: 'baseline',
-  marginBottom: 12,
-};
-const contextLabel: React.CSSProperties = {
-  fontSize: '0.75rem',
-  color: '#1E88E5',
-  letterSpacing: '0.15em',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-};
-const contextValue: React.CSSProperties = {
-  fontFamily: 'ui-monospace, Menlo, monospace',
-  fontSize: '0.95rem',
-  color: '#FFD600',
-};
-
-const message: React.CSSProperties = {
-  padding: '12px 16px',
-  background: 'rgba(229, 57, 53, 0.15)',
-  borderLeft: '4px solid #E53935',
-  borderRadius: 4,
-  marginBottom: 14,
-  fontSize: '1.05rem',
-  lineHeight: 1.4,
-  fontFamily: 'ui-monospace, Menlo, monospace',
-  wordBreak: 'break-word',
-};
-
-const causeBlock: React.CSSProperties = {
-  marginBottom: 14,
-  padding: 12,
-  background: 'rgba(30, 136, 229, 0.12)',
-  borderLeft: '4px solid #1E88E5',
-  borderRadius: 4,
-};
-const causeLabel: React.CSSProperties = {
-  fontSize: '0.7rem',
-  color: '#1E88E5',
-  letterSpacing: '0.15em',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  marginBottom: 4,
-};
-const causeText: React.CSSProperties = {
-  fontFamily: 'ui-monospace, Menlo, monospace',
-  fontSize: '0.9rem',
-};
-
-const stackDetails: React.CSSProperties = {
-  marginBottom: 12,
-  background: 'rgba(255, 255, 255, 0.04)',
-  borderRadius: 6,
-  padding: 10,
-};
-const stackSummary: React.CSSProperties = {
-  cursor: 'pointer',
-  fontSize: '0.9rem',
-  color: '#8E24AA',
-  fontWeight: 700,
-  letterSpacing: '0.05em',
-};
-const stackPre: React.CSSProperties = {
-  marginTop: 10,
-  fontSize: '0.78rem',
-  lineHeight: 1.4,
-  fontFamily: 'ui-monospace, Menlo, monospace',
-  color: '#bbb',
-  overflow: 'auto',
-  maxHeight: 260,
-  padding: 10,
-  background: 'rgba(0, 0, 0, 0.5)',
-  borderRadius: 4,
-};
-
-const metaRow: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  flexWrap: 'wrap',
-  gap: 12,
-  fontSize: '0.75rem',
-  color: 'rgba(255, 255, 255, 0.5)',
-  marginBottom: 16,
-  paddingTop: 12,
-  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-};
-const metaLabel: React.CSSProperties = { color: '#1E88E5', fontWeight: 700 };
-
-const actionRow: React.CSSProperties = {
-  display: 'flex',
-  gap: 12,
-  justifyContent: 'flex-end',
-  flexWrap: 'wrap',
-};
-const buttonBase: React.CSSProperties = {
-  padding: '10px 18px',
-  fontFamily: 'Bangers, Impact, sans-serif',
-  fontSize: '1.1rem',
-  letterSpacing: '0.08em',
-  borderRadius: 8,
-  cursor: 'pointer',
-  border: '2px solid',
-};
-const buttonPrimary: React.CSSProperties = {
-  ...buttonBase,
-  borderColor: '#FFD600',
-  background: '#E53935',
-  color: '#fff',
-};
-const buttonSecondary: React.CSSProperties = {
-  ...buttonBase,
-  borderColor: '#1E88E5',
-  background: 'transparent',
-  color: '#1E88E5',
-};
-const buttonGhost: React.CSSProperties = {
-  ...buttonBase,
-  borderColor: 'rgba(255,255,255,0.2)',
-  background: 'transparent',
-  color: 'rgba(255,255,255,0.7)',
-};
