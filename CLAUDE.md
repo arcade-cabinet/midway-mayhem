@@ -82,5 +82,5 @@ scripts/
 - `../marmalade-drops/` — vitest+koota patterns we're mirroring
 - `../stellar-descent/` — real-GPU Playwright e2e pattern
 - `../grailguard/` — build/test reference
-- `/Users/jbogaty/src/reference-codebases/koota/examples/` — koota examples
-  (`revade` + `n-body-react` are the closest analogs)
+- `koota/examples` (from the koota repo) — reference examples;
+  `revade` + `n-body-react` are the closest analogs
