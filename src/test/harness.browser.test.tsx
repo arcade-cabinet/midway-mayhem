@@ -39,6 +39,6 @@ describe('test harness', () => {
     expect(dataUrl.length).toBeGreaterThan(1000);
 
     // And the harness can capture via vitest-browser's page API.
-    await page.screenshot({ path: 'harness-cube.png' });
+    await page.screenshot({ path: '.test-screenshots/harness-cube.png' });
   });
 });

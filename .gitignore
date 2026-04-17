@@ -46,6 +46,7 @@ Gemini-Conversation.md
 # Vitest browser test artifacts
 .vitest-attachments/
 **/__screenshots__/
+.test-screenshots/
 
 # Debug pause-and-capture output
 .capture/
