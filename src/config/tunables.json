@@ -2,5 +2,27 @@
   "$schema": "../../config/schema.ts#Tunables",
   "cruiseMps": 42,
   "maxSteerRate": 2.5,
-  "throttleResponse": 1.2
+  "throttleResponse": 1.2,
+  "cockpit": {
+    "dropHeight": {
+      "phonePortrait": 0.9,
+      "phoneLandscape": 1.2,
+      "tabletPortrait": 0.9,
+      "tabletLandscape": 1.35,
+      "desktop": 1.5,
+      "ultrawide": 1.5
+    },
+    "plunge": {
+      "yScalePortrait": 0.18,
+      "yScaleLandscape": 0.3,
+      "yFloorPortrait": -0.5,
+      "yFloorLandscape": -0.8,
+      "xScalePortrait": 0.35,
+      "xScaleLandscape": 0.5,
+      "rotScalePortrait": 0.4,
+      "rotScaleLandscape": 0.5,
+      "zRotScale": 0.6,
+      "xRotMax": 0.4
+    }
+  }
 }

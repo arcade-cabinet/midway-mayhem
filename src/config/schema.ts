@@ -51,6 +51,35 @@ export type TrackArchetypeSet = z.infer<typeof TrackArchetypeSetSchema>;
 
 // ─── Tunables ───────────────────────────────────────────────────────────────
 
+/** Per-form-factor cockpit drop-in hoist height, metres. */
+const CockpitDropHeightSchema = z.object({
+  phonePortrait: z.number(),
+  phoneLandscape: z.number(),
+  tabletPortrait: z.number(),
+  tabletLandscape: z.number(),
+  desktop: z.number(),
+  ultrawide: z.number(),
+});
+
+/** Plunge animation amplitude scalars. */
+const CockpitPlungeSchema = z.object({
+  yScalePortrait: z.number(),
+  yScaleLandscape: z.number(),
+  yFloorPortrait: z.number(),
+  yFloorLandscape: z.number(),
+  xScalePortrait: z.number(),
+  xScaleLandscape: z.number(),
+  rotScalePortrait: z.number(),
+  rotScaleLandscape: z.number(),
+  zRotScale: z.number(),
+  xRotMax: z.number(),
+});
+
+const CockpitTunablesSchema = z.object({
+  dropHeight: CockpitDropHeightSchema,
+  plunge: CockpitPlungeSchema,
+});
+
 export const TunablesSchema = z.object({
   $schema: z.string().optional(),
   /** Target cruise speed, m/s. */
@@ -59,6 +88,8 @@ export const TunablesSchema = z.object({
   maxSteerRate: z.number().positive(),
   /** Acceleration response toward target speed, 1/s. */
   throttleResponse: z.number().positive(),
+  /** Cockpit animation constants, per form-factor. */
+  cockpit: CockpitTunablesSchema,
 });
 
 export type Tunables = z.infer<typeof TunablesSchema>;
