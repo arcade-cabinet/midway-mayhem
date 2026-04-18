@@ -1,9 +1,13 @@
 /**
  * On-screen touch controls for mobile form factors.
  *
- * Bottom-left: virtual joystick for steer [-1, +1] (x-axis only; y is
- * ignored because throttle auto-cruises on mobile).
- * Bottom-right: honk button, spring-back press animation.
+ * Whole-canvas drag surface (transparent overlay): any finger-down
+ * anywhere in the viewport captures the touch and tracks x-delta to
+ * drive Steer in [-1, +1]. Matches the vision doc — no virtual
+ * joystick stuck in one corner; the player steers by pulling any
+ * part of the screen left/right.
+ *
+ * Bottom-right: honk button (opaque; intercepts pointer events).
  *
  * The controls mount only when form factor says we're on a phone. They
  * write to koota traits directly, same as the keyboard hook — so the
@@ -40,16 +44,26 @@ export function TouchControls({ world, onHorn, enabled = true }: TouchControlsPr
 
   return (
     <>
-      <Joystick world={world} />
+      <DragSurface world={world} />
       <HornButton onHorn={onHorn} />
     </>
   );
 }
 
-function Joystick({ world }: { world: World }) {
-  const baseRef = useRef<HTMLDivElement>(null);
-  const [knob, setKnob] = useState({ x: 0 });
+/** How far the finger has to drag (in px) to reach Steer = ±1. */
+const DRAG_RANGE_PX = 160;
+
+/**
+ * Transparent full-screen drag overlay. Captures the first touch,
+ * tracks dx from the touch-down point, scales to [-1, +1] via
+ * DRAG_RANGE_PX, releases on touch-up / cancel (steer → 0).
+ *
+ * Second finger is ignored so a two-finger zoom doesn't confuse
+ * the driver.
+ */
+function DragSurface({ world }: { world: World }) {
   const dragId = useRef<number | null>(null);
+  const startX = useRef(0);
 
   const setSteer = (v: number) => {
     world.query(Player, Steer).updateEach(([s]) => {
@@ -57,65 +71,43 @@ function Joystick({ world }: { world: World }) {
     });
   };
 
+  const handleDown = (e: React.PointerEvent) => {
+    if (dragId.current !== null) return;
+    dragId.current = e.pointerId;
+    startX.current = e.clientX;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
   const handleMove = (e: React.PointerEvent) => {
     if (dragId.current !== e.pointerId) return;
-    const base = baseRef.current;
-    if (!base) return;
-    const rect = base.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const dx = e.clientX - cx;
-    const max = rect.width / 2;
-    const x = Math.max(-max, Math.min(max, dx));
-    setKnob({ x });
-    setSteer(x / max);
-  };
-  const handleDown = (e: React.PointerEvent) => {
-    dragId.current = e.pointerId;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    handleMove(e);
+    const dx = e.clientX - startX.current;
+    setSteer(dx / DRAG_RANGE_PX);
   };
   const handleUp = (e: React.PointerEvent) => {
+    if (dragId.current !== e.pointerId) return;
     dragId.current = null;
-    setKnob({ x: 0 });
     setSteer(0);
     e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
   return (
     <div
-      ref={baseRef}
-      data-testid="touch-joystick"
+      data-testid="touch-drag-surface"
       onPointerDown={handleDown}
       onPointerMove={handleMove}
       onPointerUp={handleUp}
       onPointerCancel={handleUp}
       style={{
         position: 'fixed',
-        left: '20px',
-        bottom: '20px',
-        width: '120px',
-        height: '120px',
-        borderRadius: '50%',
-        background: 'rgba(156, 39, 176, 0.35)',
-        border: '3px solid rgba(255, 241, 219, 0.5)',
+        inset: 0,
+        // Leave the bottom-right 140×140 px free so the honk button
+        // underneath still gets its own pointer events.
+        clipPath:
+          'polygon(0 0, 100% 0, 100% calc(100% - 140px), calc(100% - 140px) calc(100% - 140px), calc(100% - 140px) 100%, 0 100%)',
         touchAction: 'none',
-        zIndex: 20,
+        zIndex: 10,
+        background: 'transparent',
       }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          left: `calc(50% + ${knob.x}px - 24px)`,
-          top: 'calc(50% - 24px)',
-          width: '48px',
-          height: '48px',
-          borderRadius: '50%',
-          background: '#ffd600',
-          boxShadow: '0 4px 10px rgba(0, 0, 0, 0.35)',
-          pointerEvents: 'none',
-        }}
-      />
-    </div>
+    />
   );
 }
 
