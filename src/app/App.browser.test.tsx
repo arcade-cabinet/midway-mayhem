@@ -13,12 +13,6 @@ import { describe, expect, it } from 'vitest';
 import { waitFrames } from '@/test/scene';
 import { App } from './App';
 
-declare global {
-  interface Window {
-    __mm?: { diag?: () => Record<string, unknown> };
-  }
-}
-
 describe('App root-render integration', () => {
   it('mounts a real R3F canvas with a rendered scene', async () => {
     const { container } = render(<App />);

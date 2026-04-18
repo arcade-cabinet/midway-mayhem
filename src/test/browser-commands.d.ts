@@ -1,19 +1,31 @@
 /**
- * Ambient declaration that extends `vitest/browser` with our custom
- * `writePngFromDataUrl` server command. Defined once here so every test
- * file can call `commands.writePngFromDataUrl(...)` without repeating
- * the `declare module` block.
+ * Ambient declarations shared across all vitest-browser tests:
  *
- * Implementation: scripts/vitest-write-png-command.ts
- * Wiring: vite.config.ts `commands: { writePngFromDataUrl }`
+ * 1. Extends `vitest/browser` with our custom `writePngFromDataUrl`
+ *    server command. Implementation: scripts/vitest-write-png-command.ts.
+ *    Wiring: vite.config.ts `commands: { writePngFromDataUrl }`.
+ *
+ * 2. The `window.__mm` debug handle installed by diagnosticsBus when
+ *    `import.meta.env.DEV` is true (always on in the vitest-browser env)
+ *    or the URL contains `?diag=1`. Integration tests read from .diag()
+ *    and drive run lifecycle via .start() / .end().
  *
  * This file intentionally has NO top-level imports/exports — it stays a
- * *script* file (not a module) so the `declare module` augmentation
- * applies globally wherever tsconfig includes this .d.ts.
+ * *script* file (not a module) so the `declare` augmentations apply
+ * globally wherever tsconfig includes this .d.ts.
  */
 
 declare module 'vitest/browser' {
   interface BrowserCommands {
     writePngFromDataUrl(dataUrl: string, relPath: string): Promise<{ path: string; bytes: number }>;
   }
+}
+
+interface Window {
+  __mm?: {
+    diag?: () => Record<string, unknown>;
+    setSteer?: (v: number) => void;
+    start?: () => void;
+    end?: () => void;
+  };
 }
