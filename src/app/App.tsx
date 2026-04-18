@@ -35,6 +35,8 @@ import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
 import { FireHoopGate } from '@/render/obstacles/FireHoopGate';
 import { GhostCar } from '@/render/obstacles/GhostCar';
 import { MirrorLayer } from '@/render/obstacles/MirrorLayer';
+import { RaidBridge } from '@/render/obstacles/RaidBridge';
+import { RaidLayer } from '@/render/obstacles/RaidLayer';
 import { PostFX } from '@/render/PostFX';
 import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
@@ -119,6 +121,8 @@ export function App() {
           <MirrorLayer />
           <FireHoopGate />
           <BarkerCrowd />
+          <RaidBridge />
+          <RaidLayer />
           <ZoneBanners />
           <GhostCar />
           <Cockpit />
