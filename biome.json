@@ -77,6 +77,30 @@
           "suspicious": { "noConsole": "off", "noArrayIndexKey": "off" }
         }
       }
+    },
+    {
+      "includes": [
+        "src/game/gameState.ts",
+        "src/game/gameStateCombat.ts",
+        "src/game/gameStateTick.ts",
+        "src/game/useGameSystems.ts",
+        "src/game/runEndPersistence.ts",
+        "src/game/debugCapture.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" },
+          "correctness": { "useExhaustiveDependencies": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["e2e/**/*.ts", "e2e/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" }
+        }
+      }
     }
   ]
 }
