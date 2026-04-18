@@ -207,24 +207,7 @@ jobs:
           target: google_apis
           script: |
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
-            mkdir -p docs/media
-            FAILED=0
-            FLOWS="maestro/android-smoke.yaml maestro/android-gameplay-30s.yaml maestro/android-critter-scare.yaml maestro/android-ramp-trick.yaml maestro/android-pause-resume.yaml maestro/android-game-over.yaml"
-            for FLOW in $FLOWS; do
-              if [ ! -f "$FLOW" ]; then
-                echo "SKIP: $FLOW (file not found)"
-                continue
-              fi
-              echo "==> Running $FLOW"
-              if "$HOME/.maestro/bin/maestro" test "$FLOW"; then
-                echo "PASSED: $FLOW"
-              else
-                echo "FAILED: $FLOW"
-                FAILED=$((FAILED+1))
-              fi
-            done
-            echo "Total failed: $FAILED"
-            exit $FAILED
+            bash scripts/maestro-all.sh
 
       - name: Copy Maestro screenshots to docs/media
         if: always()

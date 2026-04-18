@@ -43,8 +43,15 @@ export default defineConfig({
       use: { ...devices['Pixel 7'] },
     },
     {
+      // Use a chromium device so CI only needs to install Chromium.
+      // Viewport + touch/mobile flags mimic a tablet-landscape surface.
       name: 'tablet-landscape',
-      use: { ...devices['iPad Pro 11 landscape'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1366, height: 1024 },
+        hasTouch: true,
+        isMobile: false,
+      },
     },
   ],
 });
