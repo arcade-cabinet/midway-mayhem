@@ -66,7 +66,7 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
   }, [onClose]);
 
   // Resolve which items are owned for the current tab
-  const itemsForTab = (): ShopItem[] => {
+  const itemsForTab = useCallback((): ShopItem[] => {
     switch (activeTab) {
       case 'palettes':
         return [...PALETTES, ...RIMS, ...DICE];
@@ -75,7 +75,7 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
       case 'horns':
         return HORNS;
     }
-  };
+  }, [activeTab]);
 
   const refreshOwned = useCallback(async () => {
     await initDb();
@@ -90,7 +90,7 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
       }),
     );
     setOwnedMap(new Map(entries));
-  }, [itemsForTab]); // eslint-disable-line
+  }, [itemsForTab]);
 
   useEffect(() => {
     refreshOwned().catch((err) => reportError(err, 'TicketShop.refreshOwned'));

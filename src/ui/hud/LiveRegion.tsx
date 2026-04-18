@@ -12,7 +12,7 @@
  * Subscribes to gameStore (zone/crash/game-over) and achievementBus.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { subscribeAchievements } from '@/game/achievementBus';
 import { useGameStore } from '@/game/gameState';
 
@@ -36,17 +36,15 @@ export function LiveRegion() {
   const lastAt = useRef(0);
   const pendingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function announce(text: string) {
+  const announce = useCallback((text: string) => {
     const now = Date.now();
     const elapsed = now - lastAt.current;
 
     if (elapsed >= THROTTLE_MS) {
       lastAt.current = now;
-      // Reset to empty first so the same text re-announces after throttle
       setMessage('');
       requestAnimationFrame(() => setMessage(text));
     } else {
-      // Queue for after throttle window
       if (pendingRef.current !== null) clearTimeout(pendingRef.current);
       pendingRef.current = setTimeout(() => {
         lastAt.current = Date.now();
@@ -54,7 +52,7 @@ export function LiveRegion() {
         requestAnimationFrame(() => setMessage(text));
       }, THROTTLE_MS - elapsed);
     }
-  }
+  }, []);
 
   // Zone transitions
   const currentZone = useGameStore((s) => s.currentZone);

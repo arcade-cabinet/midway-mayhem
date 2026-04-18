@@ -76,7 +76,6 @@ export function captureServerPlugin(opts: { captureDir?: string } = {}): Plugin 
         await writeFile(join(dir, 'state.json'), JSON.stringify(rest, null, 2), 'utf8');
 
         const relPath = `${baseDir}/${folder}`;
-        // biome-ignore lint/suspicious/noConsole: dev-server log
         console.log(`[capture] ${relPath}/  (frame.png + state.json)`);
         res.statusCode = 200;
         res.setHeader('content-type', 'application/json');
