@@ -6,6 +6,7 @@
  * Writes profile best, lifetime stats, and checks achievements.
  * All errors are routed through errorBus so nothing is silently swallowed.
  */
+import { reportError } from '@/game/errorBus';
 import { checkRunAchievements } from '@/persistence/achievements';
 import { getStats, recordRun as recordLifetimeRun } from '@/persistence/lifetimeStats';
 import { addTickets, recordRun as recordProfileRun } from '@/persistence/profile';
@@ -72,8 +73,6 @@ export function persistRunEnd(s: RunEndSummary): void {
       );
     })
     .catch((err: unknown) => {
-      import('@/game/errorBus').then(({ reportError }) =>
-        reportError(err, 'gameState.endRun persistence'),
-      );
+      reportError(err, 'gameState.endRun persistence');
     });
 }
