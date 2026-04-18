@@ -162,6 +162,31 @@ const HapticsTunablesSchema = z.object({
   zoneTransition: HapticPatternSchema,
 });
 
+const TrackTunablesSchema = z.object({
+  laneCount: z.number().int().positive(),
+  laneWidthM: z.number().positive(),
+  /** How far inside the track edge the plunge clamp sits. */
+  lateralClampInsetM: z.number().nonnegative(),
+});
+
+const HonkTunablesSchema = z.object({
+  scareRadiusM: z.number().positive(),
+  fleeLateralM: z.number().positive(),
+  fleeDurationS: z.number().positive(),
+  cooldownS: z.number().positive(),
+});
+
+const SteerTunablesSchema = z.object({
+  /** Max lateral velocity in m/s at full stick. */
+  maxLateralMps: z.number().positive(),
+  /** Return-to-centre time constant in seconds. */
+  returnTauS: z.number().positive(),
+  /** Visual steering wheel rotation limit in degrees. */
+  wheelMaxDeg: z.number().positive(),
+  /** Steer sensitivity multiplier. */
+  sensitivity: z.number().positive(),
+});
+
 /** Numeric gameplay values for a single difficulty tier. */
 const DifficultyProfileTunablesSchema = z.object({
   targetSpeedMps: z.number().positive(),
@@ -213,6 +238,12 @@ export const TunablesSchema = z.object({
   plungeDurationS: z.number().positive(),
   /** Drop-in intro duration in milliseconds. */
   dropDurationMs: z.number().positive(),
+  /** Track geometry constants (lane count, width, clamp inset). */
+  track: TrackTunablesSchema,
+  /** Honk/scare radius + timing. */
+  honk: HonkTunablesSchema,
+  /** Steering sensitivity + return-to-centre + wheel visual. */
+  steer: SteerTunablesSchema,
 });
 
 export type Tunables = z.infer<typeof TunablesSchema>;

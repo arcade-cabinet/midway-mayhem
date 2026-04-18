@@ -50,49 +50,47 @@ export type CritterKind = (typeof CRITTER_KINDS)[number];
 export const PICKUP_TYPES = ['boost', 'ticket', 'mega'] as const;
 export type PickupType = (typeof PICKUP_TYPES)[number];
 
-// ─── Track geometry constants ────────────────────────────────────────────────
-// TODO(Task #124): replace literals with tunables() once config system is ported.
+// ─── Track / Honk / Steer — facades over tunables.json ──────────────────────
+//
+// These objects preserve the legacy uppercase-field API that ~25 call sites
+// consume. The source of truth is src/config/tunables.json under the
+// `track`, `honk`, and `steer` blocks — edit the JSON, not these bindings.
+
+import { tunables } from '@/config';
 
 export const TRACK = {
-  LANE_COUNT: 4,
-  LANE_WIDTH: 3.3,
+  LANE_COUNT: tunables.track.laneCount,
+  LANE_WIDTH: tunables.track.laneWidthM,
   get WIDTH() {
-    return this.LANE_COUNT * this.LANE_WIDTH;
+    return tunables.track.laneCount * tunables.track.laneWidthM;
   },
   get HALF_WIDTH() {
-    return this.WIDTH / 2;
+    return (tunables.track.laneCount * tunables.track.laneWidthM) / 2;
   },
   get LATERAL_CLAMP() {
-    return this.WIDTH / 2 - 0.5;
+    return (
+      (tunables.track.laneCount * tunables.track.laneWidthM) / 2 -
+      tunables.track.lateralClampInsetM
+    );
   },
 } as const;
 
 /** World-space X for the centre of a given lane index (0 = leftmost). */
 export function laneCenterX(laneIndex: number): number {
-  const half = (TRACK.LANE_COUNT - 1) / 2;
-  return (laneIndex - half) * TRACK.LANE_WIDTH;
+  const half = (tunables.track.laneCount - 1) / 2;
+  return (laneIndex - half) * tunables.track.laneWidthM;
 }
 
-// ─── Honk / critter-scare constants ─────────────────────────────────────────
-// TODO(Task #124): replace literals with tunables() once config system is ported.
-
 export const HONK = {
-  SCARE_RADIUS_M: 30,
-  FLEE_LATERAL_M: 6,
-  FLEE_DURATION_S: 0.9,
-  COOLDOWN_S: 2,
+  SCARE_RADIUS_M: tunables.honk.scareRadiusM,
+  FLEE_LATERAL_M: tunables.honk.fleeLateralM,
+  FLEE_DURATION_S: tunables.honk.fleeDurationS,
+  COOLDOWN_S: tunables.honk.cooldownS,
 } as const;
 
-// ─── Steering constants ──────────────────────────────────────────────────────
-// TODO(Task #124): replace literals with tunables() once config system is ported.
-
 export const STEER = {
-  /** Maximum lateral velocity in m/s at full steer input. */
-  MAX_LATERAL_MPS: 12,
-  /** Steering return time constant (seconds). */
-  RETURN_TAU_S: 0.12,
-  /** Visual steering wheel rotation limit in degrees. */
-  WHEEL_MAX_DEG: 35,
-  /** Steer sensitivity multiplier. */
-  SENSITIVITY: 1.0,
+  MAX_LATERAL_MPS: tunables.steer.maxLateralMps,
+  RETURN_TAU_S: tunables.steer.returnTauS,
+  WHEEL_MAX_DEG: tunables.steer.wheelMaxDeg,
+  SENSITIVITY: tunables.steer.sensitivity,
 } as const;

@@ -108,6 +108,23 @@
   "plungeOvershootM": 0.5,
   "plungeDurationS": 1.5,
   "dropDurationMs": 1800,
+  "track": {
+    "laneCount": 4,
+    "laneWidthM": 3.3,
+    "lateralClampInsetM": 0.5
+  },
+  "honk": {
+    "scareRadiusM": 30,
+    "fleeLateralM": 6,
+    "fleeDurationS": 0.9,
+    "cooldownS": 2
+  },
+  "steer": {
+    "maxLateralMps": 12,
+    "returnTauS": 0.12,
+    "wheelMaxDeg": 35,
+    "sensitivity": 1
+  },
   "cockpit": {
     "dropHeight": {
       "phonePortrait": 0.9,
