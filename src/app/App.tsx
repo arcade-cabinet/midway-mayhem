@@ -8,7 +8,7 @@
  */
 import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
 import { type EndReason, resetGameOver } from '@/ecs/systems/gameOver';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
@@ -106,6 +106,17 @@ export function App() {
   useMouseSteer({ world, enabled: playing });
   useGameSystems();
 
+  // R3F v9's useMeasure hook on the Canvas wrapper occasionally doesn't
+  // fire its initial callback when the wrapper is already laid out at
+  // subscribe time, leaving the three.js scene at size {0,0} — the
+  // canvas stays blank even though DOM mount succeeded. Dispatching a
+  // window-resize after mount forces R3F to re-measure and create its
+  // render root. Guarded integration test: src/app/App.browser.test.tsx.
+  useEffect(() => {
+    const id = setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
+    return () => clearTimeout(id);
+  }, []);
+
   return (
     <WorldProvider world={world}>
       <div
@@ -115,7 +126,7 @@ export function App() {
         <Canvas
           gl={{ antialias: true, preserveDrawingBuffer: true }}
           frameloop="always"
-          style={{ position: 'absolute', inset: 0 }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         >
           <color attach="background" args={['#0b0f1a']} />
           <ambientLight intensity={0.45} color="#ffd6a8" />
