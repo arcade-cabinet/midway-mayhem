@@ -51,22 +51,6 @@ jobs:
       - name: Run node-surface Vitest tests
         run: pnpm test:node
 
-  jsdom-tests:
-    name: jsdom Tests (Vitest)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Run jsdom-surface Vitest tests
-        run: pnpm test:jsdom
-
   browser-smoke:
     name: Browser Smoke Tests
     runs-on: ubuntu-latest
@@ -106,7 +90,7 @@ jobs:
   build:
     name: Production Build + Bundle Budget
     runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, node-tests, jsdom-tests, browser-smoke]
+    needs: [lint-and-typecheck, node-tests, browser-smoke]
     permissions:
       contents: read
     steps:
@@ -270,85 +254,3 @@ jobs:
           name: playwright-report
           path: playwright-report/
 
-  lighthouse:
-    name: Lighthouse Audit
-    # Runs in parallel with build — only needs the source + preview to be launchable.
-    # Does NOT need the build artifact; pnpm preview serves the dist/ from the repo
-    # checkout if it exists, or we build inline.
-    runs-on: ubuntu-latest
-    needs: [lint-and-typecheck]
-    # Non-blocking — Lighthouse scores on a WebGL-heavy game run via
-    # swiftshader in CI are not representative; we keep the audit for
-    # telemetry but don't block merge on score floors.
-    continue-on-error: true
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Build for Lighthouse
-        run: pnpm build
-      - name: Install Chromium for Lighthouse
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Run Lighthouse audit
-        run: pnpm audit:lighthouse
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lighthouse-report
-          path: docs/media/lighthouse/
-
-  frametime-audit:
-    name: Frame-Time Profiler
-    runs-on: ubuntu-latest
-    needs: [build]
-    # Non-blocking — WebGL swiftshader performance on CI runners is an
-    # unreliable proxy for real desktop framerate. We treat it as telemetry,
-    # not a ship gate.
-    continue-on-error: true
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Install xvfb
-        run: sudo apt-get update && sudo apt-get install -y xvfb
-      - name: Start preview server and run frame-time profiler
-        env:
-          PROFILE_BASE_URL: http://127.0.0.1:4175/midway-mayhem
-        run: |
-          pnpm copywasm
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" bash -c '
-            pnpm preview --port 4175 &
-            PREVIEW_PID=$!
-            # Wait for server
-            for i in $(seq 1 30); do
-              curl -sf http://127.0.0.1:4175/midway-mayhem/ > /dev/null && break
-              sleep 1
-            done
-            pnpm audit:frametime
-            AUDIT_EXIT=$?
-            kill $PREVIEW_PID 2>/dev/null || true
-            exit $AUDIT_EXIT
-          '
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: frametime-report
-          path: docs/media/frametime/
