@@ -91,17 +91,10 @@ export async function openInMemorySqlJs(schemaObj: DbSchema): Promise<DriverResu
 // ─── OPFS + sql.js (web browser with durable persistence) ───────────────────
 
 export async function openOpfsSqlJs(schemaObj: DbSchema): Promise<DriverResult> {
-  // Locate the WASM binary. `pnpm copywasm` copies sql-wasm.wasm into
-  // public/ at build time, so Vite serves it at ${BASE_URL}sql-wasm.wasm.
-  let wasmUrl: string;
-  if (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL != null) {
-    const base = import.meta.env.BASE_URL as string;
-    wasmUrl = `${base.endsWith('/') ? base : `${base}/`}sql-wasm.wasm`;
-  } else {
-    wasmUrl = '/sql-wasm.wasm';
-  }
-
-  const sqlJsMod = await initSqlJs({ locateFile: () => wasmUrl });
+  // `pnpm copywasm` drops sql-wasm.wasm into public/ so Vite serves it at
+  // ${BASE_URL}sql-wasm.wasm. Pattern mirrors ../grailguard/src/db/legacyMigration.ts.
+  const base = import.meta.env?.BASE_URL ?? '/';
+  const sqlJsMod = await initSqlJs({ locateFile: (file: string) => `${base}${file}` });
 
   // Read existing DB from OPFS if available
   const root = await navigator.storage.getDirectory();
@@ -119,6 +112,10 @@ export async function openOpfsSqlJs(schemaObj: DbSchema): Promise<DriverResult> 
 // ─── CapacitorSQLite path (iOS / Android) ───────────────────────────────────
 
 function getBaseAssetPath(): string {
+  // jeep-sqlite fetches sql-wasm.wasm at `${wasmpath}/sql-wasm.wasm`. The
+  // `pnpm copywasm` script copies the binary into BOTH `public/` and
+  // `public/assets/` so serving works whether jeep points here or at the
+  // base. Pattern mirrors ../grailguard/src/db/client.ts.
   if (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL != null) {
     const base = import.meta.env.BASE_URL as string;
     return `${base.endsWith('/') ? base : `${base}/`}assets`;
@@ -129,13 +126,16 @@ function getBaseAssetPath(): string {
 async function ensureJeepElement(): Promise<void> {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   const { defineCustomElements } = await import('jeep-sqlite/loader');
-  await defineCustomElements(window);
+  defineCustomElements(window);
   let el = document.querySelector('jeep-sqlite');
   if (!el) {
     el = document.createElement('jeep-sqlite');
     el.setAttribute('wasmpath', getBaseAssetPath());
     document.body.appendChild(el);
   }
+  // Wait for the custom element to be fully registered before use.
+  // Without this, the capacitor-sqlite connection can race against the
+  // element's internal WASM init and produce transaction errors.
   await customElements.whenDefined('jeep-sqlite');
 }
 

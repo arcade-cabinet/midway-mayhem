@@ -57,5 +57,8 @@ ChatGPT-*.md
 # v1 codebase moved here for reference; not a live module
 # (lint/tsc/tests all exclude it)
 
-# copywasm output
+# copywasm output (copied from node_modules/sql.js/dist by pre-hooks)
 public/sql-wasm.wasm
+public/sql-wasm-browser.wasm
+public/assets/sql-wasm.wasm
+public/assets/sql-wasm-browser.wasm
