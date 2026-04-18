@@ -80,14 +80,27 @@ const CockpitTunablesSchema = z.object({
   plunge: CockpitPlungeSchema,
 });
 
+/** Speed targets (gameStateTick) — distinct from the legacy cruiseMps
+ *  used by the isolated-test stepPlayer integrator. */
+const SpeedTunablesSchema = z.object({
+  cruiseMps: z.number().positive(),
+  boostMps: z.number().positive(),
+  megaMps: z.number().positive(),
+  rampStartMps: z.number().positive(),
+  rampPerMetre: z.number().positive(),
+  interpResponse: z.number().positive(),
+});
+
 export const TunablesSchema = z.object({
   $schema: z.string().optional(),
-  /** Target cruise speed, m/s. */
+  /** Target cruise speed, m/s — for legacy stepPlayer integrator only. */
   cruiseMps: z.number().positive(),
   /** Maximum allowable steer rate, |d(steer)/dt|. */
   maxSteerRate: z.number().positive(),
   /** Acceleration response toward target speed, 1/s. */
   throttleResponse: z.number().positive(),
+  /** gameStateTick speed targets + ramp. */
+  speed: SpeedTunablesSchema,
   /** Cockpit animation constants, per form-factor. */
   cockpit: CockpitTunablesSchema,
 });

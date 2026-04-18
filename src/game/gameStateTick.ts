@@ -83,16 +83,15 @@ export function tickGameState(dt: number, now: number, w: World): void {
   }
 
   // Speed interpolation toward target; target climbs slowly over time.
-  const CRUISE = 70;
-  const BOOST = 90;
-  const MEGA = 120;
-  let target = Math.min(CRUISE, 30 + gs.distance * 0.005);
-  if (now < bs.boostUntil) target = BOOST;
-  if (now < bs.megaBoostUntil) target = MEGA;
+  const { cruiseMps, boostMps, megaMps, rampStartMps, rampPerMetre, interpResponse } =
+    tunables.speed;
+  let target = Math.min(cruiseMps, rampStartMps + gs.distance * rampPerMetre);
+  if (now < bs.boostUntil) target = boostMps;
+  if (now < bs.megaBoostUntil) target = megaMps;
   target *= gs.throttle;
-  const speed = gs.speedMps + (target - gs.speedMps) * Math.min(1, dt * 1.3);
+  const speed = gs.speedMps + (target - gs.speedMps) * Math.min(1, dt * interpResponse);
   const distance = gs.distance + speed * dt;
-  const hype = (speed / MEGA) * 100;
+  const hype = (speed / megaMps) * 100;
 
   // Consume Steer trait (written by keyboard / TouchControls / governor)
   // into lateral. Clamp to the paved surface so the player can't drive

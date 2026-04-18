@@ -3,6 +3,14 @@
   "cruiseMps": 42,
   "maxSteerRate": 2.5,
   "throttleResponse": 1.2,
+  "speed": {
+    "cruiseMps": 70,
+    "boostMps": 90,
+    "megaMps": 120,
+    "rampStartMps": 30,
+    "rampPerMetre": 0.005,
+    "interpResponse": 1.3
+  },
   "cockpit": {
     "dropHeight": {
       "phonePortrait": 0.9,
