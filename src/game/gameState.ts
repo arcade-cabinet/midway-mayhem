@@ -23,6 +23,7 @@ import {
   PlungeState,
   RunCounters,
   RunSession,
+  Score,
   TrickState,
 } from '@/ecs/traits';
 import { world } from '@/ecs/world';
@@ -400,10 +401,12 @@ export function endRun(w: World = world): void {
   const pe = players[0];
   if (!pe) return;
   pe.set(RunSession, { ...pe.get(RunSession)!, running: false, gameOver: true });
+  const balloons = pe.get(Score)?.balloons ?? 0;
   persistRunEnd({
     distance: s.distance,
     crowd: s.crowdReaction,
     crashes: s.crashes,
+    balloons,
     scaresThisRun: s.scaresThisRun,
     maxComboThisRun: s.maxComboThisRun,
     raidsSurvived: s.raidsSurvived,

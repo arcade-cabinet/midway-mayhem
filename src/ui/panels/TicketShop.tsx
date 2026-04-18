@@ -80,7 +80,10 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
     const items = itemsForTab();
     const entries = await Promise.all(
       items.map(async (item) => {
-        const owned = await hasUnlock(item.kind, item.slug).catch(() => false);
+        const owned = await hasUnlock(item.kind, item.slug).catch((err: unknown) => {
+          reportError(err, 'TicketShop.hasUnlock');
+          return false;
+        });
         return [item.slug, owned] as const;
       }),
     );
