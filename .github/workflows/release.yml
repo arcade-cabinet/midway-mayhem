@@ -69,15 +69,16 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
+          set -euo pipefail
           pnpm exec cap sync android
           cd android
-          ./gradlew assembleRelease || ./gradlew assembleDebug
+          # assembleRelease must succeed — if it fails we do NOT silently
+          # substitute a debug APK as the shipped artifact. Release APKs
+          # without a signing key will land as "unsigned"; that's fine for
+          # GitHub release attachments. A debug APK is not a release APK.
+          ./gradlew assembleRelease
           cd ..
-          if [ -f android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release-unsigned.apk "midway-mayhem-android-${RELEASE_TAG}.apk"
-          else
-            cp android/app/build/outputs/apk/debug/app-debug.apk "midway-mayhem-android-${RELEASE_TAG}.apk"
-          fi
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk "midway-mayhem-android-${RELEASE_TAG}.apk"
 
       - name: Attach artifacts to the published release
         env:

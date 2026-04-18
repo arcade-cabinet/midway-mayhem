@@ -64,7 +64,9 @@ async function equipItem(kind: UnlockKind, slug: string): Promise<void> {
   loadoutCache = updated;
   if (kind === 'horn') setHornSlug(slug);
   // Mirror to Preferences for next cold start
-  await prefSetJSON(PREF_KEYS.LOADOUT_CACHE, updated).catch(() => {});
+  await prefSetJSON(PREF_KEYS.LOADOUT_CACHE, updated).catch((err: unknown) =>
+    reportError(err, 'useLoadout.mirrorToPrefs'),
+  );
   notify();
 }
 
@@ -88,7 +90,7 @@ export function useLoadoutStore(): UseLoadoutReturn {
           setLoadoutState(cached);
         }
       })
-      .catch(() => {});
+      .catch((err: unknown) => reportError(err, 'useLoadout.readPrefsCache'));
 
     // 2. Authoritative read from SQLite
     readLoadout()

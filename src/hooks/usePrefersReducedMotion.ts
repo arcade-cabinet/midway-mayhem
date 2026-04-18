@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { reportError } from '@/game/errorBus';
 import { type GameSettings, SETTINGS_CHANGED_EVENT } from '@/persistence/settings';
 
 function mediaQueryMatches(): boolean {
@@ -49,9 +50,7 @@ export function usePrefersReducedMotion(): boolean {
           // Only override if the setting explicitly differs from mq
           setReduced(s.reducedMotion ?? mediaQueryMatches());
         })
-        .catch(() => {
-          // non-critical — fall back to media query value
-        });
+        .catch((err: unknown) => reportError(err, 'usePrefersReducedMotion.getSettings'));
     });
 
     return () => {

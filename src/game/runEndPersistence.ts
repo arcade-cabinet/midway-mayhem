@@ -8,12 +8,13 @@
  */
 import { checkRunAchievements } from '@/persistence/achievements';
 import { getStats, recordRun as recordLifetimeRun } from '@/persistence/lifetimeStats';
-import { recordRun as recordProfileRun } from '@/persistence/profile';
+import { addTickets, recordRun as recordProfileRun } from '@/persistence/profile';
 
 export interface RunEndSummary {
   distance: number;
   crowd: number;
   crashes: number;
+  balloons: number;
   scaresThisRun: number;
   maxComboThisRun: number;
   raidsSurvived: number;
@@ -27,11 +28,14 @@ export interface RunEndSummary {
  */
 export function persistRunEnd(s: RunEndSummary): void {
   const secondsPlayed = s.startedAt > 0 ? (performance.now() - s.startedAt) / 1000 : 0;
+  // Ticket economy: balloons popped this run translate 1:1 to profile tickets
+  // the player can spend in the shop. Every balloon = 1 ticket, deterministic.
+  const ticketsEarned = s.balloons;
   const summary = {
     distanceM: s.distance,
     crashes: s.crashes,
     scares: s.scaresThisRun,
-    ticketsEarned: 0,
+    ticketsEarned,
     crowd: s.crowd,
     maxComboChain: s.maxComboThisRun,
     plunged: s.plunged,
@@ -41,6 +45,9 @@ export function persistRunEnd(s: RunEndSummary): void {
   Promise.resolve()
     .then(async () => {
       await recordProfileRun({ distance: s.distance, crowd: s.crowd });
+      if (ticketsEarned > 0) {
+        await addTickets(ticketsEarned);
+      }
       await recordLifetimeRun(summary);
       const lifetime = await getStats();
       await checkRunAchievements(
