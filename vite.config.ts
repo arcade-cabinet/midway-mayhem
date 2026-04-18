@@ -23,7 +23,7 @@ export default defineConfig({
   preview: { port: 4175 },
   // Prebundle persistence deps so the browser test worker doesn't get a
   // mid-run Vite reload ("✨ new dependencies optimized → reloading") that
-  // races the 15s test timeout on CI where first-run optimization is slow.
+  // races the test timeout on CI where first-run optimization is slow.
   optimizeDeps: {
     include: ['@capacitor-community/sqlite', '@capacitor/core', 'sql.js'],
   },
