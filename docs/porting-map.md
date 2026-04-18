@@ -205,3 +205,23 @@ After each step:
 - commit with scope, push, open/update PR
 
 Mobile-first check each step: any input that requires keyboard-only (no touch equivalent) is a **bug**, fix before moving on.
+
+---
+
+## Deliberately dropped (not ported)
+
+These reference modules were **not** ported; their v2 replacements serve the same purpose.
+
+| reference | rationale |
+|---|---|
+| `reference/src/config/defaults.ts` | v2 ships tunables as build-time-imported JSON (`src/config/tunables.json`) parsed once via zod. The reference mutable-proxy was designed for hot-reload of config that never actually happens in a Capacitor build. |
+| `reference/src/config/loader.ts` | Same — no async tunable loading needed. |
+| `reference/src/config/schemaTypes.ts` | Replaced by `src/config/schema.ts` zod types. |
+| `reference/src/config/schemaValidators.ts` | Replaced by zod. |
+| `reference/src/assets/manifest.ts` | Inline `assetUrl` at callsites for the small set of GLBs currently used. Can be reintroduced when the asset count grows. |
+| `reference/src/assets/preloader.ts` | Suspense + drei `useGLTF.preload` already covers preloading. |
+| `reference/src/game/Game.tsx` | Replaced by `src/app/App.tsx` composition + `src/app/GameLoop.tsx`. |
+| `reference/src/hooks/useSteering.ts` | Replaced by `src/input/TouchControls.tsx` + `src/input/useKeyboard.ts` (mobile-first). |
+| `reference/src/hooks/useTouchGestures.ts` | Replaced by `src/input/TouchControls.tsx`. |
+
+Reference tests for modules **not** ported were also dropped with them.

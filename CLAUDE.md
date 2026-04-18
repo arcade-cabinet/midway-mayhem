@@ -13,13 +13,11 @@ Cockpit-perspective arcade driver down a Hot Wheels mega-track inside a circus b
 
 ## How this repo is structured right now
 
-- `src/` — the v2 rewrite. Empty shell bootstrapping: koota ECS, JSON-driven
-  config, procedural track, responsive cockpit group. Being built stepwise:
-  (1) test harness (2) track (3) cockpit (4) landing. Each step is gated by
-  passing visual-capture tests before moving on.
-- `reference/` — the entire v1 codebase. Preserved for lookups only. Do NOT
-  import from here. Do NOT refactor inside here. Read it to remember how
-  something was done, then build fresh in `src/`.
+- `src/` — the canonical game. v2 rebuilt from v1, restructured for a
+  clean separation of logic (`.ts`) / render (`.tsx`) / data (`.json`),
+  backed by a single koota ECS world.
+- `docs/porting-map.md` — the historical record of the reference → v2
+  port and the deliberately dropped modules.
 
 ## Architecture rules (v2)
 
@@ -78,9 +76,8 @@ scripts/
 
 ## Reference material
 
-- `reference/` — v1 codebase, read-only lookups
 - `../marmalade-drops/` — vitest+koota patterns we're mirroring
 - `../stellar-descent/` — real-GPU Playwright e2e pattern
-- `../grailguard/` — build/test reference
+- `../grailguard/` — build/test reference (Capacitor SQLite, Vite browser testing)
 - `koota/examples` (from the koota repo) — reference examples;
   `revade` + `n-body-react` are the closest analogs
