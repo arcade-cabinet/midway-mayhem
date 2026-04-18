@@ -8,6 +8,7 @@
  * All state reads/writes use ECS traits on the player entity.
  */
 import type { World } from 'koota';
+import { trackArchetypes, tunables } from '@/config';
 import {
   BoostState,
   DropIntro,
@@ -19,6 +20,7 @@ import {
   RunSession,
   Score,
   Speed,
+  Steer,
 } from '@/ecs/traits';
 import type { PieceKind } from '@/track/trackComposer';
 import type { ZoneId } from '@/utils/constants';
@@ -92,6 +94,17 @@ export function tickGameState(dt: number, now: number, w: World): void {
   const distance = gs.distance + speed * dt;
   const hype = (speed / MEGA) * 100;
 
+  // Consume Steer trait (written by keyboard / TouchControls / governor)
+  // into lateral. Clamp to the paved surface so the player can't drive
+  // off into the void. Write both the GameplayStats lateral (read by
+  // plunge detector + racing-line meter) and the Steer-derived motion.
+  const steer = pe.get(Steer)?.value ?? 0;
+  const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
+  const maxLateral = halfWidth - trackArchetypes.laneWidth * 0.4;
+  let lateral = gs.lateral + steer * tunables.maxSteerRate * dt;
+  if (lateral > maxLateral) lateral = maxLateral;
+  if (lateral < -maxLateral) lateral = -maxLateral;
+
   // Zone derivation (simple cycle every 450 units across 4 zones)
   const zIdx = Math.floor(distance / 450) % 4;
   const currentZone: ZoneId =
@@ -107,7 +120,7 @@ export function tickGameState(dt: number, now: number, w: World): void {
   // Racing-line cleanliness: update deviation window and smooth with EMA.
   let nextCleanliness = gs.cleanliness;
   if (optimalPath !== null) {
-    const msd = updateDeviationWindow(distance, gs.lateral, optimalPath);
+    const msd = updateDeviationWindow(distance, lateral, optimalPath);
     const raw = Math.max(0, 1 - msd / (DEVIATION_MAX_M * DEVIATION_MAX_M));
     nextCleanliness = gs.cleanliness + CLEANLINESS_EMA * (raw - gs.cleanliness);
   }
@@ -117,6 +130,8 @@ export function tickGameState(dt: number, now: number, w: World): void {
     speedMps: speed,
     targetSpeedMps: target,
     distance,
+    lateral,
+    steer,
     hype,
     sanity,
     currentZone,
@@ -128,7 +143,7 @@ export function tickGameState(dt: number, now: number, w: World): void {
   // all see the same distance/speed as GameplayStats.
   const pos = pe.get(Position);
   if (pos) {
-    pe.set(Position, { distance, lateral: gs.lateral });
+    pe.set(Position, { distance, lateral });
   }
   const sp = pe.get(Speed);
   if (sp) {
@@ -149,7 +164,7 @@ export function tickGameState(dt: number, now: number, w: World): void {
   const plungeThreshold = TRACK.LATERAL_CLAMP + PLUNGE_OVERSHOOT_M;
   if (
     !ps.plunging &&
-    Math.abs(gs.lateral) > plungeThreshold &&
+    Math.abs(lateral) > plungeThreshold &&
     ps.currentPieceKind !== null &&
     RAMP_KINDS.has(ps.currentPieceKind)
   ) {
@@ -157,7 +172,7 @@ export function tickGameState(dt: number, now: number, w: World): void {
       ...ps,
       plunging: true,
       plungeStartedAt: now,
-      plungeDirection: Math.sign(gs.lateral),
+      plungeDirection: Math.sign(lateral),
     });
     hapticsBus.fire('crash-heavy');
     return;
