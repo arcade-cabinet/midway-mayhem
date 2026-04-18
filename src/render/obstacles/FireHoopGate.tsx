@@ -14,10 +14,10 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { laneCenterX } from '@/utils/constants';
 
 const DEFAULT_HOOP_RADIUS = 3.2;
@@ -78,7 +78,7 @@ export function FireHoopGate() {
   const torusRefs = useRef<THREE.Mesh[]>([]);
   const emberRefs = useRef<THREE.InstancedMesh[]>([]);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
+  const sampled = useSampledTrack();
   const lastPlanRef = useRef<unknown>(null);
 
   // Rebuild hoop list from plan on every plan-identity change, expose for
@@ -143,7 +143,12 @@ export function FireHoopGate() {
       if (!torus || !embers) continue;
 
       const hoopLat = laneCenterX(hoop.lane);
-      const world = trackToWorld(composition, hoop.d, hoopLat);
+      if (sampled.length === 0) continue;
+      const p = sampleTrackPose(sampled, hoop.d);
+      const rightX = Math.cos(p.yaw);
+      const rightZ = -Math.sin(p.yaw);
+      const worldX = p.x + rightX * hoopLat;
+      const worldZ = p.z + rightZ * hoopLat;
 
       // Visible range
       const distAhead = hoop.d - s.distance;
@@ -159,12 +164,12 @@ export function FireHoopGate() {
       }
 
       // Position the torus ring (vertical orientation — player drives through)
-      torus.position.set(world.x, world.y + hoop.radius, world.z);
-      torus.rotation.set(Math.PI / 2, world.heading, 0);
+      torus.position.set(worldX, p.y + hoop.radius, worldZ);
+      torus.rotation.set(Math.PI / 2, p.yaw, 0);
 
       // Ember particles orbiting the ring
-      embers.position.set(world.x, world.y + hoop.radius, world.z);
-      embers.rotation.set(Math.PI / 2, world.heading, 0);
+      embers.position.set(worldX, p.y + hoop.radius, worldZ);
+      embers.rotation.set(Math.PI / 2, p.yaw, 0);
       for (let e = 0; e < EMBER_COUNT; e++) {
         const angle = (e / EMBER_COUNT) * Math.PI * 2 + t * 1.5;
         const r = hoop.radius + Math.sin(t * 3 + e) * 0.3;

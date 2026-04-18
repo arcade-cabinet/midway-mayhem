@@ -30,7 +30,11 @@ import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
 import { ZoneProps } from '@/render/env/ZoneProps';
+import { BarkerCrowd } from '@/render/obstacles/BarkerCrowd';
+import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
+import { FireHoopGate } from '@/render/obstacles/FireHoopGate';
 import { GhostCar } from '@/render/obstacles/GhostCar';
+import { MirrorLayer } from '@/render/obstacles/MirrorLayer';
 import { PostFX } from '@/render/PostFX';
 import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
@@ -111,6 +115,10 @@ export function App() {
           <TrackContent />
           <StartPlatform />
           <FinishBanner />
+          <BalloonLayer />
+          <MirrorLayer />
+          <FireHoopGate />
+          <BarkerCrowd />
           <ZoneBanners />
           <GhostCar />
           <Cockpit />

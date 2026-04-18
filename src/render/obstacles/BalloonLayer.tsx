@@ -11,13 +11,13 @@
  */
 
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import * as THREE from 'three';
+import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
 import type { PlannedBalloonAnchor } from '@/game/runPlan';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 
 const MAX_BALLOONS = 32;
 /** Render plan balloons within this forward window (metres). */
@@ -68,7 +68,7 @@ function plannedBalloonLateral(anchor: PlannedBalloonAnchor, elapsedS: number): 
 export function BalloonLayer() {
   const groupRef = useRef<THREE.Group>(null);
   const slots = useRef<BalloonSlot[]>([]);
-  const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
+  const sampled = useSampledTrack();
 
   // Build pool once
   useFrame(() => {
@@ -103,14 +103,19 @@ export function BalloonLayer() {
         if (count >= MAX_BALLOONS) break;
         if (anchor.d < minD || anchor.d > maxD) continue;
         const lat = plannedBalloonLateral(anchor, elapsedS);
-        const world = trackToWorld(composition, anchor.d, lat);
+        if (sampled.length === 0) continue;
+        const p = sampleTrackPose(sampled, anchor.d);
+        const rightX = Math.cos(p.yaw);
+        const rightZ = -Math.sin(p.yaw);
+        const worldX = p.x + rightX * lat;
+        const worldZ = p.z + rightZ * lat;
         const slot = slots.current[count];
         if (!slot) continue;
 
         const mat = getBalMat(anchor.color);
         slot.balloonMesh.material = mat;
-        slot.balloonMesh.position.set(world.x, world.y + 3.5, world.z);
-        slot.stringMesh.position.set(world.x, world.y + 2.5, world.z);
+        slot.balloonMesh.position.set(worldX, p.y + 3.5, worldZ);
+        slot.stringMesh.position.set(worldX, p.y + 2.5, worldZ);
         count++;
       }
     } else {
@@ -133,14 +138,19 @@ export function BalloonLayer() {
         if (b.consumed) continue;
         if (count >= MAX_BALLOONS) break;
         const lat = balloonSpawner.balloonLateral(b, now) as number;
-        const world = trackToWorld(composition, b.d, lat);
+        if (sampled.length === 0) continue;
+        const p = sampleTrackPose(sampled, b.d);
+        const rightX = Math.cos(p.yaw);
+        const rightZ = -Math.sin(p.yaw);
+        const worldX = p.x + rightX * lat;
+        const worldZ = p.z + rightZ * lat;
         const slot = slots.current[count];
         if (!slot) continue;
 
         const mat = getBalMat(b.color);
         slot.balloonMesh.material = mat;
-        slot.balloonMesh.position.set(world.x, world.y + 3.5, world.z);
-        slot.stringMesh.position.set(world.x, world.y + 2.5, world.z);
+        slot.balloonMesh.position.set(worldX, p.y + 3.5, worldZ);
+        slot.stringMesh.position.set(worldX, p.y + 2.5, worldZ);
 
         count++;
       }
