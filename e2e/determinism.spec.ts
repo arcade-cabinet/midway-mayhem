@@ -52,5 +52,11 @@ test.describe('seed determinism', () => {
     expect(lastA.obstacleCount).toBe(lastB.obstacleCount);
     expect(lastA.pickupCount).toBe(lastB.pickupCount);
     expect(lastA.trackPieces).toBe(lastB.trackPieces);
+
+    // No-fallback regression guard: neither run should have triggered the
+    // global error modal. If this fires, a hard-fail path ran during what
+    // should be a clean playthrough.
+    const errorVisible = await page.locator('[data-testid="mm-error-modal"]').isVisible();
+    expect(errorVisible, 'error modal should be absent on green path').toBe(false);
   });
 });

@@ -143,12 +143,21 @@ class CircusConductor {
     let bar = 0;
     for (let p = 0; p < 4; p++) {
       const phrase = PHRASES[p % PHRASES.length];
-      if (!phrase) continue;
+      if (!phrase) {
+        throw new Error(`[conductor] missing phrase at index ${p % PHRASES.length}`);
+      }
+      if (phrase.degrees.length !== phrase.durations.length) {
+        throw new Error(
+          `[conductor] phrase ${p} has mismatched degrees (${phrase.degrees.length}) and durations (${phrase.durations.length})`,
+        );
+      }
       let sixteenthInBar = 0;
       for (let i = 0; i < phrase.degrees.length; i++) {
         const degRaw = phrase.degrees[i];
         const dur = phrase.durations[i];
-        if (degRaw === undefined || dur === undefined) continue;
+        if (degRaw === undefined || dur === undefined) {
+          throw new Error(`[conductor] phrase ${p} has undefined note at index ${i}`);
+        }
         const deg = degRaw - 1;
         const semitone = MAJOR_SCALE_STEPS[deg] ?? 0;
         const freq = rootFreq * 2 ** (semitone / 12);
