@@ -13,7 +13,7 @@
  */
 import type { World } from 'koota';
 import { useWorld } from 'koota/react';
-import { useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import {
   BoostState,
   DropIntro,
@@ -560,12 +560,65 @@ export type GameStateWithActions = GameStateSnapshot & {
  *   const distance = useGameStore(s => s.distance);
  *   const { startRun } = useGameStore(s => ({ startRun: s.startRun }));
  */
+// Cached snapshot for useSyncExternalStore. getSnapshot MUST return the
+// same reference when state hasn't changed, or React sees a "new" value
+// every render and loops infinitely (React error #185).
+let _cachedSnapshot: GameStateSnapshot | null = null;
+
+function snapshotsDiffer(a: GameStateSnapshot, b: GameStateSnapshot): boolean {
+  return (
+    a.running !== b.running ||
+    a.paused !== b.paused ||
+    a.gameOver !== b.gameOver ||
+    a.distance !== b.distance ||
+    a.speedMps !== b.speedMps ||
+    a.hype !== b.hype ||
+    a.sanity !== b.sanity ||
+    a.crowdReaction !== b.crowdReaction ||
+    a.crashes !== b.crashes ||
+    a.currentZone !== b.currentZone ||
+    a.cleanliness !== b.cleanliness ||
+    a.lateral !== b.lateral ||
+    a.steer !== b.steer ||
+    a.throttle !== b.throttle
+  );
+}
+
+function getCachedSnapshot(): GameStateSnapshot {
+  const next = readState(world);
+  if (_cachedSnapshot === null || snapshotsDiffer(_cachedSnapshot, next)) {
+    _cachedSnapshot = next;
+  }
+  return _cachedSnapshot;
+}
+
+// Stable RAF-backed subscribe fn — fires the listener whenever the
+// cached snapshot's fields shift.
+function subscribeToGameState(listener: () => void): () => void {
+  let rafId = 0;
+  let prev = getCachedSnapshot();
+  function poll() {
+    const next = getCachedSnapshot();
+    if (next !== prev) {
+      prev = next;
+      listener();
+    }
+    rafId = requestAnimationFrame(poll);
+  }
+  rafId = requestAnimationFrame(poll);
+  return () => cancelAnimationFrame(rafId);
+}
+
 export function useGameStore<T>(selector: (s: GameStateWithActions) => T): T {
   const w = useWorld();
 
+  // Reactive snapshot — re-renders this component whenever any tracked
+  // field in the ECS-backed state mutates.
+  const snapshot = useSyncExternalStore(subscribeToGameState, getCachedSnapshot);
+
   // Build the full state object with action methods bound to the world.
   const full: GameStateWithActions = {
-    ...readState(w),
+    ...snapshot,
     startRun: useCallback((opts?: StartRunOptions) => startRun(opts, w), [w]),
     endRun: useCallback(() => endRun(w), [w]),
     tick: useCallback((dt: number, now: number) => tick(dt, now, w), [w]),
