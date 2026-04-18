@@ -173,7 +173,9 @@ describe('TrickSystem', () => {
 
   it('caps the input buffer at 4 entries (oldest evicted)', () => {
     step(0, true);
-    (['up', 'down', 'left', 'right', 'up'] as TrickInput[]).forEach((i) => sys.pushInput(i, 0));
+    for (const i of ['up', 'down', 'left', 'right', 'up'] as TrickInput[]) {
+      sys.pushInput(i, 0);
+    }
     const buf = sys.getState().inputBuffer;
     expect(buf).toHaveLength(4);
     expect(buf[0]).toBe('down');
