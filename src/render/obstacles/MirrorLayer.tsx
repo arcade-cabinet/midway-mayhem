@@ -10,12 +10,12 @@
  */
 
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import * as THREE from 'three';
+import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { laneCenterX } from '@/utils/constants';
 
 const MAX_MIRROR_COPIES = 24;
@@ -42,7 +42,7 @@ function flickerOpacity(nowS: number, period: number, phase: number): number {
 export function MirrorLayer() {
   const groupRef = useRef<THREE.Group>(null);
   const mirrorSlots = useRef<THREE.Mesh[]>([]);
-  const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
+  const sampled = useSampledTrack();
 
   useFrame(() => {
     const g = groupRef.current;
@@ -91,9 +91,14 @@ export function MirrorLayer() {
           mat.visible = opacity > 0.01;
 
           const lat = laneCenterX(lane);
-          const world = trackToWorld(composition, room.d, lat);
-          mesh.position.set(world.x, world.y + 0.75, world.z);
-          mesh.rotation.set(0, world.heading, 0);
+          if (sampled.length === 0) continue;
+          const p = sampleTrackPose(sampled, room.d);
+          const rightX = Math.cos(p.yaw);
+          const rightZ = -Math.sin(p.yaw);
+          const worldX = p.x + rightX * lat;
+          const worldZ = p.z + rightZ * lat;
+          mesh.position.set(worldX, p.y + 0.75, worldZ);
+          mesh.rotation.set(0, p.yaw, 0);
           slot++;
         }
         if (slot >= MAX_MIRROR_COPIES) break;
@@ -132,9 +137,14 @@ export function MirrorLayer() {
           mat.visible = opacity > 0.01;
 
           const lat = laneCenterX(copy.lane);
-          const world = trackToWorld(composition, entry.realD, lat);
-          mesh.position.set(world.x, world.y + 0.75, world.z);
-          mesh.rotation.set(0, world.heading, 0);
+          if (sampled.length === 0) continue;
+          const p = sampleTrackPose(sampled, entry.realD);
+          const rightX = Math.cos(p.yaw);
+          const rightZ = -Math.sin(p.yaw);
+          const worldX = p.x + rightX * lat;
+          const worldZ = p.z + rightZ * lat;
+          mesh.position.set(worldX, p.y + 0.75, worldZ);
+          mesh.rotation.set(0, p.yaw, 0);
           slot++;
         }
       }

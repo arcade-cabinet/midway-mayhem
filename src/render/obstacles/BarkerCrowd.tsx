@@ -9,13 +9,12 @@
  */
 
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { onHonk } from '@/audio/honkBus';
-// TODO(gameState): useGameStore from the in-flight gameState port
+import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { useGameStore } from '@/game/gameState';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { TRACK } from '@/utils/constants';
 
 const BARKER_INTERVAL = 25; // meters between barkers
@@ -74,7 +73,7 @@ export function BarkerCrowd() {
   const barkers = useRef<Barker[]>(buildBarkers());
   const groupRef = useRef<THREE.Group>(null);
   const slots = useRef<BarkerSlot[]>([]);
-  const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
+  const sampled = useSampledTrack();
 
   // Build pool
   useFrame(() => {
@@ -160,10 +159,16 @@ export function BarkerCrowd() {
       }
 
       const lat = b.side * sideOffset;
-      const world = trackToWorld(composition, b.d, lat);
-      sl.group.position.set(world.x, world.y + 0.6, world.z);
+      if (sampled.length === 0) continue;
+      const p = sampleTrackPose(sampled, b.d);
+      // Apply lateral offset along the track's perpendicular (right-hand).
+      const rightX = Math.cos(p.yaw);
+      const rightZ = -Math.sin(p.yaw);
+      const worldX = p.x + rightX * lat;
+      const worldZ = p.z + rightZ * lat;
+      sl.group.position.set(worldX, p.y + 0.6, worldZ);
       // Face toward the track center
-      sl.group.rotation.set(0, world.heading + (b.side > 0 ? Math.PI : 0), 0);
+      sl.group.rotation.set(0, p.yaw + (b.side > 0 ? Math.PI : 0), 0);
 
       // Wave animation
       const elapsedSec = b.cheerStartedAt > 0 ? (now - b.cheerStartedAt) / 1000 : 0;
