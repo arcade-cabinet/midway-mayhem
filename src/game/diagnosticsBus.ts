@@ -21,6 +21,8 @@ export interface DiagnosticsDump {
   plunging: boolean;
   /** Tickets earned this run from pickups (flushed to profile on endRun). */
   ticketsThisRun: number;
+  /** Racing-line cleanliness EMA 0→1. 1 = on the optimal line, 0 = far off. */
+  cleanliness: number;
   distance: number;
   speedMps: number;
   hype: number;
@@ -78,6 +80,7 @@ export function installDiagnosticsBus() {
         dropProgress: s?.dropProgress ?? 0,
         plunging: s?.plunging ?? false,
         ticketsThisRun: s?.ticketsThisRun ?? 0,
+        cleanliness: s?.cleanliness ?? 1,
         distance: s?.distance ?? 0,
         speedMps: s?.speedMps ?? 0,
         hype: s?.hype ?? 0,
