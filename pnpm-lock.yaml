@@ -69,6 +69,9 @@ importers:
       react-dom:
         specifier: 19.2.5
         version: 19.2.5(react@19.2.5)
+      spessasynth_lib:
+        specifier: ^4.2.15
+        version: 4.2.15
       sql.js:
         specifier: ^1.14.1
         version: 1.14.1
@@ -1565,6 +1568,12 @@ packages:
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
+
+  spessasynth_core@4.2.12:
+    resolution: {integrity: sha512-SdSzAivl+iOAyERzEBTKTKZ3Jw2vZvGNiPZNlwZKWMDRb4y73fZlHjX7QN/Kn0kWkL6H1IuUot0zfFtOvhiBPA==}
+
+  spessasynth_lib@4.2.15:
+    resolution: {integrity: sha512-3QEOkzws6J/z/hkYS4jTO9uxM99NwoPH1J/L61+DAAxoedeBZopY3M5Ebql/r+4DOy1rcULnQYExucEjVp0C8w==}
 
   split2@4.2.0:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
@@ -3097,6 +3106,12 @@ snapshots:
       is-fullwidth-code-point: 3.0.0
 
   source-map-js@1.2.1: {}
+
+  spessasynth_core@4.2.12: {}
+
+  spessasynth_lib@4.2.15:
+    dependencies:
+      spessasynth_core: 4.2.12
 
   split2@4.2.0: {}
 

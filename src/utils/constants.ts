@@ -32,3 +32,36 @@ export type CritterKind = (typeof CRITTER_KINDS)[number];
 
 export const PICKUP_TYPES = ['boost', 'ticket', 'mega'] as const;
 export type PickupType = (typeof PICKUP_TYPES)[number];
+
+// ─── Track geometry constants ────────────────────────────────────────────────
+// TODO(Task #124): replace literals with tunables() once config system is ported.
+
+export const TRACK = {
+  LANE_COUNT: 4,
+  LANE_WIDTH: 3.3,
+  get WIDTH() {
+    return this.LANE_COUNT * this.LANE_WIDTH;
+  },
+  get HALF_WIDTH() {
+    return this.WIDTH / 2;
+  },
+  get LATERAL_CLAMP() {
+    return this.WIDTH / 2 - 0.5;
+  },
+} as const;
+
+/** World-space X for the centre of a given lane index (0 = leftmost). */
+export function laneCenterX(laneIndex: number): number {
+  const half = (TRACK.LANE_COUNT - 1) / 2;
+  return (laneIndex - half) * TRACK.LANE_WIDTH;
+}
+
+// ─── Honk / critter-scare constants ─────────────────────────────────────────
+// TODO(Task #124): replace literals with tunables() once config system is ported.
+
+export const HONK = {
+  SCARE_RADIUS_M: 30,
+  FLEE_LATERAL_M: 6,
+  FLEE_DURATION_S: 0.9,
+  COOLDOWN_S: 2,
+} as const;
