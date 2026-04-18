@@ -15,6 +15,7 @@ import {
   Score,
   Speed,
 } from '@/ecs/traits';
+import { combo } from '@/game/comboSystem';
 
 interface Callbacks {
   onObstacle?: (kind: ObstacleKind) => void;
@@ -99,6 +100,9 @@ export function stepCollisions(world: World, dt: number, cb: Callbacks = {}): vo
           score.value += 250;
           break;
       }
+      // Extend the combo chain on every pickup. Obstacle hits reset it
+      // via stepPlayer's crash path (registered inside applyCrashAction).
+      combo.registerEvent('pickup');
       cb.onPickup?.(pu.kind);
     }
   });

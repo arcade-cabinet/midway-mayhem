@@ -16,7 +16,8 @@
 
 import type { World } from 'koota';
 import { useEffect } from 'react';
-import { Player, Steer, Throttle } from '@/ecs/traits';
+import { Player, RunSession, Steer, Throttle } from '@/ecs/traits';
+import { pause, resume } from '@/game/gameState';
 
 interface UseKeyboardOptions {
   world: World;
@@ -68,6 +69,20 @@ export function useKeyboard({ world, onHorn, enabled = true }: UseKeyboardOption
       if (k === ' ' && !e.repeat) {
         onHorn?.();
         e.preventDefault();
+        return;
+      }
+      // Pause/resume — Escape or P toggles RunSession.paused. Only during
+      // an active run; Escape on the title/modal is handled elsewhere.
+      if ((k === 'escape' || k === 'p') && !e.repeat) {
+        const pe = world.query(Player, RunSession)[0];
+        if (pe) {
+          const rs = pe.get(RunSession);
+          if (rs?.running) {
+            if (rs.paused) resume(world);
+            else pause(world);
+            e.preventDefault();
+          }
+        }
       }
     };
     const handleUp = (e: KeyboardEvent) => {
