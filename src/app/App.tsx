@@ -27,6 +27,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
+import { useMouseSteer } from '@/input/useMouseSteer';
 import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
@@ -100,6 +101,7 @@ export function App() {
   const night = isNightFromUrl() || (settings?.nightMode ?? false);
 
   useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
+  useMouseSteer({ world, enabled: playing });
 
   return (
     <WorldProvider world={world}>
