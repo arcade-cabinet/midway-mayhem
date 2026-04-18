@@ -24,6 +24,7 @@ import {
   RunCounters,
   RunSession,
   Score,
+  Steer,
   TrickState,
 } from '@/ecs/traits';
 import { world } from '@/ecs/world';
@@ -453,11 +454,20 @@ export function applyPickup(kind: 'ticket' | 'boost' | 'mega', w: World = world)
 }
 
 export function setSteer(v: number, w: World = world): void {
+  const clamped = Math.max(-1, Math.min(1, v));
   const players = w.query(Player);
   const pe = players[0];
   if (!pe) return;
+  // Write BOTH: the Steer trait (read by gameStateTick to move the car)
+  // and GameplayStats.steer (read by the diag bus for reporting). The
+  // input bridges (keyboard/touch/mouse) only touch the Steer trait —
+  // this programmatic setter has to update both so the trait is the
+  // source of truth for motion and the snapshot reflects reality.
+  w.query(Player, Steer).updateEach(([s]) => {
+    s.value = clamped;
+  });
   const gs = pe.get(GameplayStats);
-  if (gs) pe.set(GameplayStats, { ...gs, steer: Math.max(-1, Math.min(1, v)) });
+  if (gs) pe.set(GameplayStats, { ...gs, steer: clamped });
 }
 
 export function setLateral(v: number, w: World = world): void {

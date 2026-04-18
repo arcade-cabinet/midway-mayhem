@@ -36,6 +36,13 @@ export function pickup(kind: 'ticket' | 'boost' | 'mega'): void {
   fn(kind);
 }
 
+/** Set steering input (-1 full-left … +1 full-right) through __mm bus. */
+export function setSteer(v: number): void {
+  const fn = window.__mm?.setSteer;
+  if (!fn) throw new Error('[integration] window.__mm.setSteer is not wired');
+  fn(v);
+}
+
 /** End the current run through the exposed __mm bus. */
 export function endRun(): void {
   const fn = window.__mm?.end;
