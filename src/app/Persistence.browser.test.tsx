@@ -1,25 +1,17 @@
 /**
  * Persistence integration test — proves run-end writes land in SQLite.
  *
- * Mounts <App/>, drives through a run, calls __mm.end() to end the run,
- * then reads the profile row back from the persistence layer and asserts
- * totalRuns incremented and bestDistanceCm reflects the run distance.
- *
- * Catches regressions where endRun fires but persistRunEnd silently
- * fails (previously almost happened when we moved recordRun between
- * useGameSystems and runEndPersistence).
+ * Drives a run, ends it via the diag bus, then reads the profile row
+ * back and asserts totalRuns incremented and bestDistanceCm reflects
+ * the run distance. Catches regressions where endRun fires but
+ * persistRunEnd silently fails.
  */
 import { render, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { initDb } from '@/persistence/db';
 import { getProfile } from '@/persistence/profile';
-import { waitFrames } from '@/test/scene';
+import { diag, driveInto, endRun, waitForDistance, waitFrames } from '@/test/integration';
 import { App } from './App';
-
-function findButton(root: HTMLElement, match: RegExp): HTMLButtonElement | null {
-  const buttons = Array.from(root.querySelectorAll('button')) as HTMLButtonElement[];
-  return buttons.find((b) => match.test((b.textContent || '').trim())) ?? null;
-}
 
 describe('Persistence integration', () => {
   it('records run-end distance + increments totalRuns in SQLite profile', async () => {
@@ -37,65 +29,18 @@ describe('Persistence integration', () => {
     );
     await waitFrames(15);
 
-    // Click through to DRIVE.
-    const newRun = await waitFor(
-      () =>
-        findButton(container, /^\s*NEW\s+RUN\s*$/i) ??
-        (() => {
-          throw new Error('no new-run');
-        })(),
-      { timeout: 5_000 },
-    );
-    newRun.click();
+    await driveInto(container);
 
-    const tier = await waitFor(
-      () =>
-        findButton(container, /KAZOO/i) ??
-        (() => {
-          throw new Error('no difficulty');
-        })(),
-      { timeout: 5_000 },
-    );
-    tier.click();
+    // Cover enough distance to make the best-distance assertion meaningful.
+    await waitForDistance(50, 15_000);
 
-    const play = await waitFor(
-      () =>
-        findButton(container, /▶\s*PLAY/) ??
-        (() => {
-          throw new Error('no play');
-        })(),
-      { timeout: 5_000 },
-    );
-    play.click();
-
-    // Wait past drop-in so distance advances.
-    await waitFor(
-      () => {
-        const d = window.__mm?.diag?.();
-        const p = (d?.dropProgress as number) ?? 0;
-        if (p < 1) throw new Error(`drop-in ${p.toFixed(2)}`);
-      },
-      { timeout: 10_000, interval: 50 },
-    );
-
-    // Drive until we've covered meaningful distance.
-    await waitFor(
-      () => {
-        const d = window.__mm?.diag?.();
-        const dist = (d?.distance as number) ?? 0;
-        if (dist < 50) throw new Error(`distance only ${dist.toFixed(0)}m`);
-      },
-      { timeout: 15_000, interval: 100 },
-    );
-
-    const finalDiag = window.__mm?.diag?.() as Record<string, unknown> | undefined;
-    const runDistance = (finalDiag?.distance as number) ?? 0;
+    const runDistance = diag().distance;
     expect(runDistance).toBeGreaterThan(50);
 
-    // End the run via the diag bus.
-    window.__mm?.end?.();
+    // End the run via the diag bus; persistRunEnd is fire-and-forget so
+    // poll getProfile until the write lands.
+    endRun();
 
-    // persistRunEnd is fire-and-forget — poll until the write lands.
     const expectedCm = Math.round(runDistance * 100);
     await waitFor(
       async () => {
@@ -108,7 +53,6 @@ describe('Persistence integration', () => {
             `bestDistanceCm ${p.bestDistanceCm} < expected ${expectedCm} (distance ${runDistance}m)`,
           );
         }
-        return p;
       },
       { timeout: 10_000, interval: 100 },
     );

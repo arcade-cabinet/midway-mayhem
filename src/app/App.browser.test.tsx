@@ -10,7 +10,7 @@
  */
 import { render, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { waitFrames } from '@/test/scene';
+import { diag, waitFrames } from '@/test/integration';
 import { App } from './App';
 
 describe('App root-render integration', () => {
@@ -69,11 +69,7 @@ describe('App root-render integration', () => {
     // And the diagnostics bus should report the scene has objects in it —
     // trackPieces > 0 proves procedural track geometry actually mounted,
     // not just an empty clear-coloured canvas.
-    const diag = window.__mm?.diag?.();
-    expect(diag, 'window.__mm.diag should be installed').toBeDefined();
-    expect(
-      (diag?.trackPieces as number) ?? 0,
-      `trackPieces was ${diag?.trackPieces}`,
-    ).toBeGreaterThan(0);
+    const snap = diag();
+    expect(snap.trackPieces, `trackPieces was ${snap.trackPieces}`).toBeGreaterThan(0);
   });
 });
