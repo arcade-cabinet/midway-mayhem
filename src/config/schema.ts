@@ -145,6 +145,22 @@ const TrickTunablesSchema = z.object({
   wheelieDuration: z.number().positive(),
   handstandDuration: z.number().positive(),
   spin180Duration: z.number().positive(),
+  /** How far ahead (m) to sample track Y for ramp detection. */
+  rampLookAheadM: z.number().positive(),
+  /** Minimum Y rise over rampLookAheadM to count as a ramp (m). */
+  rampYRiseThreshold: z.number().positive(),
+  /** Speed must exceed this (m/s) to enter airborne window. */
+  rampMinSpeedMps: z.number().positive(),
+  /** Duration of the airborne window after crossing a ramp crest (ms). */
+  airborneWindowMs: z.number().positive(),
+  /** Minimum pointer travel (px) in a flick window to register as a trick swipe. */
+  flickThresholdPx: z.number().positive(),
+  /** Time window (ms) in which the flick must complete. */
+  flickWindowMs: z.number().positive(),
+  /** Base crowd-reaction score awarded for any clean trick landing. */
+  trickScoreBase: z.number().positive(),
+  /** Additional crowd-reaction per full rotation in the trick. */
+  trickScorePerRot: z.number().positive(),
 });
 
 const HapticPatternSchema = z.object({

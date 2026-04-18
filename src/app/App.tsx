@@ -23,6 +23,7 @@ import { installDiagnosticsBus, wireDiagnosticsHooks } from '@/game/diagnosticsB
 import { ensureGameTraits, useGameStore } from '@/game/gameState';
 import { commitGhost, resetGhostRecorder } from '@/game/ghost';
 import { Governor } from '@/game/governor/Governor';
+import { useGameSystems } from '@/game/useGameSystems';
 import { useSettings } from '@/hooks/useSettings';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
@@ -102,6 +103,7 @@ export function App() {
 
   useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
   useMouseSteer({ world, enabled: playing });
+  useGameSystems();
 
   return (
     <WorldProvider world={world}>

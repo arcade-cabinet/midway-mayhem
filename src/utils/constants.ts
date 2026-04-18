@@ -69,8 +69,7 @@ export const TRACK = {
   },
   get LATERAL_CLAMP() {
     return (
-      (tunables.track.laneCount * tunables.track.laneWidthM) / 2 -
-      tunables.track.lateralClampInsetM
+      (tunables.track.laneCount * tunables.track.laneWidthM) / 2 - tunables.track.lateralClampInsetM
     );
   },
 } as const;
