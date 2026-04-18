@@ -40,6 +40,8 @@ ios/DerivedData
 # Reference conversations (kept locally, not tracked in repo)
 ChatGPT-Clown_Car_3D_Prototype.md
 Gemini-Conversation.md
+ChatGPT-*.md
+*-Conversation.md
 
 # Session notes
 .remember/

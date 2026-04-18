@@ -1,6 +1,6 @@
 ---
 title: AGENTS.md — Midway Mayhem Operating Protocols
-updated: 2026-04-16
+updated: 2026-04-18
 status: current
 domain: technical
 ---
@@ -37,33 +37,31 @@ Key alignment rules baked into the codebase:
 | Testing | Vitest (node+jsdom+browser) + Playwright + Maestro | 4-tier pyramid |
 | 3D assets | Kenney Racing Kit (CC0) — BAKED with MM palette | procedural kit avoids asset drift |
 | HDRI | PolyHaven circus_arena (CC0) 2K | immersive big-top, one asset does two jobs (lighting + background) |
-| ECS | zustand + plain modules (koota reserved for future entity graph) | simple first |
+| ECS | koota (one world, full trait graph) + zustand shim (`useGameStore`) for reactive HUD | koota is active; zustand is a read-only subscriber shim only |
 | AI driver | Yuka.js | production TypeScript steering-behavior library |
 
 ## Files that must not drift
 
-These three files are the SOURCE OF TRUTH for the palette. If you edit one, edit all:
+These two files are the SOURCE OF TRUTH for the palette. If you edit one, edit all:
 
 - `src/utils/constants.ts` → `COLORS` object
 - `src/app/global.css` → `--mm-*` CSS variables
-- `scripts/bake-kit.py` → `PALETTE` dict (then re-run bake)
 
 ## Asset pipeline
 
-```text
-/Volumes/home/assets/3DLowPoly/Vehicles/Cars/Racing Kit/*.glb   (source, CC0)
-        ↓  scripts/bake-kit.py   (Python via Blender)
-public/models/*.glb                                            (baked, tracked in git)
-        ↓  src/game/trackComposer.ts + src/components/TrackSystem.tsx
-in-game track                                                  (drei useGLTF)
-```
+Track geometry is **procedural**. There are no GLB road pieces, no `scripts/bake-kit.py`, no `public/models/` directory. Architecture rule 3 is absolute: track geometry is generated deterministically from `src/config/tunables.json` archetypes + seed, shaded with PBR materials.
 
-The Kenney kit uses named materials (`road`, `grey`, `grass`, `_defaultMat`, etc.) The bake script remaps those to MM-branded materials (`mm_track_orange`, `mm_rail_yellow`, `mm_shoulder_purple`, `mm_marking_white`). Verified palette mapping — see bake-kit.py REMAP dict.
+Non-track assets (critters) are sourced from the NAS asset library (Kenney/Quaternius CC0) and loaded via `drei` `useGLTF` at runtime. These are not baked.
 
 ## State model
 
 ```text
-zustand store (src/systems/gameState.ts)
+koota world (src/ecs/world.ts) — canonical entity/trait graph
+  Player entity traits: Distance, Lateral, Speed, TargetSpeed, Steer, Crashes, Zone
+  Obstacle/pickup entities: managed by ObstacleSystem / PickupSystem
+  Ghost entity: RacingLineGhost replay input trace
+
+zustand shim (src/game/gameState.ts)  ← file is at src/game/, NOT src/systems/
   session:    running, paused, gameOver, startedAt, seed
   player:     distance, lateral, speedMps, targetSpeedMps, steer
   derived:    hype, sanity, crowdReaction, crashes, currentZone
@@ -72,6 +70,8 @@ zustand store (src/systems/gameState.ts)
   actions:    startRun, tick(dt, now), pause, resume, endRun,
               applyCrash(heavy), applyPickup(kind), setSteer, setLateral
 ```
+
+The zustand store is a **reactive subscriber shim** — HUD panels read from it because React's render model needs reactive state. The ECS world is the authoritative source; the shim syncs from it each tick.
 
 Subscribers: HUD panels (reactive), ZoneBanner (on currentZone change), Cockpit (via useFrame read), GameLoop (tick driver).
 
@@ -128,7 +128,7 @@ No silent degradation — if a device can't hold target FPS, the ErrorModal gets
 
 - The source Kenney + PolyHaven assets (NAS / upstream). `public/models/` + `public/hdri/` ship BAKED/resolved versions.
 - `node_modules/` (obviously)
-- Raw conversation dumps (`ChatGPT-*.md`, `Gemini-*.md`). They informed the design and are mirrored into docs; the originals live locally, gitignored.
+- Raw conversation dumps (`ChatGPT-*.md`, `Gemini-*.md`). They informed the design; the content is now in `docs/DESIGN.md` and `docs/LORE.md`. The original files are gitignored and have been deleted from the working tree.
 
 ## Parallel specialists to spawn
 

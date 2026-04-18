@@ -1,6 +1,6 @@
 ---
 title: CLAUDE.md — Midway Mayhem
-updated: 2026-04-17
+updated: 2026-04-18
 status: current
 domain: technical
 ---
@@ -58,9 +58,17 @@ pnpm test:browser   # real-GPU Chromium screenshot tests
 src/
   app/              App + main entry (composition only)
   ecs/              world.ts, traits.ts, systems/
-  render/           R3F components that query traits
+  render/           R3F components that query traits (cockpit/, track/, obstacles/, env/)
   config/           tunables.json + archetypes/*.json + zod schemas
-  audio/            procedural Tone.js (no soundfonts)
+  audio/            Tone.js procedural + optional GeneralUser GS soundfont (spessasynth_lib)
+  game/             pure logic: runPlan, gameState, combo, trick, damage, ghost, obstacles/
+  track/            procedural track generator, zone system, daily route
+  persistence/      drizzle-orm schema, db drivers, profile, replay, stats, achievements
+  design/           design tokens, typography constants, shared UI components
+  ui/               screen-level React UI: title, HUD panels, game-over, achievement toasts
+  hooks/            form-factor hooks, device detection, responsive FOV, loadout
+  input/            touch controls, keyboard bindings, haptics bridge
+  storage/          lightweight KV wrappers for preferences + session data
   utils/            rng, math — tiny utilities only
   test/             scene harness + setup
 
@@ -71,7 +79,10 @@ public/
   ui/               background-landing.png (title art)
 
 scripts/
-  vite-capture-plugin.ts   # POST /__capture → .capture/<ts>/ on disk
+  vite-capture-plugin.ts      # POST /__capture → .capture/<ts>/ on disk
+  playthrough-governor.ts     # Yuka.js autonomous driver for e2e
+  maestro-all.sh              # Maestro native smoke flows
+  vitest-write-png-command.ts # PNG write helper for browser tests
 ```
 
 ## Reference material
