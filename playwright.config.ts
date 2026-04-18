@@ -16,6 +16,10 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
   retries: process.env.CI ? 1 : 0,
+  // Cap parallelism — 3D scene + preview server gets overwhelmed with
+  // more than 2 concurrent renderers on a 4-core box.
+  workers: process.env.CI ? 2 : 2,
+  fullyParallel: false,
   use: {
     baseURL: BASE_URL,
     headless: true,
