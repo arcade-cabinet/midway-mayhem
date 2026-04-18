@@ -12,12 +12,16 @@
  *   ArrowUp / W          Throttle up
  *   ArrowDown / S        Brake
  *   Space                Honk (onHorn edge-trigger)
+ *   Q                    Trick: left barrel-roll (left-left sequence, airborne only)
+ *   E                    Trick: right barrel-roll (right-right sequence, airborne only)
+ *   R                    Trick: backflip (up-up sequence, airborne only)
  */
 
 import type { World } from 'koota';
 import { useEffect } from 'react';
 import { Player, RunSession, Steer, Throttle } from '@/ecs/traits';
 import { pause, resume } from '@/game/gameState';
+import { trickInputBus } from '@/game/trickInputBus';
 
 interface UseKeyboardOptions {
   world: World;
@@ -68,6 +72,25 @@ export function useKeyboard({ world, onHorn, enabled = true }: UseKeyboardOption
       }
       if (k === ' ' && !e.repeat) {
         onHorn?.();
+        e.preventDefault();
+        return;
+      }
+      // Trick keys (airborne-only; gated by TrickSystem.pushInput's airborne check)
+      if (k === 'q' && !e.repeat) {
+        trickInputBus.push('left');
+        trickInputBus.push('left');
+        e.preventDefault();
+        return;
+      }
+      if (k === 'e' && !e.repeat) {
+        trickInputBus.push('right');
+        trickInputBus.push('right');
+        e.preventDefault();
+        return;
+      }
+      if (k === 'r' && !e.repeat) {
+        trickInputBus.push('up');
+        trickInputBus.push('up');
         e.preventDefault();
         return;
       }

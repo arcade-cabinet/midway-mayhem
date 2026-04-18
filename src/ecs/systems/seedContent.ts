@@ -8,7 +8,7 @@
 import type { World } from 'koota';
 import { trackArchetypes, tunables } from '@/config';
 import { Obstacle, type ObstacleKind, Pickup, type PickupKind } from '@/ecs/traits';
-import { type ZoneId, zoneForDistance } from '@/utils/constants';
+import { CRITTER_KINDS, type ZoneId, zoneForDistance } from '@/utils/constants';
 import { createRng } from '@/utils/rng';
 
 /**
@@ -17,16 +17,16 @@ import { createRng } from '@/utils/rng';
  * kept here in parallel so the live seedContent path delivers the same
  * zone identity without waiting on the full obstacleSpawner wire-up.
  *
- * - Midway Strip: cones + oil, moderate barriers — the tutorial lane
- * - Balloon Alley: more gates (lane cues), fewer hazards — pop balloons
- * - Ring of Fire: more oil + hammers, fewer cones — heat is on
- * - Funhouse Frenzy: mixed chaos, every kind roughly equal
+ * - Midway Strip: cones + oil, moderate barriers — the tutorial lane; critters roam freely
+ * - Balloon Alley: more gates (lane cues), fewer hazards — pop balloons; some critters
+ * - Ring of Fire: more oil + hammers, fewer cones — heat is on; critters flee the fire
+ * - Funhouse Frenzy: mixed chaos, every kind roughly equal; most critter appearances
  */
 const OBSTACLE_ZONE_WEIGHTS: Record<ZoneId, Record<ObstacleKind, number>> = {
-  'midway-strip': { cone: 4, oil: 2, barrier: 1, gate: 1, hammer: 0 },
-  'balloon-alley': { cone: 2, oil: 1, barrier: 1, gate: 3, hammer: 1 },
-  'ring-of-fire': { cone: 1, oil: 3, barrier: 2, gate: 1, hammer: 3 },
-  'funhouse-frenzy': { cone: 2, oil: 2, barrier: 2, gate: 2, hammer: 2 },
+  'midway-strip': { cone: 4, oil: 2, barrier: 1, gate: 1, hammer: 0, critter: 2 },
+  'balloon-alley': { cone: 2, oil: 1, barrier: 1, gate: 3, hammer: 1, critter: 2 },
+  'ring-of-fire': { cone: 1, oil: 3, barrier: 2, gate: 1, hammer: 3, critter: 1 },
+  'funhouse-frenzy': { cone: 2, oil: 2, barrier: 2, gate: 2, hammer: 2, critter: 3 },
 };
 
 const PICKUP_ZONE_WEIGHTS: Record<ZoneId, Record<PickupKind, number>> = {
@@ -83,7 +83,16 @@ export function seedContent(world: World, seed: number, opts: Options = {}): voi
     // Snap lateral to a lane center.
     const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);
-    world.spawn(Obstacle({ kind, distance, lateral, consumed: false }));
+    // Critter-kind is picked deterministically from the CRITTER_KINDS array.
+    const critterKind =
+      kind === 'critter'
+        ? (CRITTER_KINDS[rng.int(0, CRITTER_KINDS.length)] ?? 'cow')
+        : ('' as const);
+    // Hammer swing phase: baked at spawn so each hammer is visually offset.
+    const swingPhase = kind === 'hammer' ? rng.next() * Math.PI * 2 : 0;
+    world.spawn(
+      Obstacle({ kind, distance, lateral, consumed: false, critterKind, swingPhase }),
+    );
   }
 
   // Pickup spawns: same zone-weighted pattern. Balloon Alley skews

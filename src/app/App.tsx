@@ -30,6 +30,7 @@ import { useKeyboard } from '@/input/useKeyboard';
 import { useMouseSteer } from '@/input/useMouseSteer';
 import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
+import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
@@ -37,6 +38,7 @@ import { BarkerCrowd } from '@/render/obstacles/BarkerCrowd';
 import { FireHoopGate } from '@/render/obstacles/FireHoopGate';
 import { GhostCar } from '@/render/obstacles/GhostCar';
 import { MirrorLayer } from '@/render/obstacles/MirrorLayer';
+import { ObstacleSystem } from '@/render/obstacles/ObstacleSystem';
 import { RaidBridge } from '@/render/obstacles/RaidBridge';
 import { RaidLayer } from '@/render/obstacles/RaidLayer';
 import { PostFX } from '@/render/PostFX';
@@ -45,7 +47,9 @@ import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
 import { FinishBanner } from '@/render/track/FinishBanner';
 import { StartPlatform } from '@/render/track/StartPlatform';
+import { WorldScroller } from '@/render/track/WorldScroller';
 import { ZoneBanners } from '@/render/ZoneBanners';
+import { GimmickBridge } from './GimmickBridge';
 import { saveScore } from '@/storage/scores';
 import { initDailyRouteFromUrl } from '@/track/dailyRoute';
 import { AchievementToasts } from '@/ui/AchievementToasts';
@@ -121,18 +125,29 @@ export function App() {
             <BigTopEnvironment night={night} />
             <ZoneProps />
           </Suspense>
-          <Track />
-          <TrackContent />
-          <StartPlatform />
-          <FinishBanner />
-          <BalloonLayer />
-          <MirrorLayer />
-          <FireHoopGate />
-          <BarkerCrowd />
-          <RaidBridge />
-          <RaidLayer />
-          <ZoneBanners />
-          <GhostCar />
+          {/* World-space components that follow the player's track pose live
+              inside WorldScroller. It applies the inverse-player-pose transform
+              so child components can position themselves in track-frame coords
+              (player at origin, track heading toward -Z). */}
+          <WorldScroller>
+            <Track />
+            <TrackContent />
+            {/* Honk-scare bridge: mutates critter Obstacle trait on honk events. */}
+            <ObstacleSystem />
+            <StartPlatform />
+            <FinishBanner />
+            <BalloonLayer />
+            <MirrorLayer />
+            <FireHoopGate />
+            <BarkerCrowd />
+            <RaidBridge />
+            <RaidLayer />
+            <ZoneBanners />
+            <GhostCar />
+            {/* Racing-line guide: translucent wireframe ahead of player at
+                optimal lateral. Gated on settings.showRacingLine (default on). */}
+            {settings?.showRacingLine !== false && <RacingLineGhost />}
+          </WorldScroller>
           <Cockpit />
           <SpeedLines />
           <BoostRush />
@@ -205,6 +220,9 @@ export function App() {
             <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
           </>
         )}
+        {/* GimmickBridge: BalloonSpawner + MirrorDuplicator + TrickSystem +
+            zone→audioBus wiring. Lives outside <Canvas> — no useFrame needed. */}
+        <GimmickBridge />
         <AchievementToasts />
         {endReason !== null ? (
           <GameOverEnd

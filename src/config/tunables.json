@@ -12,7 +12,24 @@
     "interpResponse": 1.3
   },
   "combo": {
-    "chainThresholds": [[15, 8], [7, 4], [3, 2], [0, 1]],
+    "chainThresholds": [
+      [
+        15,
+        8
+      ],
+      [
+        7,
+        4
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        0,
+        1
+      ]
+    ],
     "chainExpiryMs": 3500
   },
   "damage": {
@@ -60,17 +77,59 @@
     "barrelRollDuration": 0.8,
     "wheelieDuration": 1.0,
     "handstandDuration": 1.2,
-    "spin180Duration": 0.7
+    "spin180Duration": 0.7,
+    "rampLookAheadM": 5,
+    "rampYRiseThreshold": 0.6,
+    "rampMinSpeedMps": 15,
+    "airborneWindowMs": 800,
+    "flickThresholdPx": 60,
+    "flickWindowMs": 200,
+    "trickScoreBase": 100,
+    "trickScorePerRot": 100
   },
   "haptics": {
-    "crashLight": { "web": 40 },
-    "crashHeavy": { "web": [80, 30, 40] },
-    "boost": { "web": 20 },
-    "megaBoost": { "web": [20, 50, 30, 50, 60] },
-    "pickupTicket": { "web": 15 },
-    "honk": { "web": 15 },
-    "gameOver": { "web": [150, 50, 200] },
-    "zoneTransition": { "web": [20, 40, 20] }
+    "crashLight": {
+      "web": 40
+    },
+    "crashHeavy": {
+      "web": [
+        80,
+        30,
+        40
+      ]
+    },
+    "boost": {
+      "web": 20
+    },
+    "megaBoost": {
+      "web": [
+        20,
+        50,
+        30,
+        50,
+        60
+      ]
+    },
+    "pickupTicket": {
+      "web": 15
+    },
+    "honk": {
+      "web": 15
+    },
+    "gameOver": {
+      "web": [
+        150,
+        50,
+        200
+      ]
+    },
+    "zoneTransition": {
+      "web": [
+        20,
+        40,
+        20
+      ]
+    }
   },
   "difficulty": {
     "silly": {
@@ -108,6 +167,23 @@
   "plungeOvershootM": 0.5,
   "plungeDurationS": 1.5,
   "dropDurationMs": 1800,
+  "track": {
+    "laneCount": 4,
+    "laneWidthM": 3.3,
+    "lateralClampInsetM": 0.5
+  },
+  "honk": {
+    "scareRadiusM": 30,
+    "fleeLateralM": 6,
+    "fleeDurationS": 0.9,
+    "cooldownS": 2
+  },
+  "steer": {
+    "maxLateralMps": 12,
+    "returnTauS": 0.12,
+    "wheelMaxDeg": 35,
+    "sensitivity": 1
+  },
   "cockpit": {
     "dropHeight": {
       "phonePortrait": 0.9,

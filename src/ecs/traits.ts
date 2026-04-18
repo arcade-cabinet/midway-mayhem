@@ -9,7 +9,7 @@
 import { trait } from 'koota';
 import type { Difficulty } from '@/game/difficulty';
 import type { PieceKind } from '@/track/trackComposer';
-import type { ZoneId } from '@/utils/constants';
+import type { CritterKind, ZoneId } from '@/utils/constants';
 
 // ─── Player ─────────────────────────────────────────────────────────────────
 
@@ -62,14 +62,15 @@ export const LaneCount = trait({ value: 4 });
 // ─── Obstacles + pickups ────────────────────────────────────────────────────
 
 /**
- * Five obstacle types per vision spec:
+ * Six obstacle types per vision spec:
  *  - barrier: unbreakable block, swerve around it
- *  - cones:   stack of traffic cones, minor damage
+ *  - cone:    stack of traffic cones, minor damage
  *  - gate:    gap-in-the-wall that telegraphs the correct lane
  *  - oil:     slick patch, reduces steer authority for ~1s
  *  - hammer:  swinging carnival hammer, timed obstacle
+ *  - critter: wandering circus animal; honk to scare it off the track (P0 vision beat)
  */
-export type ObstacleKind = 'barrier' | 'cone' | 'gate' | 'oil' | 'hammer';
+export type ObstacleKind = 'barrier' | 'cone' | 'gate' | 'oil' | 'hammer' | 'critter';
 /**
  * Obstacle sitting on the track. Collision check compares the player's
  * Position (distance + lateral) against the obstacle's distance + lateral.
@@ -80,6 +81,20 @@ export const Obstacle = trait({
   lateral: 0,
   /** Set to true once player has hit this obstacle, so we don't re-trigger. */
   consumed: false,
+  /**
+   * Critter-only: which animal to render. Empty string for non-critter kinds.
+   * Koota traits only support primitives, so this is '' | CritterKind.
+   */
+  critterKind: '' as CritterKind | '',
+  /**
+   * Critter-only: performance.now() when scare started. 0 = not fleeing.
+   * Fleeing critters can't be crashed into; they're on their way off-track.
+   */
+  fleeStartedAt: 0,
+  /** Critter-only: lateral flee direction (-1 left, +1 right, 0 = not fleeing). */
+  fleeDir: 0 as -1 | 0 | 1,
+  /** Hammer-only: baked swing phase offset [0..2pi] so hammers are out of sync. */
+  swingPhase: 0,
 });
 
 /**

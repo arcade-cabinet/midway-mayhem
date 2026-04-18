@@ -145,6 +145,22 @@ const TrickTunablesSchema = z.object({
   wheelieDuration: z.number().positive(),
   handstandDuration: z.number().positive(),
   spin180Duration: z.number().positive(),
+  /** How far ahead (m) to sample track Y for ramp detection. */
+  rampLookAheadM: z.number().positive(),
+  /** Minimum Y rise over rampLookAheadM to count as a ramp (m). */
+  rampYRiseThreshold: z.number().positive(),
+  /** Speed must exceed this (m/s) to enter airborne window. */
+  rampMinSpeedMps: z.number().positive(),
+  /** Duration of the airborne window after crossing a ramp crest (ms). */
+  airborneWindowMs: z.number().positive(),
+  /** Minimum pointer travel (px) in a flick window to register as a trick swipe. */
+  flickThresholdPx: z.number().positive(),
+  /** Time window (ms) in which the flick must complete. */
+  flickWindowMs: z.number().positive(),
+  /** Base crowd-reaction score awarded for any clean trick landing. */
+  trickScoreBase: z.number().positive(),
+  /** Additional crowd-reaction per full rotation in the trick. */
+  trickScorePerRot: z.number().positive(),
 });
 
 const HapticPatternSchema = z.object({
@@ -170,6 +186,31 @@ const DifficultyProfileTunablesSchema = z.object({
 });
 
 /** All six difficulty tier numeric profiles. */
+const TrackTunablesSchema = z.object({
+  laneCount: z.number().int().positive(),
+  laneWidthM: z.number().positive(),
+  /** How far inside the track edge the plunge clamp sits. */
+  lateralClampInsetM: z.number().nonnegative(),
+});
+
+const HonkTunablesSchema = z.object({
+  scareRadiusM: z.number().positive(),
+  fleeLateralM: z.number().positive(),
+  fleeDurationS: z.number().positive(),
+  cooldownS: z.number().positive(),
+});
+
+const SteerTunablesSchema = z.object({
+  /** Max lateral velocity in m/s at full stick. */
+  maxLateralMps: z.number().positive(),
+  /** Return-to-centre time constant in seconds. */
+  returnTauS: z.number().positive(),
+  /** Visual steering wheel rotation limit in degrees. */
+  wheelMaxDeg: z.number().positive(),
+  /** Steer sensitivity multiplier. */
+  sensitivity: z.number().positive(),
+});
+
 const DifficultyTunablesSchema = z.object({
   silly: DifficultyProfileTunablesSchema,
   kazoo: DifficultyProfileTunablesSchema,
@@ -213,6 +254,12 @@ export const TunablesSchema = z.object({
   plungeDurationS: z.number().positive(),
   /** Drop-in intro duration in milliseconds. */
   dropDurationMs: z.number().positive(),
+  /** Track geometry constants (lane count, width, clamp inset). */
+  track: TrackTunablesSchema,
+  /** Honk/scare radius + timing. */
+  honk: HonkTunablesSchema,
+  /** Steering sensitivity + return-to-centre + wheel visual. */
+  steer: SteerTunablesSchema,
 });
 
 export type Tunables = z.infer<typeof TunablesSchema>;

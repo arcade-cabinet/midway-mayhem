@@ -17,6 +17,8 @@
 import type { World } from 'koota';
 import { useEffect, useRef, useState } from 'react';
 import { Player, Steer, Throttle } from '@/ecs/traits';
+import { tunables } from '@/config';
+import { trickInputBus } from '@/game/trickInputBus';
 import { type FormTier, useFormFactor } from '@/render/cockpit/useFormFactor';
 
 interface TouchControlsProps {
@@ -64,6 +66,8 @@ const DRAG_RANGE_PX = 160;
 function DragSurface({ world }: { world: World }) {
   const dragId = useRef<number | null>(null);
   const startX = useRef(0);
+  const startY = useRef(0);
+  const pointerDownAt = useRef(0);
 
   const setSteer = (v: number) => {
     world.query(Player, Steer).updateEach(([s]) => {
@@ -75,6 +79,8 @@ function DragSurface({ world }: { world: World }) {
     if (dragId.current !== null) return;
     dragId.current = e.pointerId;
     startX.current = e.clientX;
+    startY.current = e.clientY;
+    pointerDownAt.current = performance.now();
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const handleMove = (e: React.PointerEvent) => {
@@ -84,6 +90,31 @@ function DragSurface({ world }: { world: World }) {
   };
   const handleUp = (e: React.PointerEvent) => {
     if (dragId.current !== e.pointerId) return;
+
+    // Flick detection: a fast gesture within flickWindowMs triggers a trick input.
+    // Checked on pointer-up so we know the full gesture extent.
+    const elapsed = performance.now() - pointerDownAt.current;
+    if (elapsed <= tunables.tricks.flickWindowMs) {
+      const dx = e.clientX - startX.current;
+      const dy = e.clientY - startY.current;
+      const adx = Math.abs(dx);
+      const ady = Math.abs(dy);
+      const thresh = tunables.tricks.flickThresholdPx;
+      if (adx >= thresh || ady >= thresh) {
+        if (adx >= ady) {
+          // Horizontal flick → barrel roll (double-tap same direction = sequence)
+          const dir = dx > 0 ? 'right' : 'left';
+          trickInputBus.push(dir);
+          trickInputBus.push(dir);
+        } else {
+          // Vertical flick: swipe up = backflip, swipe down = handstand
+          const dir = dy < 0 ? 'up' : 'down';
+          trickInputBus.push(dir);
+          trickInputBus.push(dir);
+        }
+      }
+    }
+
     dragId.current = null;
     setSteer(0);
     e.currentTarget.releasePointerCapture(e.pointerId);
