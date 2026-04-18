@@ -20,7 +20,6 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { reportError } from '@/game/errorBus';
-// TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
 import {
   getBestReplayForDate,

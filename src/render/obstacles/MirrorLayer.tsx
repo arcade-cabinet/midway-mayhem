@@ -14,7 +14,6 @@ import { useRef } from 'react';
 import * as THREE from 'three';
 import { sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
-// TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
 import { laneCenterX } from '@/utils/constants';
 

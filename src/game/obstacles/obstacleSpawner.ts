@@ -2,14 +2,9 @@
  * ObstacleSpawner — streams obstacles + pickups ahead of the player.
  *
  * Uses the rng.events channel so spawning entropy never perturbs track
- * construction. Zone weights are static defaults here until the config
- * system (tunables) is ported (Task #124).
- *
- * TODO(Task #124): replace static defaults with tunables() once
- * @/config/index is ported.
- * TODO(Task #124): replace laneCenterAt with the real trackComposer
- * once @/track/trackComposer is ported. Current stub returns a flat-track
- * lane centre so tests pass without the composer.
+ * construction. Zone weights are static defaults — moving them into
+ * tunables.json would require a zod schema for the full obstacle-type
+ * matrix; keeping them here until that lift has a consumer.
  */
 
 import type { CritterKind, ObstacleType, PickupType, ZoneId } from '@/utils/constants';
@@ -71,8 +66,9 @@ const ZONE_WEIGHTS: Record<ZoneId, Record<ObstacleType, number>> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Flat-track lane centre. Used until trackComposer is ported.
- * TODO(Task #124): replace with real trackComposer.laneCenterAt.
+ * Flat-track lane centre. This class-based spawner isn't on the live path
+ * (ECS ObstacleSystem is) so we don't pay the cost of integrating against
+ * the heading-aware trackComposer here.
  */
 function laneCenterAt(_d: number, lane: number): { x: number; y: number; z: number } {
   const half = (TRACK.LANE_COUNT - 1) / 2;
