@@ -17,8 +17,8 @@ import { combo } from '@/game/comboSystem';
 // When @/game/gameState lands this import resolves automatically.
 // biome-ignore lint/suspicious/noExplicitAny: deferred gameState import
 import { useGameStore } from '@/game/gameState';
-import { eventsRng } from '@/game/runRngBus';
 import type { ObstacleSpawner } from '@/game/obstacles/obstacleSpawner';
+import { eventsRng } from '@/game/runRngBus';
 import type { ComposedTrack } from '@/track/trackComposer';
 import type { CritterKind, ObstacleType } from '@/utils/constants';
 import { HONK, laneCenterX, TRACK } from '@/utils/constants';
@@ -263,7 +263,9 @@ export function useObstacleFrame(refs: FrameRefs): void {
         combo.registerEvent('pickup');
         const mult = combo.getMultiplier();
         if (p.type === 'ticket') {
-          useGameStore.setState({ crowdReaction: useGameStore.getState().crowdReaction + 50 * mult });
+          useGameStore.setState({
+            crowdReaction: useGameStore.getState().crowdReaction + 50 * mult,
+          });
           useGameStore.getState().applyPickup(p.type);
         } else {
           useGameStore.getState().applyPickup(p.type);
@@ -309,7 +311,9 @@ export function useObstacleFrame(refs: FrameRefs): void {
         combo.registerEvent('pickup');
         const mult = combo.getMultiplier();
         if (p.type === 'ticket') {
-          useGameStore.setState({ crowdReaction: useGameStore.getState().crowdReaction + 50 * mult });
+          useGameStore.setState({
+            crowdReaction: useGameStore.getState().crowdReaction + 50 * mult,
+          });
           useGameStore.getState().applyPickup(p.type);
         } else {
           useGameStore.getState().applyPickup(p.type);

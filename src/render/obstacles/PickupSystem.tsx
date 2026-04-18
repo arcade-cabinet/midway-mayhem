@@ -3,9 +3,9 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
+import { trackToWorld } from '@/game/obstacles/trackToWorld';
 import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { laneCenterX } from '@/utils/constants';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
 
 /**
  * Pickup visuals. Consumes pre-baked `state.plan.pickups` when available

@@ -16,9 +16,9 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
+import { trackToWorld } from '@/game/obstacles/trackToWorld';
 import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { laneCenterX } from '@/utils/constants';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
 
 const DEFAULT_HOOP_RADIUS = 3.2;
 const EMBER_COUNT = 20;

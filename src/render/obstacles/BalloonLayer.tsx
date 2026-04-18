@@ -15,9 +15,9 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
+import { trackToWorld } from '@/game/obstacles/trackToWorld';
 import type { PlannedBalloonAnchor } from '@/game/runPlan';
 import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
 
 const MAX_BALLOONS = 32;
 /** Render plan balloons within this forward window (metres). */

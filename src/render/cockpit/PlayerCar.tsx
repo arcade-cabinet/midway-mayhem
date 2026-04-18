@@ -13,9 +13,9 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useGameStore } from '@/game/gameState';
+import { sampleTrack } from '@/track/trackGenerator';
 import { STEER } from '@/utils/constants';
 import { makeGaugeTexture, makePolkaDotTexture } from '@/utils/proceduralTextures';
-import { sampleTrack } from '@/track/trackGenerator';
 
 /**
  * Cockpit rendered in world space — pillars, polka-dot hood, dashboard,

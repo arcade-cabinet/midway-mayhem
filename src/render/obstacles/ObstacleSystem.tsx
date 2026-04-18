@@ -5,18 +5,18 @@ import { onHonk } from '@/audio/honkBus';
 import { combo } from '@/game/comboSystem';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
-import { eventsRng } from '@/game/runRngBus';
-import { ObstacleSpawner } from '@/game/obstacles/obstacleSpawner';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
-import type { CritterKind } from '@/utils/constants';
-import { HONK } from '@/utils/constants';
 import {
   CRITTER_KINDS,
   type CritterPools,
   makeCritterPools,
   populateCritterKind,
 } from '@/game/obstacles/critterPool';
+import { ObstacleSpawner } from '@/game/obstacles/obstacleSpawner';
 import { type PlanFleeState, useObstacleFrame } from '@/game/obstacles/useObstacleFrame';
+import { eventsRng } from '@/game/runRngBus';
+import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
+import type { CritterKind } from '@/utils/constants';
+import { HONK } from '@/utils/constants';
 
 /**
  * Obstacles rendered via Kenney Racing Kit GLBs (baked with brand palette).
@@ -139,7 +139,9 @@ export function ObstacleSystem() {
       if (scared > 0) {
         for (let i = 0; i < scared; i++) combo.registerEvent('scare');
         const mult = combo.getMultiplier();
-        useGameStore.setState({ crowdReaction: useGameStore.getState().crowdReaction + scared * 10 * mult });
+        useGameStore.setState({
+          crowdReaction: useGameStore.getState().crowdReaction + scared * 10 * mult,
+        });
       }
     });
   }, [spawner]);

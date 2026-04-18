@@ -14,9 +14,9 @@ import * as THREE from 'three';
 import { onHonk } from '@/audio/honkBus';
 // TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
+import { trackToWorld } from '@/game/obstacles/trackToWorld';
 import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { TRACK } from '@/utils/constants';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
 
 const BARKER_INTERVAL = 25; // meters between barkers
 const HONK_RADIUS_M = 12;
@@ -129,7 +129,9 @@ export function BarkerCrowd() {
         if (now - b.lastHonkAt < COOLDOWN_S * 1000) continue;
         b.cheerStartedAt = now;
         b.lastHonkAt = now;
-        useGameStore.setState({ crowdReaction: useGameStore.getState().crowdReaction + BARKER_CROWD_BONUS });
+        useGameStore.setState({
+          crowdReaction: useGameStore.getState().crowdReaction + BARKER_CROWD_BONUS,
+        });
       }
     });
   }, []);
