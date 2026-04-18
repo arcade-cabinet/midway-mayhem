@@ -77,6 +77,7 @@ wireDiagnosticsHooks(
   (v: number) => useGameStore.getState().setSteer(v),
   () => useGameStore.getState().startRun({ seed: 42, difficulty: 'plenty' }),
   () => useGameStore.getState().endRun(),
+  (heavy: boolean) => useGameStore.getState().applyCrash(heavy),
 );
 
 function AudioBridge({

@@ -23,9 +23,10 @@ declare module 'vitest/browser' {
 
 interface Window {
   __mm?: {
-    diag?: () => Record<string, unknown>;
+    diag?: () => import('@/game/diagnosticsBus').DiagnosticsDump;
     setSteer?: (v: number) => void;
     start?: () => void;
     end?: () => void;
+    crash?: (heavy?: boolean) => void;
   };
 }

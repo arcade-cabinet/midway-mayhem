@@ -107,6 +107,12 @@ export function installDiagnosticsBus() {
       const fn = (globalThis as Record<string, unknown>).__mmEndRun as (() => void) | undefined;
       fn?.();
     },
+    crash(heavy = false) {
+      const fn = (globalThis as Record<string, unknown>).__mmApplyCrash as
+        | ((heavy: boolean) => void)
+        | undefined;
+      fn?.(heavy);
+    },
   };
 }
 
@@ -120,11 +126,15 @@ export function wireDiagnosticsHooks(
   setSteer: (v: number) => void,
   startRun: () => void,
   endRun: () => void,
+  applyCrash?: (heavy: boolean) => void,
 ) {
   (globalThis as Record<string, unknown>).__mmGetState = getState;
   (globalThis as Record<string, unknown>).__mmSetSteer = setSteer;
   (globalThis as Record<string, unknown>).__mmStartRun = startRun;
   (globalThis as Record<string, unknown>).__mmEndRun = endRun;
+  if (applyCrash) {
+    (globalThis as Record<string, unknown>).__mmApplyCrash = applyCrash;
+  }
 }
 
 export function reportFrame(dt: number) {
