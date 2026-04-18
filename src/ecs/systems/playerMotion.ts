@@ -9,7 +9,6 @@
  * No rendering here. Rendering reads Position + Speed through queries.
  */
 import type { World } from 'koota';
-import { trackArchetypes, tunables } from '@/config';
 import { Player, Position, Score, Speed, Steer, Throttle } from '@/ecs/traits';
 
 export function spawnPlayer(world: World): void {
@@ -31,24 +30,15 @@ export function spawnPlayer(world: World): void {
  *   throttle = 0  → target = cruiseMps * 0.4 (coast)
  *   throttle < 0  → target = 0 (brake)
  */
-export function stepPlayer(world: World, dt: number): void {
-  const { cruiseMps, maxSteerRate, throttleResponse } = tunables;
-  const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
-
-  world
-    .query(Player, Speed, Steer, Throttle, Position)
-    .updateEach(([speed, steer, throttle, pos]) => {
-      const tgt = throttle.value > 0 ? cruiseMps : throttle.value < 0 ? 0 : cruiseMps * 0.4;
-      speed.target = tgt;
-      // Exponential smoothing toward target.
-      const k = 1 - Math.exp(-throttleResponse * dt);
-      speed.value += (speed.target - speed.value) * k;
-
-      pos.distance += speed.value * dt;
-      pos.lateral += steer.value * maxSteerRate * dt;
-      // Clamp lateral so the player can't drive off the paved surface.
-      const maxLateral = halfWidth - trackArchetypes.laneWidth * 0.4;
-      if (pos.lateral > maxLateral) pos.lateral = maxLateral;
-      if (pos.lateral < -maxLateral) pos.lateral = -maxLateral;
-    });
+export function stepPlayer(world: World, _dt: number): void {
+  // gameStateTick is the authoritative driver of Position + Speed when a
+  // RunSession is active. This step is now a no-op — kept so callers and
+  // tests that import stepPlayer continue to work, and so the Player/Speed/
+  // Steer/Throttle/Position query graph stays intact.
+  //
+  // Keyboard + TouchControls write Steer/Throttle on the ECS traits; those
+  // are read by the governor path that funnels through gameState.setSteer
+  // and similar bridges. Distance and speed evolve exclusively inside
+  // gameStateTick so there's a single source of truth.
+  void world;
 }

@@ -39,22 +39,30 @@ export function useCockpitAnimation(refs: CockpitRefs): void {
     const dmgLevel = damageLevelFor(s.sanity);
     const now = performance.now();
 
-    // Drop-in + plunge animation on cockpit root
+    // Drop-in + plunge animation on cockpit root.
+    // Design rule: the cockpit always reads as "filling the viewport" —
+    // it never floats above the track or falls below the BigTop floor. All
+    // theatrics (drop-in, plunge) play out WITHIN the viewport frame.
     const root = refs.rootRef.current;
     if (root) {
+      // Cap the drop-in hoist at 1.5m so the cockpit is always overlapping
+      // the track; the animation becomes a gentle settle, not a plummet.
       const dp = Math.max(0, Math.min(1, s.dropProgress));
       const fall = dp < 0.75 ? (dp / 0.75) ** 2 : 1 + Math.sin((dp - 0.75) * 12) * 0.06 * (1 - dp);
-      const y0 = 12;
+      const DROP_HEIGHT = 1.5;
 
       if (s.plunging) {
         const elapsedS = Math.max(0, (now - s.plungeStartedAt) / 1000);
         const off = computePlungeOffset(elapsedS, s.plungeDirection);
-        root.position.y = off.y;
-        root.position.x = off.x;
-        root.rotation.x = off.rotX;
-        root.rotation.z = off.rotZ;
+        // Clamp plunge depth so the camera stays above ground (no void).
+        // The plunge reads as a stomach-drop shake + roll rather than a
+        // free-fall into blackness.
+        root.position.y = Math.max(-0.8, off.y * 0.3);
+        root.position.x = off.x * 0.5;
+        root.rotation.x = Math.min(0.4, off.rotX * 0.5);
+        root.rotation.z = off.rotZ * 0.6;
       } else {
-        root.position.y = y0 * (1 - fall);
+        root.position.y = DROP_HEIGHT * (1 - fall);
         root.position.x = 0;
         root.rotation.x = 0;
         root.rotation.y = s.trickRotationY;
