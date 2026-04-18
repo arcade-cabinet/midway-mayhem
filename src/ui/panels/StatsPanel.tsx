@@ -4,6 +4,7 @@ import { Dialog } from '@/design/components/Dialog';
 import { color, space } from '@/design/tokens';
 import { display, typeStyle, ui } from '@/design/typography';
 import { reportError } from '@/game/errorBus';
+import { initDb } from '@/persistence/db';
 import { getStats, type LifetimeStatsRow } from '@/persistence/lifetimeStats';
 import { formatDistance, formatDuration, formatMs } from '@/utils/formatters';
 
@@ -23,7 +24,8 @@ export function StatsPanel({ onClose }: Props) {
 
   useEffect(() => {
     let mounted = true;
-    getStats()
+    initDb()
+      .then(() => getStats())
       .then((data) => {
         if (mounted) setStats(data);
       })

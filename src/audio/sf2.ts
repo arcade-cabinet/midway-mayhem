@@ -55,10 +55,12 @@ class SF2Bridge {
       // and skip SF2 rather than halt the whole game — the procedural
       // calliope in conductor.ts is the primary music engine; SF2 is a
       // nice-to-have sweetener. See docs/ARCHITECTURE.md#audio.
+      //
+      // This is a compatibility branch, NOT an error. reportError would
+      // bubble to the [mm:halt] fatal channel and fail e2e test factories.
       if (!(ctx instanceof (globalThis.BaseAudioContext ?? AudioContext))) {
-        reportError(
-          new Error('SF2 disabled: AudioContext wrapper incompatible with AudioWorklet'),
-          'sf2Bridge.init',
+        console.warn(
+          '[sf2Bridge] AudioContext wrapper incompatible with AudioWorklet — SF2 disabled; procedural calliope still active.',
         );
         this.disabled = true;
         return;
@@ -69,7 +71,7 @@ class SF2Bridge {
       try {
         await ctx.audioWorklet.addModule(spessasynthProcessorUrl);
       } catch (err) {
-        reportError(err, 'sf2Bridge.init — addModule failed');
+        console.warn('[sf2Bridge] addModule failed — SF2 disabled:', err);
         this.disabled = true;
         return;
       }
@@ -79,9 +81,8 @@ class SF2Bridge {
       // layer keeps working.
       const resp = await fetch(soundfontUrl);
       if (!resp.ok) {
-        reportError(
-          new Error(`SF2 soundfont not found at ${soundfontUrl} (status ${resp.status})`),
-          'sf2Bridge.init',
+        console.warn(
+          `[sf2Bridge] soundfont not found at ${soundfontUrl} (status ${resp.status}) — SF2 disabled`,
         );
         this.disabled = true;
         return;

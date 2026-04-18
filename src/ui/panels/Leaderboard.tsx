@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import { color, elevation, radius, space } from '@/design/tokens';
 import { typeStyle, ui } from '@/design/typography';
 import { reportError } from '@/game/errorBus';
-import { db } from '@/persistence/db';
+import { db, initDb } from '@/persistence/db';
 import { dailyRuns } from '@/persistence/schema';
 import { utcDateString } from '@/track/dailyRoute';
 import { formatLeaderboardDistance } from '@/utils/formatters';
@@ -35,6 +35,7 @@ export function Leaderboard() {
     let cancelled = false;
     async function load() {
       try {
+        await initDb();
         const rows = await db()
           .select()
           .from(dailyRuns)
