@@ -25,6 +25,22 @@ export const ZONES = [
 
 export type ZoneId = (typeof ZONES)[number]['id'];
 
+/** Cycle length of the zone rotation, in meters. */
+export const ZONE_CYCLE_M = ZONES.reduce((sum, z) => sum + z.length, 0);
+
+/**
+ * Return the ZoneId for any distance along the track, wrapping around
+ * when d exceeds the first cycle. Pure function — same (d) → same zone.
+ */
+export function zoneForDistance(d: number): ZoneId {
+  const wrapped = ((d % ZONE_CYCLE_M) + ZONE_CYCLE_M) % ZONE_CYCLE_M;
+  for (const z of ZONES) {
+    if (wrapped >= z.start && wrapped < z.start + z.length) return z.id;
+  }
+  // Should be unreachable given ZONE_CYCLE_M covers [0, cycle); guard anyway.
+  return ZONES[0].id;
+}
+
 export const OBSTACLE_TYPES = ['barrier', 'cones', 'gate', 'oil', 'hammer', 'critter'] as const;
 export type ObstacleType = (typeof OBSTACLE_TYPES)[number];
 

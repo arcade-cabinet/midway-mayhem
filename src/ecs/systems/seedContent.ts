@@ -8,7 +8,48 @@
 import type { World } from 'koota';
 import { trackArchetypes, tunables } from '@/config';
 import { Obstacle, type ObstacleKind, Pickup, type PickupKind } from '@/ecs/traits';
+import { type ZoneId, zoneForDistance } from '@/utils/constants';
 import { createRng } from '@/utils/rng';
+
+/**
+ * Zone-specific obstacle weights. Higher numbers = more common. These
+ * mirror the weights that obstacleSpawner.ts (orphan) uses per zone;
+ * kept here in parallel so the live seedContent path delivers the same
+ * zone identity without waiting on the full obstacleSpawner wire-up.
+ *
+ * - Midway Strip: cones + oil, moderate barriers — the tutorial lane
+ * - Balloon Alley: more gates (lane cues), fewer hazards — pop balloons
+ * - Ring of Fire: more oil + hammers, fewer cones — heat is on
+ * - Funhouse Frenzy: mixed chaos, every kind roughly equal
+ */
+const OBSTACLE_ZONE_WEIGHTS: Record<ZoneId, Record<ObstacleKind, number>> = {
+  'midway-strip': { cone: 4, oil: 2, barrier: 1, gate: 1, hammer: 0 },
+  'balloon-alley': { cone: 2, oil: 1, barrier: 1, gate: 3, hammer: 1 },
+  'ring-of-fire': { cone: 1, oil: 3, barrier: 2, gate: 1, hammer: 3 },
+  'funhouse-frenzy': { cone: 2, oil: 2, barrier: 2, gate: 2, hammer: 2 },
+};
+
+const PICKUP_ZONE_WEIGHTS: Record<ZoneId, Record<PickupKind, number>> = {
+  'midway-strip': { balloon: 5, boost: 1, mega: 0 },
+  'balloon-alley': { balloon: 8, boost: 1, mega: 1 },
+  'ring-of-fire': { balloon: 3, boost: 3, mega: 1 },
+  'funhouse-frenzy': { balloon: 4, boost: 2, mega: 2 },
+};
+
+function pickWeighted<K extends string>(
+  rng: { next: () => number },
+  weights: Record<K, number>,
+): K {
+  let total = 0;
+  for (const k in weights) total += weights[k as K];
+  let pick = rng.next() * total;
+  for (const k in weights) {
+    pick -= weights[k as K];
+    if (pick < 0) return k as K;
+  }
+  // Fallback to first key if total was 0 or rounding slipped.
+  return Object.keys(weights)[0] as K;
+}
 
 interface Options {
   /** How many obstacles to spawn across the track. */
@@ -32,40 +73,25 @@ export function seedContent(world: World, seed: number, opts: Options = {}): voi
   const minDistance = leadIn;
   const maxDistance = totalLen - 40;
 
-  // Obstacle kind weights — cones + oil dominate, others add variety.
-  const obstacleKinds: readonly ObstacleKind[] = [
-    'cone',
-    'cone',
-    'cone',
-    'oil',
-    'oil',
-    'barrier',
-    'gate',
-    'hammer',
-  ];
+  // Obstacle spawns: kind picked from the active-zone weight table at
+  // the spawn distance. Zone identity drives the flavor of each ~450m
+  // segment (see ZONES / zoneForDistance).
   for (let i = 0; i < obstacleCount; i++) {
-    const kind = obstacleKinds[rng.int(0, obstacleKinds.length)] ?? 'cone';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
+    const zone = zoneForDistance(distance);
+    const kind = pickWeighted(rng, OBSTACLE_ZONE_WEIGHTS[zone]);
     // Snap lateral to a lane center.
     const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);
     world.spawn(Obstacle({ kind, distance, lateral, consumed: false }));
   }
 
-  // Pickup kind weights — balloons dominate, boost occasional, mega rare.
-  const pickupKinds: readonly PickupKind[] = [
-    'balloon',
-    'balloon',
-    'balloon',
-    'balloon',
-    'balloon',
-    'boost',
-    'boost',
-    'mega',
-  ];
+  // Pickup spawns: same zone-weighted pattern. Balloon Alley skews
+  // hard toward balloons; Ring of Fire trades some balloons for boosts.
   for (let i = 0; i < pickupCount; i++) {
-    const kind = pickupKinds[rng.int(0, pickupKinds.length)] ?? 'balloon';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
+    const zone = zoneForDistance(distance);
+    const kind = pickWeighted(rng, PICKUP_ZONE_WEIGHTS[zone]);
     const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);
     world.spawn(Pickup({ kind, distance, lateral, consumed: false }));
