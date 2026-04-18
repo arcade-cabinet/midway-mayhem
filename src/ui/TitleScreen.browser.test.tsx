@@ -7,7 +7,7 @@
  */
 import { render, waitFor } from '@testing-library/react';
 // @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
-import { commands } from '@vitest/browser/context';
+import { commands } from 'vitest/browser';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import { TitleScreen } from './TitleScreen';

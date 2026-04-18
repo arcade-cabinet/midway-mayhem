@@ -1,7 +1,7 @@
 /**
- * Ambient declaration that extends `@vitest/browser/context` with our
- * custom `writePngFromDataUrl` server command. Defined once here so every
- * test file can call `commands.writePngFromDataUrl(...)` without repeating
+ * Ambient declaration that extends `vitest/browser` with our custom
+ * `writePngFromDataUrl` server command. Defined once here so every test
+ * file can call `commands.writePngFromDataUrl(...)` without repeating
  * the `declare module` block.
  *
  * Implementation: scripts/vitest-write-png-command.ts
@@ -12,7 +12,7 @@
  * applies globally wherever tsconfig includes this .d.ts.
  */
 
-declare module '@vitest/browser/context' {
+declare module 'vitest/browser' {
   interface BrowserCommands {
     writePngFromDataUrl(dataUrl: string, relPath: string): Promise<{ path: string; bytes: number }>;
   }
