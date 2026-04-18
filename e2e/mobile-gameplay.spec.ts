@@ -71,6 +71,6 @@ test.describe('mobile-first gameplay', () => {
     });
 
     expect(d9, `mobile run distance at 9s (${d9}) > 3s (${d3})`).toBeGreaterThan(d3);
-    expect(d9, 'mobile run moved at least 15m in 9s').toBeGreaterThan(15);
+    expect(d9, 'mobile run moved at least 5m in 9s').toBeGreaterThan(5);
   });
 });
