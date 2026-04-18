@@ -5,7 +5,7 @@
  * definition.
  */
 import { useEffect, useState } from 'react';
-import { type Achievement, onAchievement } from '@/game/achievements';
+import { type Achievement, onAchievement } from '@/game/achievementRun';
 
 interface Toast {
   key: number;

@@ -18,7 +18,7 @@ import { seedTrack } from '@/ecs/systems/track';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
 import { Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
-import { resetAchievementsRun, stepAchievements } from '@/game/achievements';
+import { resetAchievementsRun, stepAchievements } from '@/game/achievementRun';
 import { commitGhost, resetGhostRecorder, stepGhostRecorder } from '@/game/ghost';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
