@@ -43,14 +43,34 @@ export function useGameSystems(): void {
   useEffect(() => {
     window.__mmHonk = () => honk();
 
-    const eRng = eventsRng();
-    const balloonSpawner = new BalloonSpawner(eRng);
-    const mirrorDuplicator = new MirrorDuplicator(eRng);
-    window.__mmBalloonSpawner = balloonSpawner;
-    window.__mmMirrorDuplicator = mirrorDuplicator;
+    // Spawners depend on eventsRng() which requires initRunRng() — only
+    // available after TitleScreen calls startRun(). Build them lazily on the
+    // running-edge and rebuild each run so their RNG comes from THAT run's seed.
+    let balloonSpawner: BalloonSpawner | null = null;
+    let mirrorDuplicator: MirrorDuplicator | null = null;
+    function ensureSpawners(): void {
+      if (balloonSpawner) return;
+      const eRng = eventsRng();
+      balloonSpawner = new BalloonSpawner(eRng);
+      mirrorDuplicator = new MirrorDuplicator(eRng);
+      window.__mmBalloonSpawner = balloonSpawner;
+      window.__mmMirrorDuplicator = mirrorDuplicator;
+    }
+    function disposeSpawners(): void {
+      balloonSpawner = null;
+      mirrorDuplicator = null;
+      window.__mmBalloonSpawner = undefined;
+      window.__mmMirrorDuplicator = undefined;
+    }
 
     const unsub = useGameStore.subscribe((s, prev) => {
       if (s.currentZone !== prev.currentZone) audioBus.setZone(s.currentZone);
+
+      // Rebuild spawners on each run start so the events channel matches the run seed.
+      if (s.running && !prev.running) {
+        disposeSpawners();
+        ensureSpawners();
+      }
 
       if (s.gameOver && !prev.gameOver && isDailyRoute()) {
         const today = utcDateString();
@@ -78,10 +98,10 @@ export function useGameSystems(): void {
     function gimmickLoop() {
       const s = useGameStore.getState();
       const now = performance.now();
-      if (s.running) {
+      if (s.running && balloonSpawner && mirrorDuplicator) {
         balloonSpawner.update(s.distance, s.currentZone, now);
-        const spawner = window.__mmSpawner;
-        if (spawner) mirrorDuplicator.sync(spawner.getObstacles(), s.currentZone);
+        const obstacleSpawner = window.__mmSpawner;
+        if (obstacleSpawner) mirrorDuplicator.sync(obstacleSpawner.getObstacles(), s.currentZone);
         const hitId = balloonSpawner.checkCollision(s.distance, s.lateral, now);
         if (hitId !== null) {
           balloonSpawner.consumeBalloon(hitId);
@@ -97,8 +117,7 @@ export function useGameSystems(): void {
       unsub();
       unsubSqueal();
       cancelAnimationFrame(rafId);
-      window.__mmBalloonSpawner = undefined;
-      window.__mmMirrorDuplicator = undefined;
+      disposeSpawners();
       window.__mmHonk = undefined;
     };
   }, []);
