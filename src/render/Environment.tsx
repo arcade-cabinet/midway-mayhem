@@ -75,9 +75,21 @@ export function BigTopEnvironment({
       {night ? (
         <>
           {/* Cyan underglow left, magenta underglow right — neon club vibe
-              *under* the track slab so the track edges light up from below. */}
-          <pointLight position={[-10, -2, -6]} color="#00e5ff" intensity={6} distance={40} decay={2} />
-          <pointLight position={[10, -2, -6]} color="#ff2d87" intensity={6} distance={40} decay={2} />
+           *under* the track slab so the track edges light up from below. */}
+          <pointLight
+            position={[-10, -2, -6]}
+            color="#00e5ff"
+            intensity={6}
+            distance={40}
+            decay={2}
+          />
+          <pointLight
+            position={[10, -2, -6]}
+            color="#ff2d87"
+            intensity={6}
+            distance={40}
+            decay={2}
+          />
         </>
       ) : null}
     </>

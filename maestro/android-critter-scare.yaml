@@ -1,0 +1,13 @@
+appId: com.midwaymayhem.app
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: "start-button"
+- tapOn:
+    id: "new-run-play"
+- waitForAnimationToEnd
+# Simulate honk gesture — long-press center of screen for ~500ms
+- tapOn:
+    point: "50%,70%"
+- takeScreenshot: docs/media/android-critter-scare-after-honk

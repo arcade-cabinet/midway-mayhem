@@ -51,14 +51,168 @@ export type TrackArchetypeSet = z.infer<typeof TrackArchetypeSetSchema>;
 
 // ─── Tunables ───────────────────────────────────────────────────────────────
 
+/** Per-form-factor cockpit drop-in hoist height, metres. */
+const CockpitDropHeightSchema = z.object({
+  phonePortrait: z.number(),
+  phoneLandscape: z.number(),
+  tabletPortrait: z.number(),
+  tabletLandscape: z.number(),
+  desktop: z.number(),
+  ultrawide: z.number(),
+});
+
+/** Plunge animation amplitude scalars. */
+const CockpitPlungeSchema = z.object({
+  yScalePortrait: z.number(),
+  yScaleLandscape: z.number(),
+  yFloorPortrait: z.number(),
+  yFloorLandscape: z.number(),
+  xScalePortrait: z.number(),
+  xScaleLandscape: z.number(),
+  rotScalePortrait: z.number(),
+  rotScaleLandscape: z.number(),
+  zRotScale: z.number(),
+  xRotMax: z.number(),
+});
+
+const CockpitTunablesSchema = z.object({
+  dropHeight: CockpitDropHeightSchema,
+  plunge: CockpitPlungeSchema,
+});
+
+/** Speed targets (gameStateTick) — distinct from the legacy cruiseMps
+ *  used by the isolated-test stepPlayer integrator. */
+const SpeedTunablesSchema = z.object({
+  cruiseMps: z.number().positive(),
+  boostMps: z.number().positive(),
+  megaMps: z.number().positive(),
+  rampStartMps: z.number().positive(),
+  rampPerMetre: z.number().positive(),
+  interpResponse: z.number().positive(),
+});
+
+const ComboTunablesSchema = z.object({
+  chainThresholds: z.array(z.tuple([z.number(), z.number()])),
+  chainExpiryMs: z.number().positive(),
+});
+
+const DamageTunablesSchema = z.object({
+  pristineThreshold: z.number(),
+  dentedThreshold: z.number(),
+  badThreshold: z.number(),
+});
+
+const ObstacleTunablesSchema = z.object({
+  forwardRenderM: z.number().positive(),
+  behindRenderM: z.number().positive(),
+  nearMissLateral: z.number().positive(),
+  nearMissDist: z.number().positive(),
+  critterPoolSize: z.number().int().positive(),
+  critterScale: z.number().positive(),
+});
+
+const RaidTunablesSchema = z.object({
+  telegraphMs: z.number().positive(),
+  tigerActiveMs: z.number().positive(),
+  knivesActiveMs: z.number().positive(),
+  cannonballActiveMs: z.number().positive(),
+  cooldownMinMs: z.number().positive(),
+  cooldownMaxMs: z.number().positive(),
+  laneCenterSpacing: z.number().positive(),
+  laneHalfWidth: z.number().positive(),
+  tigerLaneRange: z.number().positive(),
+  tigerAheadZ: z.number().positive(),
+  tigerScale: z.number().positive(),
+  knifeStartY: z.number().positive(),
+  knifeAheadZ: z.number().positive(),
+  knifeSpacing: z.number().positive(),
+  cannonballStartX: z.number(),
+  cannonballY: z.number().positive(),
+  cannonballAheadZ: z.number().positive(),
+  smokeDelayScale: z.number().positive(),
+  smokeTrailSpeed: z.number().positive(),
+  cannonballCrowdBonus: z.number().positive(),
+  tigerCrowdBonusAirborne: z.number().positive(),
+  tigerCrowdBonusDodge: z.number().positive(),
+  tigerHitThreshold: z.number().positive(),
+});
+
+const TrickTunablesSchema = z.object({
+  cleanLandingToleranceDeg: z.number().positive(),
+  cleanSanityReward: z.number().positive(),
+  cleanCrowdReward: z.number().positive(),
+  barrelRollDuration: z.number().positive(),
+  wheelieDuration: z.number().positive(),
+  handstandDuration: z.number().positive(),
+  spin180Duration: z.number().positive(),
+});
+
+const HapticPatternSchema = z.object({
+  web: z.union([z.number(), z.array(z.number())]),
+});
+
+const HapticsTunablesSchema = z.object({
+  crashLight: HapticPatternSchema,
+  crashHeavy: HapticPatternSchema,
+  boost: HapticPatternSchema,
+  megaBoost: HapticPatternSchema,
+  pickupTicket: HapticPatternSchema,
+  honk: HapticPatternSchema,
+  gameOver: HapticPatternSchema,
+  zoneTransition: HapticPatternSchema,
+});
+
+/** Numeric gameplay values for a single difficulty tier. */
+const DifficultyProfileTunablesSchema = z.object({
+  targetSpeedMps: z.number().positive(),
+  sanityDrainMultiplier: z.number().positive(),
+  rewardMultiplier: z.number().positive(),
+});
+
+/** All six difficulty tier numeric profiles. */
+const DifficultyTunablesSchema = z.object({
+  silly: DifficultyProfileTunablesSchema,
+  kazoo: DifficultyProfileTunablesSchema,
+  plenty: DifficultyProfileTunablesSchema,
+  ultraHonk: DifficultyProfileTunablesSchema,
+  nightmare: DifficultyProfileTunablesSchema,
+  ultraNightmare: DifficultyProfileTunablesSchema,
+});
+
 export const TunablesSchema = z.object({
   $schema: z.string().optional(),
-  /** Target cruise speed, m/s. */
+  /** Target cruise speed, m/s — for legacy stepPlayer integrator only. */
   cruiseMps: z.number().positive(),
   /** Maximum allowable steer rate, |d(steer)/dt|. */
   maxSteerRate: z.number().positive(),
   /** Acceleration response toward target speed, 1/s. */
   throttleResponse: z.number().positive(),
+  /** gameStateTick speed targets + ramp. */
+  speed: SpeedTunablesSchema,
+  /** Cockpit animation constants, per form-factor. */
+  cockpit: CockpitTunablesSchema,
+  /** Combo system tuning. */
+  combo: ComboTunablesSchema,
+  /** Damage level thresholds. */
+  damage: DamageTunablesSchema,
+  /** Obstacle render/collision distances. */
+  obstacles: ObstacleTunablesSchema,
+  /** Raid director timings. */
+  raid: RaidTunablesSchema,
+  /** Trick system tuning. */
+  tricks: TrickTunablesSchema,
+  /** Haptic patterns. */
+  haptics: HapticsTunablesSchema,
+  /** Difficulty tier numeric profiles. */
+  difficulty: DifficultyTunablesSchema,
+  /** RNG salt for content seeding (hex: 0xbee5 = 48869). */
+  rngSalt: z.number().int(),
+  /** Plunge overshoot distance in metres. */
+  plungeOvershootM: z.number().positive(),
+  /** Plunge animation duration in seconds. */
+  plungeDurationS: z.number().positive(),
+  /** Drop-in intro duration in milliseconds. */
+  dropDurationMs: z.number().positive(),
 });
 
 export type Tunables = z.infer<typeof TunablesSchema>;

@@ -7,11 +7,12 @@
  * Banner text is baked to a canvas texture at mount — cheap, no
  * runtime font loading.
  */
-import { useMemo } from 'react';
+
 import { useQuery } from 'koota/react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { trackArchetypes } from '@/config';
-import { sampleTrackPose, type SampledSegment } from '@/ecs/systems/trackSampler';
+import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { TrackSegment, Zone, type ZoneTheme } from '@/ecs/traits';
 
 const THEME_LABEL: Record<ZoneTheme, string> = {

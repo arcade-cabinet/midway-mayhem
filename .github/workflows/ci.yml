@@ -207,23 +207,7 @@ jobs:
           target: google_apis
           script: |
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
-            FAILED=0
-            for FLOW in \
-              maestro/android-smoke.yaml \
-              maestro/android-gameplay-30s.yaml \
-              maestro/android-critter-scare.yaml \
-              maestro/android-ramp-trick.yaml \
-              maestro/android-pause-resume.yaml \
-              maestro/android-game-over.yaml; do
-              echo "==> Running ${FLOW}"
-              if "$HOME/.maestro/bin/maestro" test "${FLOW}"; then
-                echo "PASSED: ${FLOW}"
-              else
-                echo "FAILED: ${FLOW}"
-                FAILED=$((FAILED+1))
-              fi
-            done
-            exit ${FAILED}
+            bash scripts/maestro-all.sh
 
       - name: Copy Maestro screenshots to docs/media
         if: always()
@@ -272,10 +256,13 @@ jobs:
           REFRESH_SNAPSHOTS: ${{ inputs.refresh_snapshots }}
         run: |
           pnpm copywasm
-          if [ "$REFRESH_SNAPSHOTS" == "true" ]; then
-            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots missing
+          # --update-snapshots=missing accepts new baselines for brand-new tests
+          # but still compares existing ones. Full-refresh requires the workflow
+          # input so accidental drift doesn't silently pass.
+          if [ "$REFRESH_SNAPSHOTS" = "true" ]; then
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots=all
           else
-            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots=missing
           fi
       - uses: actions/upload-artifact@v4
         if: always()

@@ -1,6 +1,9 @@
 /**
- * Unit tests for the player motion integrator. Covers: spawn state, speed
- * lerp toward target under full throttle, lateral clamp, distance advance.
+ * Unit tests for the player motion integrator.
+ *
+ * stepPlayer is gated by RunSession presence: when a run is active, the
+ * ported gameStateTick owns motion. In these tests we never add RunSession,
+ * so stepPlayer drives Position/Speed directly.
  */
 import { createWorld } from 'koota';
 import { describe, expect, it } from 'vitest';
@@ -33,8 +36,8 @@ describe('playerMotion', () => {
     const e = w.query(Player, Speed)[0];
     if (!e) throw new Error('no player');
     const v = e.get(Speed)?.value ?? 0;
-    expect(v).toBeGreaterThan(tunables.cruiseMps * 0.9);
-    expect(v).toBeLessThanOrEqual(tunables.cruiseMps + 1e-6);
+    expect(v).toBeGreaterThan(tunables.speed.cruiseMps * 0.9);
+    expect(v).toBeLessThanOrEqual(tunables.speed.cruiseMps + 1e-6);
   });
 
   it('distance advances when moving', () => {
@@ -65,7 +68,7 @@ describe('playerMotion', () => {
     const w = createWorld();
     spawnPlayer(w);
     w.query(Player, Speed).updateEach(([s]) => {
-      s.value = tunables.cruiseMps;
+      s.value = tunables.speed.cruiseMps;
     });
     w.query(Player, Throttle).updateEach(([t]) => {
       t.value = -1;

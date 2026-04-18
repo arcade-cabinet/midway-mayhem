@@ -1,0 +1,25 @@
+appId: com.midwaymayhem.app
+tags: [ui, gameplay]
+---
+# Assert the in-run HUD is actually visible on Android: HYPE / SANITY
+# labels must render. If the HUD didn't mount, gameplay would work but
+# the player would have no readout.
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn:
+    id: "start-button"
+- waitForAnimationToEnd
+- tapOn:
+    id: "new-run-play"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    timeout: 8000
+    visible:
+      text: "HYPE"
+- takeScreenshot: docs/media/maestro/android-hud-hype-visible
+- extendedWaitUntil:
+    timeout: 4000
+    visible:
+      text: "SANITY"
+- takeScreenshot: docs/media/maestro/android-hud-sanity-visible

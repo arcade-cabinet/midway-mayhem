@@ -11,7 +11,6 @@ import { useFrame } from '@react-three/fiber';
 import { useQuery } from 'koota/react';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { trackArchetypes } from '@/config';
 import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { Obstacle, Pickup, TrackSegment } from '@/ecs/traits';
 
@@ -95,26 +94,82 @@ export function TrackContent() {
         const rightZ = -Math.sin(p.yaw);
         const x = p.x + rightX * ob.lateral;
         const z = p.z + rightZ * ob.lateral;
-        if (ob.kind === 'cone') {
-          return (
-            <group key={e.id()} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
-              <mesh position={[0, 0.5, 0]}>
-                <coneGeometry args={[0.35, 1.0, 12]} />
-                <meshStandardMaterial color="#ff6f00" roughness={0.5} />
+        const id = e.id();
+        switch (ob.kind) {
+          case 'cone':
+            return (
+              <group key={id} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
+                <mesh position={[0, 0.5, 0]}>
+                  <coneGeometry args={[0.35, 1.0, 12]} />
+                  <meshStandardMaterial color="#ff6f00" roughness={0.5} />
+                </mesh>
+                <mesh position={[0, 0.2, 0]}>
+                  <cylinderGeometry args={[0.42, 0.42, 0.08, 12]} />
+                  <meshStandardMaterial color="#3a1a00" roughness={0.85} />
+                </mesh>
+              </group>
+            );
+          case 'oil':
+            return (
+              <mesh key={id} position={[x, p.y + 0.01, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
+                <circleGeometry args={[1.4, 16]} />
+                <meshStandardMaterial color="#1a1a1a" roughness={0.3} metalness={0.4} />
               </mesh>
-              <mesh position={[0, 0.2, 0]}>
-                <cylinderGeometry args={[0.42, 0.42, 0.08, 12]} />
-                <meshStandardMaterial color="#3a1a00" roughness={0.85} />
-              </mesh>
-            </group>
-          );
+            );
+          case 'barrier':
+            // Red + white striped short wall across one lane.
+            return (
+              <group key={id} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
+                <mesh position={[0, 0.6, 0]}>
+                  <boxGeometry args={[1.8, 1.2, 0.35]} />
+                  <meshStandardMaterial color="#e53935" roughness={0.6} />
+                </mesh>
+                <mesh position={[0, 0.6, 0.18]}>
+                  <boxGeometry args={[1.85, 0.25, 0.01]} />
+                  <meshStandardMaterial color="#ffffff" roughness={0.6} />
+                </mesh>
+              </group>
+            );
+          case 'gate':
+            // Arch with side pillars — telegraphs the correct lane.
+            return (
+              <group key={id} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
+                <mesh position={[-1.2, 1.0, 0]}>
+                  <boxGeometry args={[0.3, 2.0, 0.3]} />
+                  <meshStandardMaterial color="#8e24aa" roughness={0.5} metalness={0.3} />
+                </mesh>
+                <mesh position={[1.2, 1.0, 0]}>
+                  <boxGeometry args={[0.3, 2.0, 0.3]} />
+                  <meshStandardMaterial color="#8e24aa" roughness={0.5} metalness={0.3} />
+                </mesh>
+                <mesh position={[0, 2.1, 0]}>
+                  <boxGeometry args={[2.7, 0.35, 0.3]} />
+                  <meshStandardMaterial
+                    color="#ffd600"
+                    emissive="#ffd600"
+                    emissiveIntensity={0.4}
+                    roughness={0.3}
+                  />
+                </mesh>
+              </group>
+            );
+          case 'hammer':
+            // Swinging carnival hammer — still head for simplicity.
+            return (
+              <group key={id} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
+                <mesh position={[0, 1.6, 0]}>
+                  <boxGeometry args={[0.2, 2.4, 0.2]} />
+                  <meshStandardMaterial color="#5d4037" roughness={0.7} />
+                </mesh>
+                <mesh position={[0, 0.5, 0]}>
+                  <boxGeometry args={[1.4, 0.9, 1.4]} />
+                  <meshStandardMaterial color="#1e88e5" roughness={0.5} metalness={0.4} />
+                </mesh>
+              </group>
+            );
+          default:
+            return null;
         }
-        return (
-          <mesh key={e.id()} position={[x, p.y + 0.01, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
-            <circleGeometry args={[1.4, 16]} />
-            <meshStandardMaterial color="#1a1a1a" roughness={0.3} metalness={0.4} />
-          </mesh>
-        );
       })}
       {pickups.map((e) => {
         const pu = e.get(Pickup);
@@ -124,39 +179,67 @@ export function TrackContent() {
         const rightZ = -Math.sin(p.yaw);
         const x = p.x + rightX * pu.lateral;
         const z = p.z + rightZ * pu.lateral;
-        if (pu.kind === 'balloon') {
-          // Deterministic color + phase per entity so the same balloon always
-          // animates the same way across restarts.
-          const id = e.id();
-          const color = BALLOON_COLORS[id % BALLOON_COLORS.length] ?? BALLOON_COLORS[0];
-          const phase = (id * 0.57) % (Math.PI * 2);
-          return (
-            <BobbingBalloon
-              key={id}
-              anchor={[x, p.y + 1.6, z]}
-              phase={phase}
-              color={color as string}
-            />
-          );
+        const id = e.id();
+        switch (pu.kind) {
+          case 'balloon': {
+            // Deterministic color + phase per entity so the same balloon always
+            // animates the same way across restarts.
+            const color = BALLOON_COLORS[id % BALLOON_COLORS.length] ?? BALLOON_COLORS[0];
+            const phase = (id * 0.57) % (Math.PI * 2);
+            return (
+              <BobbingBalloon
+                key={id}
+                anchor={[x, p.y + 1.6, z]}
+                phase={phase}
+                color={color as string}
+              />
+            );
+          }
+          case 'boost':
+            // Cyan boost pad.
+            return (
+              <mesh key={id} position={[x, p.y + 0.02, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
+                <planeGeometry args={[1.8, 2.2]} />
+                <meshStandardMaterial
+                  color="#00e5ff"
+                  emissive="#00e5ff"
+                  emissiveIntensity={0.8}
+                  roughness={0.2}
+                  metalness={0.5}
+                  side={THREE.DoubleSide}
+                />
+              </mesh>
+            );
+          case 'mega':
+            // Magenta mega pad — same shape as boost but hotter color +
+            // pulsing emissive so it reads as a bigger reward.
+            return (
+              <group key={id} position={[x, p.y + 0.02, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
+                <mesh>
+                  <planeGeometry args={[2.2, 2.6]} />
+                  <meshStandardMaterial
+                    color="#ff2d87"
+                    emissive="#ff2d87"
+                    emissiveIntensity={1.2}
+                    roughness={0.15}
+                    metalness={0.6}
+                    side={THREE.DoubleSide}
+                  />
+                </mesh>
+                <mesh position={[0, 0, 0.01]}>
+                  <ringGeometry args={[0.8, 1.1, 24]} />
+                  <meshStandardMaterial
+                    color="#ffd600"
+                    emissive="#ffd600"
+                    emissiveIntensity={1.0}
+                    side={THREE.DoubleSide}
+                  />
+                </mesh>
+              </group>
+            );
+          default:
+            return null;
         }
-        // Boost pad
-        const lanes = trackArchetypes.lanes;
-        const laneWidth = trackArchetypes.laneWidth;
-        void lanes;
-        void laneWidth;
-        return (
-          <mesh key={e.id()} position={[x, p.y + 0.02, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
-            <planeGeometry args={[1.8, 2.2]} />
-            <meshStandardMaterial
-              color="#00e5ff"
-              emissive="#00e5ff"
-              emissiveIntensity={0.8}
-              roughness={0.2}
-              metalness={0.5}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        );
       })}
     </group>
   );

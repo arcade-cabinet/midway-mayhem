@@ -1,0 +1,13 @@
+appId: com.midwaymayhem.app
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: "start-button"
+- tapOn:
+    id: "new-run-play"
+- waitForAnimationToEnd
+- pressKey: Home
+- launchApp
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/android-pause-resume

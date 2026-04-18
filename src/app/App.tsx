@@ -6,36 +6,42 @@
  * Input listeners + motion loop are mounted unconditionally so the player
  * entity's state always reflects reality; gating is purely visual.
  */
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useRef, useState } from 'react';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
-import { type EndReason, resetGameOver, stepGameOver } from '@/ecs/systems/gameOver';
+import { type EndReason, resetGameOver } from '@/ecs/systems/gameOver';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { seedContent } from '@/ecs/systems/seedContent';
-import { seedTrack } from '@/ecs/systems/track';
-import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
 import { seedZones } from '@/ecs/systems/seedZones';
-import { resetAchievementsRun, stepAchievements } from '@/game/achievements';
-import { commitGhost, resetGhostRecorder, stepGhostRecorder } from '@/game/ghost';
-import { AchievementToasts } from '@/ui/AchievementToasts';
-import { GhostCar } from '@/render/GhostCar';
-import { ZoneBanners } from '@/render/ZoneBanners';
+import { seedTrack } from '@/ecs/systems/track';
 import { Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
+import { resetAchievementsRun } from '@/game/achievementRun';
+import { DebugCaptureBridge } from '@/game/debugCapture';
+import { installDiagnosticsBus, wireDiagnosticsHooks } from '@/game/diagnosticsBus';
+import { ensureGameTraits, useGameStore } from '@/game/gameState';
+import { commitGhost, resetGhostRecorder } from '@/game/ghost';
+import { Governor } from '@/game/governor/Governor';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
+import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
+import { GhostCar } from '@/render/obstacles/GhostCar';
 import { PostFX } from '@/render/PostFX';
-import { BoostRush } from '@/render/BoostRush';
 import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
+import { ZoneBanners } from '@/render/ZoneBanners';
 import { saveScore } from '@/storage/scores';
+import { AchievementToasts } from '@/ui/AchievementToasts';
 import { GameOverOverlay } from '@/ui/GameOverOverlay';
-import { TitleScreen } from '@/ui/TitleScreen';
+import { HUD } from '@/ui/hud/HUD';
+import type { NewRunConfig } from '@/ui/title/NewRunModal';
+import { TitleScreen } from '@/ui/title/TitleScreen';
+import { GameLoop } from './GameLoop';
 
 // Seed the world once at module load. ES modules are evaluated exactly
 // once per process, so this block runs only once even with React StrictMode
@@ -44,29 +50,19 @@ seedTrack(world, 42);
 seedContent(world, 42);
 seedZones(world);
 spawnPlayer(world);
+// Attach all run-state traits to the player entity now that it is spawned.
+ensureGameTraits(world);
 resetAchievementsRun();
 resetGhostRecorder();
-
-function GameLoop({
-  active,
-  onPickup,
-  onObstacle,
-  onEnd,
-}: {
-  active: boolean;
-  onPickup: (kind: 'balloon' | 'boost') => void;
-  onObstacle: (kind: 'cone' | 'oil') => void;
-  onEnd: (reason: EndReason) => void;
-}) {
-  usePlayerLoop(world, active, { onPickup, onObstacle });
-  useFrame(() => {
-    if (!active) return;
-    stepGameOver(world, { onEnd });
-    stepAchievements(world);
-    stepGhostRecorder(world);
-  });
-  return null;
-}
+// Install window.__mm.diag() etc for dev tooling.
+installDiagnosticsBus();
+// Wire __mmStartRun / __mmGetState / etc so the diag bus can read real state.
+wireDiagnosticsHooks(
+  () => useGameStore.getState(),
+  (v: number) => useGameStore.getState().setSteer(v),
+  () => useGameStore.getState().startRun({ seed: 42, difficulty: 'plenty' }),
+  () => useGameStore.getState().endRun(),
+);
 
 function AudioBridge({
   active,
@@ -116,19 +112,19 @@ export function App() {
           <BoostRush />
           <PostFX />
           <GameLoop
+            world={world}
             active={playing}
             onPickup={(kind) => {
-              if (kind === 'balloon') {
-                dingRef.current();
-                void haptic('light');
-              } else {
-                dingRef.current();
-                void haptic('medium');
-              }
+              dingRef.current();
+              if (kind === 'balloon') void haptic('light');
+              else if (kind === 'mega') void haptic('heavy');
+              else void haptic('medium');
             }}
-            onObstacle={() => {
+            onObstacle={(kind) => {
               thudRef.current();
-              void haptic('heavy');
+              // Oil slicks feel wobbly, not crashy; everything else thuds.
+              if (kind === 'oil') void haptic('medium');
+              else void haptic('heavy');
             }}
             onEnd={(r) => {
               setEndReason(r);
@@ -152,11 +148,36 @@ export function App() {
               thudRef.current = fns.thud;
             }}
           />
+          {/* Autonomous driver — active when ?governor=1 or ?autoplay=1 */}
+          <Governor />
+          {/* Debug frame capture — active in DEV or ?diag=1 */}
+          <DebugCaptureBridge />
         </Canvas>
         {titleVisible ? (
-          <TitleScreen onDrive={() => setTitleVisible(false)} />
+          <TitleScreen
+            onStart={(config?: NewRunConfig) => {
+              // Start the run — sets RunSession.running=true, initializes
+              // the run RNG + optimal path + combo + difficulty profile.
+              const store = useGameStore.getState();
+              if (config) {
+                store.startRun({
+                  seed: config.seed,
+                  difficulty: config.difficulty,
+                  seedPhrase: config.seedPhrase,
+                  permadeath: config.permadeath,
+                });
+              } else {
+                // Autoplay-without-config path (keyboard fallback).
+                store.startRun({ seed: 42, difficulty: 'plenty' });
+              }
+              setTitleVisible(false);
+            }}
+          />
         ) : (
-          <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+          <>
+            <HUD />
+            <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+          </>
         )}
         <AchievementToasts />
         {endReason !== null ? (

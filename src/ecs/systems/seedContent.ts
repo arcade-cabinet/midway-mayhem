@@ -6,9 +6,9 @@
  * Density is low — this is an arcade driver, not a bullet-hell.
  */
 import type { World } from 'koota';
-import { trackArchetypes } from '@/config';
-import { Obstacle, Pickup } from '@/ecs/traits';
-import { Rng } from '@/utils/rng';
+import { trackArchetypes, tunables } from '@/config';
+import { Obstacle, type ObstacleKind, Pickup, type PickupKind } from '@/ecs/traits';
+import { createRng } from '@/utils/rng';
 
 interface Options {
   /** How many obstacles to spawn across the track. */
@@ -20,7 +20,11 @@ interface Options {
 }
 
 export function seedContent(world: World, seed: number, opts: Options = {}): void {
-  const rng = new Rng(seed ^ 0xbee5); // fork the seed so track/content don't alias
+  // Content placement uses a deterministic RNG stream derived from the same
+  // base seed as track generation. The xor-salt forks content onto its own
+  // reproducible stream so obstacle + pickup lane picks stay stable across
+  // replays without consuming the exact same channel as track-segment draws.
+  const rng = createRng(seed ^ tunables.rngSalt);
   const { obstacleCount = 30, pickupCount = 40, leadIn = 40 } = opts;
   const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
   const laneWidth = trackArchetypes.laneWidth;
@@ -28,19 +32,41 @@ export function seedContent(world: World, seed: number, opts: Options = {}): voi
   const minDistance = leadIn;
   const maxDistance = totalLen - 40;
 
+  // Obstacle kind weights — cones + oil dominate, others add variety.
+  const obstacleKinds: readonly ObstacleKind[] = [
+    'cone',
+    'cone',
+    'cone',
+    'oil',
+    'oil',
+    'barrier',
+    'gate',
+    'hammer',
+  ];
   for (let i = 0; i < obstacleCount; i++) {
-    const kind: 'cone' | 'oil' = rng.next() > 0.4 ? 'cone' : 'oil';
+    const kind = obstacleKinds[rng.int(0, obstacleKinds.length)] ?? 'cone';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
     // Snap lateral to a lane center.
-    const lane = rng.nextInt(0, trackArchetypes.lanes - 1);
+    const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);
     world.spawn(Obstacle({ kind, distance, lateral, consumed: false }));
   }
 
+  // Pickup kind weights — balloons dominate, boost occasional, mega rare.
+  const pickupKinds: readonly PickupKind[] = [
+    'balloon',
+    'balloon',
+    'balloon',
+    'balloon',
+    'balloon',
+    'boost',
+    'boost',
+    'mega',
+  ];
   for (let i = 0; i < pickupCount; i++) {
-    const kind: 'balloon' | 'boost' = rng.next() > 0.18 ? 'balloon' : 'boost';
+    const kind = pickupKinds[rng.int(0, pickupKinds.length)] ?? 'balloon';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
-    const lane = rng.nextInt(0, trackArchetypes.lanes - 1);
+    const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);
     world.spawn(Pickup({ kind, distance, lateral, consumed: false }));
   }

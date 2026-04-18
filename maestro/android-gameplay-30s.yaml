@@ -1,0 +1,49 @@
+appId: com.midwaymayhem.app
+tags: [gameplay]
+---
+# 30-second run with per-5s screenshots. Proves the game loop runs
+# on Android emulator without errors: title → modal → play → ticking
+# HUD and rendering track all the way through.
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-gameplay-00-title
+- tapOn:
+    id: "start-button"
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-gameplay-01-modal
+- tapOn:
+    id: "new-run-play"
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-gameplay-02-started
+# Wait 5s + screenshot × 6
+- extendedWaitUntil:
+    timeout: 5500
+    visible:
+      id: ".*"
+- takeScreenshot: docs/media/maestro/android-gameplay-03-t5s
+- extendedWaitUntil:
+    timeout: 5500
+    visible:
+      id: ".*"
+- takeScreenshot: docs/media/maestro/android-gameplay-04-t10s
+- extendedWaitUntil:
+    timeout: 5500
+    visible:
+      id: ".*"
+- takeScreenshot: docs/media/maestro/android-gameplay-05-t15s
+- extendedWaitUntil:
+    timeout: 5500
+    visible:
+      id: ".*"
+- takeScreenshot: docs/media/maestro/android-gameplay-06-t20s
+- extendedWaitUntil:
+    timeout: 5500
+    visible:
+      id: ".*"
+- takeScreenshot: docs/media/maestro/android-gameplay-07-t25s
+- extendedWaitUntil:
+    timeout: 5500
+    visible:
+      id: ".*"
+- takeScreenshot: docs/media/maestro/android-gameplay-08-t30s

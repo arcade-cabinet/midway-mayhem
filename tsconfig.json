@@ -23,6 +23,6 @@
     },
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "scripts", "*.ts", "*.mts", "*.mjs"],
+  "include": ["src", "scripts", "e2e", "*.ts", "*.mts", "*.mjs"],
   "exclude": ["node_modules", "dist", "android", "ios", "reference"]
 }

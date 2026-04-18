@@ -1,0 +1,144 @@
+/**
+ * @module game/diagnosticsBus
+ *
+ * Diagnostics bus — installs window.__mm.diag() and per-frame perf counters.
+ * Reads game state from the ECS world (via useGameStore.getState()).
+ *
+ * Only active in DEV or when ?diag=1 / ?governor=1 is set.
+ */
+
+export interface DiagnosticsDump {
+  generatedAt: number;
+  fps: number;
+  /** Most-recent frame delta in milliseconds (raw, not smoothed). */
+  frameTimeMs: number;
+  running: boolean;
+  paused: boolean;
+  gameOver: boolean;
+  distance: number;
+  speedMps: number;
+  hype: number;
+  sanity: number;
+  crowdReaction: number;
+  crashes: number;
+  currentZone: string;
+  steer: number;
+  lateral: number;
+  obstacleCount: number;
+  pickupCount: number;
+  drawCalls: number;
+  trackPieces: number;
+  meshesRendered: number;
+  cameraPos: [number, number, number];
+  worldScrollerPos: [number, number, number];
+}
+
+const bus = {
+  lastFrameTime: 0,
+  fps: 0,
+  frameTimeMs: 0,
+  obstacleCount: 0,
+  pickupCount: 0,
+  drawCalls: 0,
+  trackPieces: 0,
+  meshesRendered: 0,
+  cameraPos: [0, 0, 0] as [number, number, number],
+  worldScrollerPos: [0, 0, 0] as [number, number, number],
+};
+
+export function installDiagnosticsBus() {
+  if (typeof window === 'undefined') return;
+  const params = new URLSearchParams(window.location.search);
+  const enabled =
+    import.meta.env.DEV || params.get('diag') === '1' || params.get('governor') === '1';
+  if (!enabled) return;
+
+  // biome-ignore lint/suspicious/noExplicitAny: diagnostic handle
+  (window as any).__mm = {
+    diag(): DiagnosticsDump {
+      // Dynamic import to avoid circular dep at module evaluation time.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const gs = (globalThis as Record<string, unknown>).__mmGetState as
+        | (() => import('./gameState').GameStateSnapshot)
+        | undefined;
+      const s = gs ? gs() : null;
+      return {
+        generatedAt: performance.now(),
+        fps: bus.fps,
+        frameTimeMs: bus.frameTimeMs,
+        running: s?.running ?? false,
+        paused: s?.paused ?? false,
+        gameOver: s?.gameOver ?? false,
+        distance: s?.distance ?? 0,
+        speedMps: s?.speedMps ?? 0,
+        hype: s?.hype ?? 0,
+        sanity: s?.sanity ?? 100,
+        crowdReaction: s?.crowdReaction ?? 0,
+        crashes: s?.crashes ?? 0,
+        currentZone: s?.currentZone ?? 'midway-strip',
+        steer: s?.steer ?? 0,
+        lateral: s?.lateral ?? 0,
+        obstacleCount: bus.obstacleCount,
+        pickupCount: bus.pickupCount,
+        drawCalls: bus.drawCalls,
+        trackPieces: bus.trackPieces,
+        meshesRendered: bus.meshesRendered,
+        cameraPos: [...bus.cameraPos] as [number, number, number],
+        worldScrollerPos: [...bus.worldScrollerPos] as [number, number, number],
+      };
+    },
+    setSteer(v: number) {
+      const fn = (globalThis as Record<string, unknown>).__mmSetSteer as
+        | ((v: number) => void)
+        | undefined;
+      fn?.(Math.max(-1, Math.min(1, v)));
+    },
+    start() {
+      const fn = (globalThis as Record<string, unknown>).__mmStartRun as (() => void) | undefined;
+      fn?.();
+    },
+    end() {
+      const fn = (globalThis as Record<string, unknown>).__mmEndRun as (() => void) | undefined;
+      fn?.();
+    },
+  };
+}
+
+/**
+ * Called from inside App.tsx (which has access to the world) to wire up the
+ * imperative __mm.* functions used by the diagnostics bus.
+ * Must be called after the player entity is spawned.
+ */
+export function wireDiagnosticsHooks(
+  getState: () => import('./gameState').GameStateSnapshot,
+  setSteer: (v: number) => void,
+  startRun: () => void,
+  endRun: () => void,
+) {
+  (globalThis as Record<string, unknown>).__mmGetState = getState;
+  (globalThis as Record<string, unknown>).__mmSetSteer = setSteer;
+  (globalThis as Record<string, unknown>).__mmStartRun = startRun;
+  (globalThis as Record<string, unknown>).__mmEndRun = endRun;
+}
+
+export function reportFrame(dt: number) {
+  const fpsSample = 1 / Math.max(dt, 1e-4);
+  bus.fps = bus.fps === 0 ? fpsSample : bus.fps * 0.9 + fpsSample * 0.1;
+  bus.frameTimeMs = dt * 1000;
+}
+export function reportCounts(obstacles: number, pickups: number, drawCalls: number) {
+  bus.obstacleCount = obstacles;
+  bus.pickupCount = pickups;
+  bus.drawCalls = drawCalls;
+}
+export function reportScene(info: {
+  trackPieces: number;
+  meshesRendered: number;
+  cameraPos: [number, number, number];
+  worldScrollerPos: [number, number, number];
+}) {
+  bus.trackPieces = info.trackPieces;
+  bus.meshesRendered = info.meshesRendered;
+  bus.cameraPos = info.cameraPos;
+  bus.worldScrollerPos = info.worldScrollerPos;
+}

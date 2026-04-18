@@ -1,0 +1,20 @@
+appId: com.midwaymayhem.app
+tags: [gameplay]
+---
+# Start a run and verify the HUD comes up. Triggering an actual
+# game-over from Maestro would require either real crashes (minutes)
+# or a dev cheat surface — neither is reliable on the emulator path.
+# The e2e Playwright suite covers the end-of-run overlay separately.
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn:
+    id: "start-button"
+- waitForAnimationToEnd
+- tapOn:
+    id: "new-run-play"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "hud"
+- takeScreenshot: docs/media/maestro/android-game-over
+- takeScreenshot: docs/media/maestro/android-game-over
