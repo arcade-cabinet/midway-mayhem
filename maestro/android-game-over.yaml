@@ -1,0 +1,13 @@
+appId: com.midwaymayhem.app
+---
+- launchApp:
+    clearState: true
+# Launch directly into autoplay so the governor plays until a game-over.
+# Capacitor's webview respects URL params on the start path.
+- openLink: "capacitor://localhost/index.html?autoplay=1&governor=1"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    timeout: 60000
+    visible:
+      text: "GAME OVER"
+- takeScreenshot: docs/media/android-game-over

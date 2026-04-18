@@ -1,0 +1,16 @@
+appId: com.midwaymayhem.app
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "NEW RUN"
+    optional: true
+- tapOn:
+    text: "▶ PLAY"
+    optional: true
+- waitForAnimationToEnd
+# Trick trigger — swipe up on the right half of the screen
+- swipe:
+    start: "75%,80%"
+    end: "75%,40%"
+- takeScreenshot: docs/media/android-ramp-trick-after

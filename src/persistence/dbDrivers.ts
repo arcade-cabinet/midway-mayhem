@@ -91,13 +91,14 @@ export async function openInMemorySqlJs(schemaObj: DbSchema): Promise<DriverResu
 // ─── OPFS + sql.js (web browser with durable persistence) ───────────────────
 
 export async function openOpfsSqlJs(schemaObj: DbSchema): Promise<DriverResult> {
-  // Locate the WASM binary — Vite copies it to /public/assets via copywasm.ts
+  // Locate the WASM binary. `pnpm copywasm` copies sql-wasm.wasm into
+  // public/ at build time, so Vite serves it at ${BASE_URL}sql-wasm.wasm.
   let wasmUrl: string;
   if (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL != null) {
     const base = import.meta.env.BASE_URL as string;
-    wasmUrl = `${base.endsWith('/') ? base : `${base}/`}assets/sql-wasm.wasm`;
+    wasmUrl = `${base.endsWith('/') ? base : `${base}/`}sql-wasm.wasm`;
   } else {
-    wasmUrl = '/assets/sql-wasm.wasm';
+    wasmUrl = '/sql-wasm.wasm';
   }
 
   const sqlJsMod = await initSqlJs({ locateFile: () => wasmUrl });

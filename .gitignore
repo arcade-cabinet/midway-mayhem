@@ -53,3 +53,6 @@ Gemini-Conversation.md
 
 # v1 codebase moved here for reference; not a live module
 # (lint/tsc/tests all exclude it)
+
+# copywasm output
+public/sql-wasm.wasm

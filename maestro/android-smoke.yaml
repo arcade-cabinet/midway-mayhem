@@ -1,0 +1,5 @@
+appId: com.midwaymayhem.app
+---
+- launchApp
+- assertVisible: '.*'
+- takeScreenshot: docs/media/android-smoke-launch
