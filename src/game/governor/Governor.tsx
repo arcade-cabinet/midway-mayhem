@@ -111,10 +111,7 @@ export function Governor() {
       }
     });
 
-    const result = driverRef.current.step(
-      { playerD, playerLateral, obstacles, pickups },
-      dt,
-    );
+    const result = driverRef.current.step({ playerD, playerLateral, obstacles, pickups }, dt);
     const next = steerToKey(result.steer);
     const prev = currentKey.current;
     if (next === prev) return;
