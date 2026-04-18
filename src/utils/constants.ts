@@ -65,3 +65,17 @@ export const HONK = {
   FLEE_DURATION_S: 0.9,
   COOLDOWN_S: 2,
 } as const;
+
+// ─── Steering constants ──────────────────────────────────────────────────────
+// TODO(Task #124): replace literals with tunables() once config system is ported.
+
+export const STEER = {
+  /** Maximum lateral velocity in m/s at full steer input. */
+  MAX_LATERAL_MPS: 12,
+  /** Steering return time constant (seconds). */
+  RETURN_TAU_S: 0.12,
+  /** Visual steering wheel rotation limit in degrees. */
+  WHEEL_MAX_DEG: 35,
+  /** Steer sensitivity multiplier. */
+  SENSITIVITY: 1.0,
+} as const;
