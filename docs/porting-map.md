@@ -1,13 +1,15 @@
 ---
 title: Reference → v2 Porting Map
-updated: 2026-04-17
+updated: 2026-04-18
 status: current
 domain: technical
 ---
 
 # Reference → v2 Porting Map
 
-**Goal.** Move every module in `reference/src/` back into `src/` under a cleaner structure, fix imports, and rewire. Then delete `reference/`.
+**Status: complete.** `reference/` has been deleted. Every module either landed in `src/` or is documented as deliberately dropped below. PR #21 on branch `feat/port-from-reference` carries the full migration.
+
+**Goal (original).** Move every module in `reference/src/` back into `src/` under a cleaner structure, fix imports, and rewire. Then delete `reference/`.
 
 **Architecture rules (re-affirmed from CLAUDE.md):**
 1. `.ts` = logic, `.tsx` = rendering, `.json` = data.
