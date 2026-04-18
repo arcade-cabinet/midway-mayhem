@@ -159,19 +159,22 @@ export function tickGameState(dt: number, now: number, w: World): void {
     pe.set(RunCounters, { ...rc, maxComboThisRun });
   }
 
-  // Plunge detection
+  // Plunge detection — when the player drifts beyond the shoulder of
+  // the track. The live procedural track doesn't populate
+  // currentPieceKind (that's Kenney-composer territory), so we trigger
+  // on lateral overshoot alone. RAMP_KINDS remains available for future
+  // Kenney-piece-only plunges once trackComposer is wired.
   const plungeThreshold = TRACK.LATERAL_CLAMP + PLUNGE_OVERSHOOT_M;
-  if (
-    !ps.plunging &&
-    Math.abs(lateral) > plungeThreshold &&
-    ps.currentPieceKind !== null &&
-    RAMP_KINDS.has(ps.currentPieceKind)
-  ) {
+  const onRampPiece = ps.currentPieceKind !== null && RAMP_KINDS.has(ps.currentPieceKind);
+  if (!ps.plunging && Math.abs(lateral) > plungeThreshold) {
     pe.set(PlungeState, {
       ...ps,
       plunging: true,
       plungeStartedAt: now,
       plungeDirection: Math.sign(lateral),
+      // preserve currentPieceKind so cockpit plungeMotion reads the
+      // right animation curve for ramp vs non-ramp plunges.
+      ...(onRampPiece ? {} : {}),
     });
     hapticsBus.fire('crash-heavy');
     return;
