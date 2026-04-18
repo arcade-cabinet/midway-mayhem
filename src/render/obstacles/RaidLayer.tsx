@@ -110,8 +110,7 @@ export function RaidLayer() {
     // biome-ignore lint/suspicious/noExplicitAny: raid system
     const raidDirector = (window as any).__mmRaidDirector;
     if (!raidDirector) {
-      hideAll();
-      return;
+      throw new Error('RaidLayer: __mmRaidDirector is not set — ObstacleSystem must mount first');
     }
 
     const raidState = raidDirector.getState() as RaidState | null;
@@ -184,12 +183,11 @@ export function RaidLayer() {
       return;
     }
 
-    // Cannonball launches from side wall and travels across
+    // Cannonball launches from side wall and travels to the targeted lane
     const progress = Math.min(1, Math.max(0, activeDt / (raidState.activeDuration / 1000)));
     const startX = -12;
-    const endX = 12;
-    const x = startX + (endX - startX) * progress;
     const targetLaneX = ((raidState.cannonballLane ?? 1) - 1) * 3.3;
+    const x = startX + (targetLaneX - startX) * progress;
     cb.position.set(x, 1.5, -6);
 
     // Smoke trail behind cannonball
@@ -198,7 +196,7 @@ export function RaidLayer() {
       if (!sm) continue;
       const delay = i * 0.15;
       const prevX = x - delay * 6;
-      if (prevX < startX || prevX > endX) {
+      if (prevX < startX || prevX > targetLaneX) {
         sm.position.set(0, -9999, 0);
         continue;
       }
@@ -206,8 +204,6 @@ export function RaidLayer() {
       const mat = sm.material as THREE.MeshStandardMaterial;
       mat.opacity = 0.3 + Math.sin(t * 6 + i) * 0.2;
     }
-
-    void targetLaneX;
   }
 
   function hideTiger() {

@@ -121,7 +121,7 @@ export function BarkerCrowd() {
   useEffect(() => {
     return onHonk(() => {
       const s = useGameStore.getState();
-      if (!s.running) return;
+      if (!s.running || s.currentZone !== 'midway-strip') return;
       const now = performance.now();
       for (const b of barkers.current) {
         const ahead = b.d - s.distance;
@@ -177,10 +177,12 @@ export function BarkerCrowd() {
       }
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-    (window as any).__mmDiag_barkers = barkers.current.filter(
-      (b) => b.d > s.distance - 20 && b.d < s.distance + 200,
-    ).length;
+    if (import.meta.env.DEV) {
+      // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+      (window as any).__mmDiag_barkers = barkers.current.filter(
+        (b) => b.d > s.distance - 20 && b.d < s.distance + 200,
+      ).length;
+    }
   });
 
   return <group ref={groupRef} data-testid="barker-crowd" />;

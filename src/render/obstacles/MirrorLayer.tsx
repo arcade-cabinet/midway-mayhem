@@ -65,8 +65,10 @@ export function MirrorLayer() {
       for (const sl of mirrorSlots.current) {
         sl.position.set(0, -9999, 0);
       }
-      // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-      (window as any).__mmDiag_mirrors = 0;
+      if (import.meta.env.DEV) {
+        // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+        (window as any).__mmDiag_mirrors = 0;
+      }
       return;
     }
 
@@ -101,8 +103,10 @@ export function MirrorLayer() {
       const mirrorDuplicator = (window as any).__mmMirrorDuplicator;
       if (!mirrorDuplicator) {
         for (const sl of mirrorSlots.current) sl.position.set(0, -9999, 0);
-        // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-        (window as any).__mmDiag_mirrors = 0;
+        if (import.meta.env.DEV) {
+          // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+          (window as any).__mmDiag_mirrors = 0;
+        }
         return;
       }
 
@@ -142,8 +146,10 @@ export function MirrorLayer() {
       if (sl) sl.position.set(0, -9999, 0);
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-    (window as any).__mmDiag_mirrors = slot;
+    if (import.meta.env.DEV) {
+      // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+      (window as any).__mmDiag_mirrors = slot;
+    }
   });
 
   return <group ref={groupRef} data-testid="mirror-layer" />;

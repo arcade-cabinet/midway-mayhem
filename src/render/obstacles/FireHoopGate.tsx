@@ -96,14 +96,18 @@ export function FireHoopGate() {
           passed: false,
           missChecked: false,
         }));
-      } else if (hoops.current.length === 0) {
+      } else {
+        // plan dropped to null — always rebuild to fallback so stale plan
+        // hoops don't linger in the slot on the next lap or reset.
         hoops.current = buildFallbackHoopList();
       }
     }
-    // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-    (window as any).__mmFireHoops = hoops.current;
-    // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-    (window as any).__mmDiag_hoops = hoops.current.length;
+    if (import.meta.env.DEV) {
+      // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+      (window as any).__mmFireHoops = hoops.current;
+      // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+      (window as any).__mmDiag_hoops = hoops.current.length;
+    }
   });
 
   // Build mesh pool once the hoops list is populated. Sized to fit the
@@ -179,8 +183,10 @@ export function FireHoopGate() {
           hoop.passed = true;
           hoop.missChecked = true;
           useGameStore.setState({ crowdReaction: useGameStore.getState().crowdReaction + 75 });
-          // biome-ignore lint/suspicious/noExplicitAny: diagnostics
-          (window as any).__mmDiag_hoopPerfect = ((window as any).__mmDiag_hoopPerfect ?? 0) + 1;
+          if (import.meta.env.DEV) {
+            // biome-ignore lint/suspicious/noExplicitAny: diagnostics
+            (window as any).__mmDiag_hoopPerfect = ((window as any).__mmDiag_hoopPerfect ?? 0) + 1;
+          }
         } else if (lateralDiff < MISS_DAMAGE_LATERAL_M) {
           hoop.missChecked = true;
           useGameStore.getState().applyCrash(false);
