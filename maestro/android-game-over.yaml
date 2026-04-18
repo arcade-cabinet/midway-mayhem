@@ -1,13 +1,22 @@
 appId: com.midwaymayhem.app
+tags: [gameplay]
 ---
+# Start a run and wait for GAME OVER (natural end of track or damage).
+# Capacitor WebView doesn't accept external openLink; we drive through
+# the title UI instead.
 - launchApp:
     clearState: true
-# Launch directly into autoplay so the governor plays until a game-over.
-# Capacitor's webview respects URL params on the start path.
-- openLink: "capacitor://localhost/index.html?autoplay=1&governor=1"
+- waitForAnimationToEnd
+- tapOn:
+    text: "NEW RUN"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "▶ PLAY"
+    optional: true
 - waitForAnimationToEnd
 - extendedWaitUntil:
-    timeout: 60000
+    timeout: 90000
     visible:
-      text: "GAME OVER"
-- takeScreenshot: docs/media/android-game-over
+      text: "RUN IT BACK"
+- takeScreenshot: docs/media/maestro/android-game-over

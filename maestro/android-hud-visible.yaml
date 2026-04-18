@@ -6,8 +6,14 @@ tags: [ui, gameplay]
 # the player would have no readout.
 - launchApp:
     clearState: true
-    arguments:
-      path: "?autoplay=1&governor=1"
+- waitForAnimationToEnd
+- tapOn:
+    text: "NEW RUN"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "▶ PLAY"
+    optional: true
 - waitForAnimationToEnd
 - extendedWaitUntil:
     timeout: 8000
