@@ -3,8 +3,8 @@
  *
  * Human-readable seed phrases. Three-word pool (adjective + adjective + noun)
  * drawn from the Midway Mayhem brand vocabulary: circus, carnival, clown car,
- * big-top, neon, sideshow. A phrase deterministically hashes to a 32-bit seed
- * and the same seed produces the same phrase on the round-trip.
+ * big-top, neon, sideshow. A phrase deterministically hashes to a 32-bit seed.
+ * Use randomPhrase(rng.next) + phraseToSeed() together for round-trip generation.
  *
  * Pool sizes are intentionally *not* powers of two — the phrase space is
  * adj1.length × adj2.length × noun.length ≈ 56 * 48 * 80 = 215,040 phrases,
@@ -233,11 +233,13 @@ export interface ParsedSeedPhrase {
 /**
  * Deterministically convert a phrase string to a 32-bit seed.
  * Trims, lowercases, and collapses whitespace so minor typing differences map
- * to the same seed. Empty strings fall back to a random seed.
+ * to the same seed. Throws on empty input — callers must validate before calling.
  */
 export function phraseToSeed(phrase: string): number {
   const normalized = phrase.trim().toLowerCase().replace(/\s+/g, '-');
-  if (normalized.length === 0) return (Math.random() * 0x100000000) >>> 0;
+  if (normalized.length === 0) {
+    throw new Error('Seed phrase cannot be empty.');
+  }
   return hash32(normalized);
 }
 

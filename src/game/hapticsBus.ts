@@ -67,38 +67,42 @@ class HapticsBus {
   fire(event: HapticEvent): void {
     if (!this.enabled) return;
     const p = PATTERNS[event];
-    // Prefer Capacitor on native
+    // Prefer Capacitor on native — fire all applicable channels, don't short-circuit
     if (this.capacitorHaptics) {
       const H = this.capacitorHaptics as {
         impact?: (opts: { style: string }) => Promise<void>;
         notification?: (opts: { type: string }) => Promise<void>;
         selectionChanged?: () => Promise<void>;
       };
+      let firedNative = false;
       if (p.impact && H.impact) {
         H.impact({ style: p.impact.toUpperCase() }).catch((err: unknown) =>
           reportError(err, `hapticsBus.fire(${event}) — Capacitor impact`),
         );
-        return;
+        firedNative = true;
       }
       if (p.notify && H.notification) {
         H.notification({ type: p.notify.toUpperCase() }).catch((err: unknown) =>
           reportError(err, `hapticsBus.fire(${event}) — Capacitor notification`),
         );
-        return;
+        firedNative = true;
       }
       if (p.selection && H.selectionChanged) {
         H.selectionChanged().catch((err: unknown) =>
           reportError(err, `hapticsBus.fire(${event}) — Capacitor selectionChanged`),
         );
-        return;
+        firedNative = true;
       }
+      if (firedNative) return;
     }
     // Web Vibration API — works on mobile browsers, no-op on desktop
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try {
         navigator.vibrate(p.web);
-      } catch {
-        // silent — some browsers block vibrate during autoplay-restricted contexts
+      } catch (err) {
+        // Some browsers block vibrate during autoplay-restricted contexts.
+        // Surface via reportError so it's visible in diagnostics but not fatal.
+        reportError(err, `hapticsBus.fire(${event}) — navigator.vibrate`);
       }
     }
   }

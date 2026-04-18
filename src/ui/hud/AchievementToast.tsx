@@ -10,6 +10,7 @@ import { Panel } from '@/design/components/Panel';
 import { color, motion, radius, space, zLayer } from '@/design/tokens';
 import { typeStyle, ui } from '@/design/typography';
 import { type AchievementGrantedEvent, subscribeAchievements } from '@/game/achievementBus';
+import { computeToastTimings } from './toastTimings';
 
 interface QueuedToast extends AchievementGrantedEvent {
   id: number;
@@ -31,26 +32,28 @@ export function AchievementToast() {
     });
   }, []);
 
-  // Dequeue and display one at a time
+  // Dequeue one toast at a time
   useEffect(() => {
     if (current !== null || queue.length === 0) return;
-
     const [next, ...rest] = queue;
     setQueue(rest);
     setCurrent(next ?? null);
+  }, [current, queue]);
+
+  // Drive enter/exit timers for the active toast
+  useEffect(() => {
+    if (!current) return;
+    const { enterDelay, exitDelay, clearDelay } = computeToastTimings(TOAST_DURATION_MS);
     setVisible(false);
-
-    // Slight delay so the slide-in animation fires on mount
-    const enterTimer = setTimeout(() => setVisible(true), 16);
-    const exitTimer = setTimeout(() => setVisible(false), TOAST_DURATION_MS - 400);
-    const clearTimer = setTimeout(() => setCurrent(null), TOAST_DURATION_MS);
-
+    const enterTimer = setTimeout(() => setVisible(true), enterDelay);
+    const exitTimer = setTimeout(() => setVisible(false), exitDelay);
+    const clearTimer = setTimeout(() => setCurrent(null), clearDelay);
     return () => {
       clearTimeout(enterTimer);
       clearTimeout(exitTimer);
       clearTimeout(clearTimer);
     };
-  }, [current, queue]);
+  }, [current]);
 
   if (!current) return null;
 

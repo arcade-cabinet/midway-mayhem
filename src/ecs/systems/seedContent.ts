@@ -6,7 +6,7 @@
  * Density is low — this is an arcade driver, not a bullet-hell.
  */
 import type { World } from 'koota';
-import { trackArchetypes } from '@/config';
+import { trackArchetypes, tunables } from '@/config';
 import { Obstacle, type ObstacleKind, Pickup, type PickupKind } from '@/ecs/traits';
 import { createRng } from '@/utils/rng';
 
@@ -20,10 +20,11 @@ interface Options {
 }
 
 export function seedContent(world: World, seed: number, opts: Options = {}): void {
-  // Content placement shares the deterministic track channel (obstacle + pickup
-  // lane picks must match across replays). The xor-0xbee5 salt keeps content
-  // from aliasing track-segment draws when both go through the same channel.
-  const rng = createRng(seed ^ 0xbee5);
+  // Content placement uses a deterministic RNG stream derived from the same
+  // base seed as track generation. The xor-salt forks content onto its own
+  // reproducible stream so obstacle + pickup lane picks stay stable across
+  // replays without consuming the exact same channel as track-segment draws.
+  const rng = createRng(seed ^ tunables.rngSalt);
   const { obstacleCount = 30, pickupCount = 40, leadIn = 40 } = opts;
   const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
   const laneWidth = trackArchetypes.laneWidth;

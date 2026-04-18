@@ -24,12 +24,9 @@ describe('seedPhrase', () => {
     expect(seed).toBeLessThan(0x100000000);
   });
 
-  it('empty phrase falls back to a random seed', () => {
-    const a = phraseToSeed('');
-    const b = phraseToSeed('  ');
-    // Both are uint32, both may differ (random fallback)
-    expect(a).toBeGreaterThanOrEqual(0);
-    expect(b).toBeGreaterThanOrEqual(0);
+  it('empty phrase throws (hard-fail — callers must validate)', () => {
+    expect(() => phraseToSeed('')).toThrow('Seed phrase cannot be empty.');
+    expect(() => phraseToSeed('  ')).toThrow('Seed phrase cannot be empty.');
   });
 
   it('randomPhrase produces 3 hyphen-joined segments from the pools', () => {

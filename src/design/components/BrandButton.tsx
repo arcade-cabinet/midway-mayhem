@@ -37,7 +37,7 @@ const BALLOON_FILL: Record<BalloonHue, string> = {
   blue: color.blue,
   purple: color.purple,
   orange: color.orange,
-  green: '#43a047',
+  green: color.green,
 };
 
 // Text color chosen per fill so contrast stays high and brand reads right.

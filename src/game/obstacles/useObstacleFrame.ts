@@ -12,10 +12,10 @@
 import { useFrame } from '@react-three/fiber';
 import type * as THREE from 'three';
 import { audioBus } from '@/audio/audioBus';
+import { tunables } from '@/config';
 import { combo } from '@/game/comboSystem';
 // TODO(gameState): useGameStore comes from the in-flight gameState port.
 // When @/game/gameState lands this import resolves automatically.
-// biome-ignore lint/suspicious/noExplicitAny: deferred gameState import
 import { useGameStore } from '@/game/gameState';
 import type { ObstacleSpawner } from '@/game/obstacles/obstacleSpawner';
 import { eventsRng } from '@/game/runRngBus';
@@ -47,10 +47,10 @@ interface FrameRefs {
 
 export type { PlanFleeState };
 
-const FORWARD_RENDER_M = 500;
-const BEHIND_RENDER_M = 40;
-const NEAR_MISS_LATERAL = 0.7;
-const NEAR_MISS_DIST = 3;
+const FORWARD_RENDER_M = tunables.obstacles.forwardRenderM;
+const BEHIND_RENDER_M = tunables.obstacles.behindRenderM;
+const NEAR_MISS_LATERAL = tunables.obstacles.nearMissLateral;
+const NEAR_MISS_DIST = tunables.obstacles.nearMissDist;
 
 export function useObstacleFrame(refs: FrameRefs): void {
   useFrame((_state, dt) => {
@@ -261,15 +261,10 @@ export function useObstacleFrame(refs: FrameRefs): void {
         if (Math.abs(plat - playerLat) > laneHalfWidth) continue;
         refs.planCrashedIdx.current.add(-idx - 1);
         combo.registerEvent('pickup');
-        const mult = combo.getMultiplier();
-        if (p.type === 'ticket') {
-          useGameStore.setState({
-            crowdReaction: useGameStore.getState().crowdReaction + 50 * mult,
-          });
-          useGameStore.getState().applyPickup(p.type);
-        } else {
-          useGameStore.getState().applyPickup(p.type);
-        }
+        // Route all pickup rewards through applyPickup — it owns the reward
+        // formula. A prior double-award (direct setState + applyPickup) for
+        // tickets has been removed; applyPickup handles crowdReaction.
+        useGameStore.getState().applyPickup(p.type);
         audioBus.playPickup(p.type);
       }
     } else {
@@ -309,15 +304,10 @@ export function useObstacleFrame(refs: FrameRefs): void {
         if (Math.abs(plat - playerLat) > laneHalfWidth) continue;
         refs.spawner.consumePickup(p.id);
         combo.registerEvent('pickup');
-        const mult = combo.getMultiplier();
-        if (p.type === 'ticket') {
-          useGameStore.setState({
-            crowdReaction: useGameStore.getState().crowdReaction + 50 * mult,
-          });
-          useGameStore.getState().applyPickup(p.type);
-        } else {
-          useGameStore.getState().applyPickup(p.type);
-        }
+        // Route all pickup rewards through applyPickup — it owns the reward
+        // formula. A prior double-award (direct setState + applyPickup) for
+        // tickets has been removed; applyPickup handles crowdReaction.
+        useGameStore.getState().applyPickup(p.type);
         audioBus.playPickup(p.type);
       }
     }

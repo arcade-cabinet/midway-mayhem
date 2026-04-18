@@ -19,6 +19,7 @@ export const color = {
   blue: COLORS.BLUE,
   purple: COLORS.PURPLE,
   orange: COLORS.ORANGE,
+  green: COLORS.GREEN,
   night: COLORS.NIGHT,
 
   // Supporting
@@ -131,6 +132,15 @@ export const safeArea = {
   left: 'env(safe-area-inset-left, 0px)',
 } as const;
 
+/**
+ * Precomputed layout constants derived from tokens.
+ * Kept here so .tsx files can consume values without embedding arithmetic.
+ */
+export const layout = {
+  /** Bottom offset for corner-anchored panels: two xxxl gaps + nav bar height. */
+  panelBottomOffset: space.xxxl * 2 + 48,
+} as const;
+
 /** A union of all design token value types (strings, numbers, objects). */
 export type DesignTokenGroup =
   | typeof color
@@ -138,4 +148,6 @@ export type DesignTokenGroup =
   | typeof space
   | typeof elevation
   | typeof motion
-  | typeof zLayer;
+  | typeof zLayer
+  | typeof breakpoints
+  | typeof safeArea;

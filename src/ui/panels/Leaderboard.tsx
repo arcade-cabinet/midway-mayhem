@@ -12,9 +12,11 @@ import { desc } from 'drizzle-orm';
 import { useEffect, useState } from 'react';
 import { color, elevation, radius, space } from '@/design/tokens';
 import { typeStyle, ui } from '@/design/typography';
+import { reportError } from '@/game/errorBus';
 import { db } from '@/persistence/db';
 import { dailyRuns } from '@/persistence/schema';
 import { utcDateString } from '@/track/dailyRoute';
+import { formatLeaderboardDistance } from '@/utils/formatters';
 
 interface LeaderboardEntry {
   dateUtc: string;
@@ -23,16 +25,10 @@ interface LeaderboardEntry {
   runCount: number;
 }
 
-function formatDistance(cm: number): string {
-  if (cm < 100) return `${cm}cm`;
-  const m = cm / 100;
-  if (m < 1000) return `${m.toFixed(0)}m`;
-  return `${(m / 1000).toFixed(2)}km`;
-}
-
 export function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const today = utcDateString();
 
   useEffect(() => {
@@ -49,8 +45,12 @@ export function Leaderboard() {
           setEntries(rows);
           setLoading(false);
         }
-      } catch {
-        if (!cancelled) setLoading(false);
+      } catch (err) {
+        if (!cancelled) {
+          reportError(err, 'Leaderboard.load');
+          setLoading(false);
+          setLoadError(true);
+        }
       }
     }
     load();
@@ -88,6 +88,10 @@ export function Leaderboard() {
 
       {loading ? (
         <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.85rem' }}>Loading…</div>
+      ) : loadError ? (
+        <div style={{ ...typeStyle(ui.body), color: color.toneDanger, fontSize: '0.85rem' }}>
+          Failed to load leaderboard.
+        </div>
       ) : entries.length === 0 ? (
         <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.85rem' }}>
           No runs yet — be first!
@@ -118,7 +122,7 @@ export function Leaderboard() {
                 </span>
                 <div>
                   <div style={{ ...typeStyle(ui.label), color: color.white, fontSize: '0.9rem' }}>
-                    {formatDistance(entry.bestDistanceCm)}
+                    {formatLeaderboardDistance(entry.bestDistanceCm)}
                   </div>
                   <div style={{ ...typeStyle(ui.body), color: color.dim, fontSize: '0.75rem' }}>
                     {entry.dateUtc === today ? 'Today' : entry.dateUtc} · {entry.runCount} run

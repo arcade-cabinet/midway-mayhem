@@ -32,6 +32,9 @@ export function Dialog({
   ariaLabelledBy,
   ariaDescribedBy,
 }: Props) {
+  if (!ariaLabel && !ariaLabelledBy) {
+    throw new Error('Dialog requires ariaLabel or ariaLabelledBy for accessibility.');
+  }
   return (
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dialog|alertdialog, aria-modal is valid
     <div

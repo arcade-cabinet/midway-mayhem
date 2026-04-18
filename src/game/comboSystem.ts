@@ -6,18 +6,14 @@
  * Multiplier curve: chain 0 → 1×, 3 → 2×, 7 → 4×, 15 → 8×.
  * Reset on hit via registerHit().
  */
+import { tunables } from '@/config';
 
 export type ComboEventKind = 'scare' | 'pickup' | 'near-miss';
 
-/** Chain-length thresholds for each multiplier tier. */
-const CHAIN_THRESHOLDS: [number, number][] = [
-  [15, 8],
-  [7, 4],
-  [3, 2],
-  [0, 1],
-];
+/** Chain-length thresholds for each multiplier tier (loaded from tunables.json). */
+const CHAIN_THRESHOLDS: [number, number][] = tunables.combo.chainThresholds as [number, number][];
 
-const CHAIN_EXPIRY_MS = 3500;
+const CHAIN_EXPIRY_MS: number = tunables.combo.chainExpiryMs;
 
 /** Sentinel meaning "no event recorded yet" — lets t=0 be a valid event time. */
 const NO_EVENT = -1;

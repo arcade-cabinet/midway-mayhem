@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { clampPct } from '@/utils/math';
 import { color, radius } from '../tokens';
 
 type BarColor = 'red' | 'yellow' | 'blue' | 'purple' | 'orange';
@@ -21,7 +22,7 @@ interface Props {
 }
 
 export function GaugeBar({ value, tone = 'yellow', height = 8, testId, style }: Props) {
-  const pct = Math.max(0, Math.min(100, value));
+  const pct = clampPct(value);
   return (
     <div
       data-testid={testId}

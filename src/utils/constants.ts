@@ -12,6 +12,7 @@ export const COLORS = {
   BLUE: '#1e88e5',
   PURPLE: '#8e24aa',
   ORANGE: '#f36f21',
+  GREEN: '#43a047',
   NIGHT: '#0b0f1a',
 } as const;
 

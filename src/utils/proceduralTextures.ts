@@ -48,8 +48,11 @@ export function makeStripeTexture(): THREE.CanvasTexture {
   return tex;
 }
 
-/** Sandy track with scattered noise + painted center dashes. */
-export function makeTrackTexture(): THREE.CanvasTexture {
+/**
+ * Sandy track with scattered noise + painted center dashes.
+ * Pass a seeded `rand` function for deterministic output; defaults to Math.random.
+ */
+export function makeTrackTexture(rand: () => number = Math.random): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 1024;
@@ -59,7 +62,7 @@ export function makeTrackTexture(): THREE.CanvasTexture {
   ctx.fillRect(0, 0, 512, 1024);
   ctx.fillStyle = '#d2a668';
   for (let i = 0; i < 8000; i++) {
-    ctx.fillRect(Math.random() * 512, Math.random() * 1024, Math.random() * 6, Math.random() * 3);
+    ctx.fillRect(rand() * 512, rand() * 1024, rand() * 6, rand() * 3);
   }
   ctx.fillStyle = 'rgba(255,255,255,0.7)';
   for (let y = 0; y < 1024; y += 128) ctx.fillRect(246, y, 20, 64);

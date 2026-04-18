@@ -6,15 +6,15 @@
  *
  * Separated from ObstacleSystem.tsx to keep that file under 300 LOC.
  */
-
 import * as THREE from 'three';
+import { tunables } from '@/config';
 import { reportError } from '@/game/errorBus';
 import type { CritterKind } from '@/utils/constants';
 
 export const CRITTER_KINDS: readonly CritterKind[] = ['cow', 'horse', 'llama', 'pig'];
-export const CRITTER_POOL_SIZE = 10;
+export const CRITTER_POOL_SIZE = tunables.obstacles.critterPoolSize;
 /** Farm-animal GLBs ship at real-world scale (~1m). Scale up to match Kenney track (scale=10). */
-export const CRITTER_SCALE = 3.5;
+export const CRITTER_SCALE = tunables.obstacles.critterScale;
 
 export const CRITTER_GLTF_IDS: Record<CritterKind, string> = {
   cow: 'gltf:critter_cow',
@@ -51,7 +51,8 @@ export function makeCritterPools(): CritterPools {
  * Populate a critter pool for one kind if not already populated.
  * Appends clones + mixers into `pools`. Adds clones to `parentGroup`.
  *
- * Returns true if the pool was newly populated (so caller can mark it done).
+ * Hard-fails if no idle animation clip is available — each critter GLB must
+ * ship with at least one animation. Silent degradation is not acceptable.
  */
 export function populateCritterKind(
   kind: CritterKind,
@@ -64,10 +65,9 @@ export function populateCritterKind(
 
   const clip = pickIdleClip(animations);
   if (!clip) {
-    reportError(
-      new Error(`Critter GLB '${kind}' has no idle animation clip`),
-      'ObstacleSystem.critterSetup',
-    );
+    const err = new Error(`Critter GLB '${kind}' has no idle animation clip`);
+    reportError(err, 'ObstacleSystem.critterSetup');
+    throw err;
   }
 
   for (let i = 0; i < CRITTER_POOL_SIZE; i++) {
@@ -78,21 +78,25 @@ export function populateCritterKind(
     pools.slots[kind].push(c);
 
     const mixer = new THREE.AnimationMixer(c);
-    if (clip) {
-      const action = mixer.clipAction(clip);
-      action.loop = THREE.LoopRepeat;
-      action.play();
-      // Per-slot idle phase offset so animals don't breathe in lockstep.
-      mixer.setTime((i * 0.37) % Math.max(clip.duration, 0.1));
-    }
+    const action = mixer.clipAction(clip);
+    action.loop = THREE.LoopRepeat;
+    action.play();
+    // Per-slot idle phase offset so animals don't breathe in lockstep.
+    mixer.setTime((i * 0.37) % Math.max(clip.duration, 0.1));
     pools.mixers[kind].push(mixer);
   }
 }
 
 /**
+ * Track which plan entry index each pool slot was last seeded for, using a
+ * WeakMap keyed on the slot Object3D. This avoids re-seeding every frame and
+ * eliminates the need for a sentinel property on the Object3D.
+ */
+const phasedForIdxMap = new WeakMap<THREE.Object3D, number>();
+
+/**
  * When a pool slot takes over a new plan entry, seed the mixer's time to
- * the entry's baked `idlePhase`. Prevents re-seeding every frame via a
- * sentinel property attached to the slot object.
+ * the entry's baked `idlePhase`. Prevents re-seeding every frame.
  */
 export function seedMixerPhase(
   slot: THREE.Object3D,
@@ -101,12 +105,10 @@ export function seedMixerPhase(
   entryIdx: number,
   idlePhase: number,
 ): void {
-  // biome-ignore lint/suspicious/noExplicitAny: sentinel attachment
-  const slotAny = slot as any;
-  if (slotAny.__mmPhasedForIdx === entryIdx) return;
+  if (phasedForIdxMap.get(slot) === entryIdx) return;
   const clip = pickIdleClip(clips);
   if (clip) {
     mixer.setTime(idlePhase % Math.max(clip.duration, 0.1));
   }
-  slotAny.__mmPhasedForIdx = entryIdx;
+  phasedForIdxMap.set(slot, entryIdx);
 }

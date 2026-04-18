@@ -3,6 +3,7 @@ import { BrandButton } from '@/design/components/BrandButton';
 import { Dialog } from '@/design/components/Dialog';
 import { color, space } from '@/design/tokens';
 import { display, typeStyle, ui } from '@/design/typography';
+import creditsData from './credits.json';
 
 interface Props {
   onClose: () => void;
@@ -14,91 +15,6 @@ interface Credit {
   license: string;
   url: string;
 }
-
-const ART: Credit[] = [
-  {
-    title: 'Racing Kit',
-    author: 'Kenney',
-    license: 'CC0 1.0',
-    url: 'https://kenney.nl/assets/racing-kit',
-  },
-  {
-    title: 'Ultimate Animated Farm Animals',
-    author: 'Quaternius',
-    license: 'CC0 1.0',
-    url: 'https://quaternius.com/packs/ultimateanimatedfarmanimals.html',
-  },
-  {
-    title: 'circus_arena HDRI',
-    author: 'Poly Haven',
-    license: 'CC0 1.0',
-    url: 'https://polyhaven.com/a/circus_arena',
-  },
-];
-
-const AUDIO: Credit[] = [
-  {
-    title: 'GeneralUser GS 1.472',
-    author: 'S. Christian Collins',
-    license: 'GUGS license',
-    url: 'https://schristiancollins.com/generaluser.php',
-  },
-  {
-    title: 'Sonatina Symphonic Orchestra',
-    author: 'M. Stillman',
-    license: 'CC Sampling Plus',
-    url: 'https://sso.mattiaswestlund.net/',
-  },
-];
-
-const CODE: Credit[] = [
-  {
-    title: 'React Three Fiber + drei',
-    author: 'Poimandres',
-    license: 'MIT',
-    url: 'https://github.com/pmndrs/react-three-fiber',
-  },
-  {
-    title: 'Tone.js',
-    author: 'Yotam Mann et al.',
-    license: 'MIT',
-    url: 'https://tonejs.github.io/',
-  },
-  {
-    title: 'spessasynth_lib',
-    author: 'spessasus',
-    license: 'Apache-2.0',
-    url: 'https://github.com/spessasus/spessasynth_lib',
-  },
-  { title: 'Yuka.js', author: 'Mugen87', license: 'MIT', url: 'https://mugen87.github.io/yuka/' },
-  {
-    title: 'drizzle-orm + Capacitor SQLite',
-    author: 'drizzle-team + jeep',
-    license: 'Apache-2.0 / MIT',
-    url: 'https://orm.drizzle.team/',
-  },
-  {
-    title: 'koota',
-    author: 'Poimandres',
-    license: 'MIT',
-    url: 'https://github.com/pmndrs/koota',
-  },
-];
-
-const FONTS: Credit[] = [
-  {
-    title: 'Bangers',
-    author: 'Vernon Adams',
-    license: 'SIL OFL 1.1',
-    url: 'https://fonts.google.com/specimen/Bangers',
-  },
-  {
-    title: 'Rajdhani',
-    author: 'Indian Type Foundry',
-    license: 'SIL OFL 1.1',
-    url: 'https://fonts.google.com/specimen/Rajdhani',
-  },
-];
 
 function Section({ label, items }: { label: string; items: Credit[] }) {
   return (
@@ -116,9 +32,10 @@ function Section({ label, items }: { label: string; items: Credit[] }) {
               href={c.url}
               target="_blank"
               rel="noreferrer"
+              aria-label={`Open ${c.title} (external)`}
               style={{ color: color.blue, ...typeStyle(ui.small) }}
             >
-              link
+              {c.title}
             </a>
           </li>
         ))}
@@ -146,10 +63,10 @@ export function CreditsPanel({ onClose }: Props) {
           Midway Mayhem is built on top of this open community of creators. All assets are CC-clean
           and license-compatible.
         </div>
-        <Section label="ART + MODELS + HDRI" items={ART} />
-        <Section label="AUDIO" items={AUDIO} />
-        <Section label="TYPOGRAPHY" items={FONTS} />
-        <Section label="CODE + LIBRARIES" items={CODE} />
+        <Section label="ART + MODELS + HDRI" items={creditsData.ART} />
+        <Section label="AUDIO" items={creditsData.AUDIO} />
+        <Section label="TYPOGRAPHY" items={creditsData.FONTS} />
+        <Section label="CODE + LIBRARIES" items={creditsData.CODE} />
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <BrandButton
             ref={closeRef}

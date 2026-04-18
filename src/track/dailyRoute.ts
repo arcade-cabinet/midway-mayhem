@@ -80,7 +80,8 @@ export function initDailyRouteFromUrl(): void {
  * Returns a function that produces floats in [0, 1).
  */
 function seededRng(seed: number): () => number {
-  let s = seed >>> 0;
+  // Ensure state is never zero (seed 0 would collapse all xor/imul steps to 0).
+  let s = seed >>> 0 || 0x9e3779b9;
   return () => {
     s = (s ^ (s >>> 16)) >>> 0;
     s = Math.imul(s, 0x45d9f3b) >>> 0;

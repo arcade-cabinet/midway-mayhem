@@ -12,7 +12,7 @@
  * Uses the rng.events channel (never rng.track) so raid timing/type never
  * perturbs track construction.
  */
-
+import { tunables } from '@/config';
 import type { Rng } from '@/utils/rng';
 
 export type RaidKind = 'TIGER' | 'KNIVES' | 'CANNONBALL';
@@ -43,10 +43,20 @@ export interface RaidState {
   cannonballDodged?: boolean;
 }
 
-const TELEGRAPH_MS = 2000;
-const TIGER_ACTIVE_MS = 3000;
-const KNIVES_ACTIVE_MS = 2500;
-const CANNONBALL_ACTIVE_MS = 2000;
+const {
+  telegraphMs: TELEGRAPH_MS,
+  tigerActiveMs: TIGER_ACTIVE_MS,
+  knivesActiveMs: KNIVES_ACTIVE_MS,
+  cannonballActiveMs: CANNONBALL_ACTIVE_MS,
+  cooldownMinMs: COOLDOWN_MIN_MS,
+  cooldownMaxMs: COOLDOWN_MAX_MS,
+  laneCenterSpacing: LANE_CENTER_SPACING,
+  laneHalfWidth: LANE_HALF_WIDTH,
+  cannonballCrowdBonus: CANNONBALL_CROWD_BONUS,
+  tigerCrowdBonusAirborne: TIGER_CROWD_BONUS_AIRBORNE,
+  tigerCrowdBonusDodge: TIGER_CROWD_BONUS_DODGE,
+  tigerHitThreshold: TIGER_HIT_THRESHOLD,
+} = tunables.raid;
 
 export class RaidDirector {
   private state: RaidState | null = null;
@@ -75,7 +85,7 @@ export class RaidDirector {
 
     // Schedule first raid
     if (this.nextRaidAt === 0) {
-      this.nextRaidAt = nowMs + this.rng.range(30_000, 45_000);
+      this.nextRaidAt = nowMs + this.rng.range(COOLDOWN_MIN_MS, COOLDOWN_MAX_MS);
     }
 
     // Start a new raid?
@@ -94,23 +104,14 @@ export class RaidDirector {
       s.phase = 'active';
     }
 
-    // Active → cleanup transition
-    const totalDuration = s.telegraphDuration + s.activeDuration;
-    if (s.phase === 'active' && elapsed >= totalDuration) {
-      s.phase = 'cleanup';
-      this.resolveRaid(playerLateral, airborne, callbacks);
-      this.nextRaidAt = nowMs + this.rng.range(30_000, 45_000);
-      // Cleanup auto-finishes after one frame
-      this.state = null;
-      return;
-    }
-
-    // Per-kind active logic
+    // Per-kind active logic — runs BEFORE the cleanup transition so that
+    // CANNONBALL/TIGER resolve correctly on the final frame where elapsed
+    // crosses totalDuration.
     if (s.phase === 'active') {
       const activeElapsed = elapsed - s.telegraphDuration;
 
       if (s.kind === 'TIGER') {
-        // Tiger crosses at constant pace — lateral from -6 to +6
+        // Tiger crosses at constant pace — lateral from -tigerLaneRange to +tigerLaneRange
         s.tigerLateralProgress = Math.min(1, activeElapsed / s.activeDuration);
       }
 
@@ -119,8 +120,8 @@ export class RaidDirector {
           if (knife.hit || knife.dodged) continue;
           if (nowMs >= knife.dropAt) {
             // Check collision: player in same lane?
-            const knifeLat = (knife.lane - 1) * 3.3; // lane center X
-            const inLane = Math.abs(knifeLat - playerLateral) < 1.65;
+            const knifeLat = (knife.lane - 1) * LANE_CENTER_SPACING;
+            const inLane = Math.abs(knifeLat - playerLateral) < LANE_HALF_WIDTH;
             if (inLane) {
               knife.hit = true;
               callbacks.onLightCrash();
@@ -134,15 +135,27 @@ export class RaidDirector {
       if (s.kind === 'CANNONBALL' && s.cannonballFiredAt !== undefined && !s.cannonballDodged) {
         if (nowMs >= s.cannonballFiredAt + s.activeDuration) {
           // Time's up — check if player swerved
-          const cbLat = ((s.cannonballLane ?? 1) - 1) * 3.3;
-          const inLane = Math.abs(cbLat - playerLateral) < 1.65;
+          const cbLat = ((s.cannonballLane ?? 1) - 1) * LANE_CENTER_SPACING;
+          const inLane = Math.abs(cbLat - playerLateral) < LANE_HALF_WIDTH;
           if (inLane) {
             callbacks.onHeavyCrash();
           } else {
-            callbacks.onCrowdBonus(75);
+            callbacks.onCrowdBonus(CANNONBALL_CROWD_BONUS);
           }
           s.cannonballDodged = true;
         }
+      }
+
+      // Active → cleanup transition — runs AFTER per-kind logic so the final
+      // frame's CANNONBALL/TIGER callbacks fire before state is cleared.
+      const totalDuration = s.telegraphDuration + s.activeDuration;
+      if (elapsed >= totalDuration) {
+        s.phase = 'cleanup';
+        this.resolveRaid(playerLateral, airborne, callbacks);
+        this.nextRaidAt = nowMs + this.rng.range(COOLDOWN_MIN_MS, COOLDOWN_MAX_MS);
+        // Cleanup auto-finishes after one frame
+        this.state = null;
+        return;
       }
     }
   }
@@ -181,7 +194,8 @@ export class RaidDirector {
 
     if (kind === 'CANNONBALL') {
       // Target player's current lane
-      const playerLane = playerLateral < -1.65 ? 0 : playerLateral > 1.65 ? 2 : 1;
+      const playerLane =
+        playerLateral < -LANE_HALF_WIDTH ? 0 : playerLateral > LANE_HALF_WIDTH ? 2 : 1;
       state.cannonballLane = playerLane;
       state.cannonballFiredAt = nowMs + TELEGRAPH_MS;
       state.cannonballDodged = false;
@@ -205,14 +219,15 @@ export class RaidDirector {
     if (s.kind === 'TIGER') {
       // Tiger is at 50% lateral progress when it crosses player zone
       if (airborne) {
-        callbacks.onCrowdBonus(100);
+        callbacks.onCrowdBonus(TIGER_CROWD_BONUS_AIRBORNE);
       } else {
         // Check if tiger path crosses player lateral
-        const tigerLat = -6 + (s.tigerLateralProgress ?? 0.5) * 12;
-        if (Math.abs(tigerLat - playerLateral) < 2) {
+        const tigerRange = tunables.raid.tigerLaneRange;
+        const tigerLat = -tigerRange + (s.tigerLateralProgress ?? 0.5) * (tigerRange * 2);
+        if (Math.abs(tigerLat - playerLateral) < TIGER_HIT_THRESHOLD) {
           callbacks.onHeavyCrash();
         } else {
-          callbacks.onCrowdBonus(50);
+          callbacks.onCrowdBonus(TIGER_CROWD_BONUS_DODGE);
         }
       }
     }
@@ -225,7 +240,7 @@ export class RaidDirector {
 
   reset(nowMs: number) {
     this.state = null;
-    this.nextRaidAt = nowMs + this.rng.range(30_000, 45_000);
+    this.nextRaidAt = nowMs + this.rng.range(COOLDOWN_MIN_MS, COOLDOWN_MAX_MS);
   }
 
   /** For testing: force schedule next raid immediately */

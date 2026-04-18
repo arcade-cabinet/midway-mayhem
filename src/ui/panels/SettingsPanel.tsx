@@ -12,6 +12,7 @@ import { BrandButton } from '@/design/components/BrandButton';
 import { Dialog } from '@/design/components/Dialog';
 import { color, space } from '@/design/tokens';
 import { typeStyle, ui } from '@/design/typography';
+import { reportError } from '@/game/errorBus';
 import {
   type GameSettings,
   getSettings,
@@ -28,13 +29,15 @@ export function SettingsPanel({ onClose }: Props) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    getSettings().then(setSettings);
+    getSettings()
+      .then(setSettings)
+      .catch((e) => reportError(e, 'SettingsPanel.load'));
   }, []);
 
-  // Focus close button on mount
+  // Focus close button once settings have loaded (not before the button exists)
   useEffect(() => {
-    closeButtonRef.current?.focus();
-  }, []);
+    if (settings) closeButtonRef.current?.focus();
+  }, [settings]);
 
   // Esc closes the panel
   useEffect(() => {
@@ -47,9 +50,17 @@ export function SettingsPanel({ onClose }: Props) {
 
   async function patch(partial: Partial<GameSettings>) {
     if (!settings) return;
+    const previous = settings;
     const next = { ...settings, ...partial };
+    // Optimistic update for responsive UI
     setSettings(next);
-    await updateSettings(partial);
+    try {
+      await updateSettings(partial);
+    } catch (e) {
+      // Roll back and surface the error
+      setSettings(previous);
+      reportError(e, 'SettingsPanel.patch');
+    }
   }
 
   if (!settings) {

@@ -39,7 +39,9 @@ const MIX1 = 0xbf58476d1ce4e5b9n;
 const MIX2 = 0x94d049bb133111ebn;
 
 export function createRng(seed: number = Date.now()): Rng {
-  let state = BigInt(seed) | 1n;
+  // Mix seed with MULT so seeds 0 and 1 produce distinct states and
+  // non-integral floats are safely truncated (BigInt() throws on non-integers).
+  let state = (BigInt(Math.floor(seed)) + MULT) & MASK64;
 
   function nextU53(): number {
     state = (state + MULT) & MASK64;
@@ -51,22 +53,23 @@ export function createRng(seed: number = Date.now()): Rng {
   }
 
   function nextU32(): number {
-    // Use high 32 bits of a fresh 53-bit pull (via a 64-bit rehash of state)
-    // so the unsigned-32 integer space is spread over the full cycle.
+    // Use high 32 bits of the scrambled state for better statistical quality.
     state = (state + MULT) & MASK64;
     let z = state;
     z = ((z ^ (z >> 30n)) * MIX1) & MASK64;
     z = ((z ^ (z >> 27n)) * MIX2) & MASK64;
     z = z ^ (z >> 31n);
-    return Number(z & 0xffffffffn);
+    return Number((z >> 32n) & 0xffffffffn);
+  }
+
+  function next(): number {
+    return nextU53() / 2 ** 53;
   }
 
   return {
-    next(): number {
-      return nextU53() / 2 ** 53;
-    },
+    next,
     range(min: number, max: number): number {
-      return min + this.next() * (max - min);
+      return min + next() * (max - min);
     },
     int(min: number, max: number): number {
       // Rejection sampling: avoid the modulo bias that kicks in when
@@ -81,7 +84,7 @@ export function createRng(seed: number = Date.now()): Rng {
     },
     pick<T>(arr: readonly T[]): T {
       if (arr.length === 0) throw new Error('Rng.pick: empty array');
-      return arr[Math.floor(this.next() * arr.length)] as T;
+      return arr[Math.floor(next() * arr.length)] as T;
     },
     weightedPick<T>(items: readonly T[], weights: readonly number[]): T {
       if (items.length === 0) throw new Error('Rng.weightedPick: empty array');
@@ -90,7 +93,7 @@ export function createRng(seed: number = Date.now()): Rng {
       }
       let total = 0;
       for (const w of weights) total += w;
-      let roll = this.next() * total;
+      let roll = next() * total;
       for (let i = 0; i < items.length; i++) {
         roll -= weights[i] as number;
         if (roll <= 0) return items[i] as T;
@@ -98,7 +101,7 @@ export function createRng(seed: number = Date.now()): Rng {
       return items[items.length - 1] as T;
     },
     reseed(newSeed: number): void {
-      state = BigInt(newSeed) | 1n;
+      state = (BigInt(Math.floor(newSeed)) + MULT) & MASK64;
     },
   };
 }

@@ -27,8 +27,8 @@ export function sampleTrack(d: number): TrackSample {
   // Right-hand normal
   const nx = -tz;
   const nz = tx;
-  // Bank proportional to curvature (2nd derivative component of x)
-  const bank = Math.cos(d * 0.009) * 0.009 * 18 + Math.cos(d * 0.004) * 0.004 * 12;
+  // Bank proportional to curvature (2nd derivative of x = -A·k²·sin(k·d))
+  const bank = -Math.sin(d * 0.009) * 0.009 * 0.009 * 18 - Math.sin(d * 0.004) * 0.004 * 0.004 * 12;
 
   return { d, x, y, z, tangent: { x: tx, z: tz }, normal: { x: nx, z: nz }, bank };
 }

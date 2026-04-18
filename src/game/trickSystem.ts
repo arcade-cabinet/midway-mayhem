@@ -22,6 +22,7 @@
  *   HANDSTAND    down-down               → nose-down 180° X rotation
  *   SPIN_180     left-right | right-left  → 180° Y rotation
  */
+import { tunables } from '@/config';
 
 export type TrickInput = 'left' | 'right' | 'up' | 'down';
 export type TrickKind = 'BARREL_ROLL' | 'WHEELIE' | 'HANDSTAND' | 'SPIN_180';
@@ -46,41 +47,53 @@ export interface TrickState {
   rotY: number;
 }
 
+const t = tunables.tricks;
+
 /** Sequence → TrickResult mapping */
 const TRICK_MAP: { sequence: TrickInput[]; result: TrickResult }[] = [
   {
     sequence: ['right', 'right'],
-    result: { kind: 'BARREL_ROLL', axis: 'z', totalAngle: Math.PI * 2, duration: 0.8 },
+    result: {
+      kind: 'BARREL_ROLL',
+      axis: 'z',
+      totalAngle: Math.PI * 2,
+      duration: t.barrelRollDuration,
+    },
   },
   {
     sequence: ['left', 'left'],
-    result: { kind: 'BARREL_ROLL', axis: 'z', totalAngle: -Math.PI * 2, duration: 0.8 },
+    result: {
+      kind: 'BARREL_ROLL',
+      axis: 'z',
+      totalAngle: -Math.PI * 2,
+      duration: t.barrelRollDuration,
+    },
   },
   {
     sequence: ['up', 'up'],
-    result: { kind: 'WHEELIE', axis: 'x', totalAngle: -Math.PI / 3, duration: 1.0 },
+    result: { kind: 'WHEELIE', axis: 'x', totalAngle: -Math.PI / 3, duration: t.wheelieDuration },
   },
   {
     sequence: ['down', 'down'],
-    result: { kind: 'HANDSTAND', axis: 'x', totalAngle: Math.PI, duration: 1.2 },
+    result: { kind: 'HANDSTAND', axis: 'x', totalAngle: Math.PI, duration: t.handstandDuration },
   },
   {
     sequence: ['left', 'right'],
-    result: { kind: 'SPIN_180', axis: 'y', totalAngle: Math.PI, duration: 0.7 },
+    result: { kind: 'SPIN_180', axis: 'y', totalAngle: Math.PI, duration: t.spin180Duration },
   },
   {
     sequence: ['right', 'left'],
-    result: { kind: 'SPIN_180', axis: 'y', totalAngle: -Math.PI, duration: 0.7 },
+    result: { kind: 'SPIN_180', axis: 'y', totalAngle: -Math.PI, duration: t.spin180Duration },
   },
 ];
 
-/** Tolerance in radians for clean landing (15°) */
-const CLEAN_LANDING_TOLERANCE = (15 * Math.PI) / 180;
+/** Tolerance in radians for clean landing (from tunables, degrees → radians). */
+const CLEAN_LANDING_TOLERANCE = (t.cleanLandingToleranceDeg * Math.PI) / 180;
 
 /** Sanity reward for a clean landing */
-export const CLEAN_SANITY_REWARD = 15;
+export const CLEAN_SANITY_REWARD = t.cleanSanityReward;
 /** Crowd reward for a clean landing */
-export const CLEAN_CROWD_REWARD = 150;
+export const CLEAN_CROWD_REWARD = t.cleanCrowdReward;
 
 export function recognizeTrick(buffer: TrickInput[]): TrickResult | null {
   // Try matching the last 2 inputs
@@ -156,7 +169,10 @@ export class TrickSystem {
         this.state.rotX !== 0 ||
         this.state.rotY !== 0)
     ) {
-      const clean = isCleanLanding(this.state.rotZ, this.state.rotX, this.state.rotY);
+      // Treat an in-progress trick as a botched landing — animation didn't complete.
+      const trickIncomplete = this.state.currentTrick !== null && this.state.trickProgress < 1;
+      const clean =
+        !trickIncomplete && isCleanLanding(this.state.rotZ, this.state.rotX, this.state.rotY);
       if (clean) {
         callbacks.onCleanLanding();
       } else {
@@ -173,12 +189,13 @@ export class TrickSystem {
 
     // Advance trick animation
     const trick = this.state.currentTrick;
-    if (trick && this.state.trickStartedAt > 0) {
+    // trickStartedAt >= 0 check allows tricks started at timestamp 0 (e.g. in tests)
+    if (trick && this.state.trickStartedAt >= 0) {
       const elapsed = (nowMs - this.state.trickStartedAt) / 1000;
       this.state.trickProgress = Math.min(1, elapsed / trick.duration);
       // Smooth step
-      const t = this.state.trickProgress;
-      const smooth = t * t * (3 - 2 * t);
+      const tp = this.state.trickProgress;
+      const smooth = tp * tp * (3 - 2 * tp);
       const angle = trick.totalAngle * smooth;
       if (trick.axis === 'z') this.state.rotZ = angle;
       else if (trick.axis === 'x') this.state.rotX = angle;
@@ -223,7 +240,12 @@ export class TrickSystem {
   }
 
   getState(): Readonly<TrickState> {
-    return this.state;
+    // Return a defensive copy so callers can't mutate internal state
+    return {
+      ...this.state,
+      inputBuffer: [...this.state.inputBuffer],
+      currentTrick: this.state.currentTrick ? { ...this.state.currentTrick } : null,
+    };
   }
 
   reset() {

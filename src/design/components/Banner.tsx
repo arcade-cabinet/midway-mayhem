@@ -22,12 +22,14 @@ export function Banner({ children, visible, tone = 'zone', testId, style }: Prop
   return (
     <div
       data-testid={testId}
+      aria-hidden={!visible}
       style={{
         position: 'absolute',
         top: '15%',
         left: '50%',
         transform: `translate(-50%, 0) scale(${visible ? 1 : 0.9})`,
         opacity: visible ? 1 : 0,
+        visibility: visible ? 'visible' : 'hidden',
         transition: `opacity ${motion.slow}ms ${motion.easing.out}, transform ${motion.slow}ms ${motion.easing.out}`,
         pointerEvents: 'none',
         color: TONE_COLOR[tone],

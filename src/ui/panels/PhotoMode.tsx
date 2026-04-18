@@ -19,21 +19,7 @@ import { useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { color, elevation, radius, safeArea, space } from '@/design/tokens';
 import { display, typeStyle } from '@/design/typography';
-
-function padTwo(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
-function buildFilename(): string {
-  const d = new Date();
-  const YYYY = d.getFullYear();
-  const MM = padTwo(d.getMonth() + 1);
-  const DD = padTwo(d.getDate());
-  const hh = padTwo(d.getHours());
-  const mm = padTwo(d.getMinutes());
-  const ss = padTwo(d.getSeconds());
-  return `midway-mayhem-${YYYY}${MM}${DD}-${hh}${mm}${ss}.png`;
-}
+import { reportError } from '@/game/errorBus';
 
 /** R3F sub-component that renders OrbitControls into the canvas. */
 export function PhotoModeControls() {
@@ -78,15 +64,14 @@ export function PhotoModeOverlay({ onDismiss }: { onDismiss: () => void }) {
   const handleDownload = () => {
     // biome-ignore lint/suspicious/noExplicitAny: dev hook
     const capture = (window as any).__mmPhotoCapture as (() => void) | undefined;
-    if (capture) {
-      capture();
-    } else {
-      // Fallback: try canvas directly if hook not wired
-      const canvas = document.querySelector('canvas');
-      if (!canvas) return;
-      const dataUrl = (canvas as HTMLCanvasElement).toDataURL('image/png');
-      triggerDownload(dataUrl);
+    if (!capture) {
+      reportError(
+        new Error('Photo capture hook (__mmPhotoCapture) is not registered.'),
+        'PhotoMode.handleDownload',
+      );
+      return;
     }
+    capture();
   };
 
   const handleDismiss = () => {
@@ -172,12 +157,4 @@ export function PhotoModeOverlay({ onDismiss }: { onDismiss: () => void }) {
   );
 }
 
-/** Trigger a browser download from a dataURL. */
-export function triggerDownload(dataUrl: string): void {
-  const a = document.createElement('a');
-  a.href = dataUrl;
-  a.download = buildFilename();
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+export { triggerDownload } from './photoUtils';

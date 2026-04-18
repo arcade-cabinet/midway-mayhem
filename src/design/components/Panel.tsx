@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { color, elevation, radius, safeArea, space } from '../tokens';
+import { color, elevation, layout, radius, safeArea, space } from '../tokens';
 
 export type PanelCorner = 'tl' | 'tr' | 'bl' | 'br' | 'center' | 'none';
 export type PanelVariant = 'dark' | 'light' | 'elevated';
@@ -43,7 +43,7 @@ export function Panel({
             position: 'absolute',
             ...(corner.includes('t')
               ? { top: `calc(${space.lg}px + ${safeArea.top})` }
-              : { bottom: `calc(${space.xxxl * 2 + 48}px + ${safeArea.bottom})` }),
+              : { bottom: `calc(${layout.panelBottomOffset}px + ${safeArea.bottom})` }),
             ...(corner.includes('l')
               ? { left: `calc(${space.lg}px + ${safeArea.left})` }
               : { right: `calc(${space.lg}px + ${safeArea.right})` }),

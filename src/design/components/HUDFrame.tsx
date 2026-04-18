@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { zLayer } from '../tokens';
+import { color, zLayer } from '../tokens';
 import { font } from '../typography';
 
 interface Props {
@@ -21,7 +21,7 @@ export function HUDFrame({ children, style, testId }: Props) {
         inset: 0,
         pointerEvents: 'none',
         fontFamily: font.ui,
-        color: '#fff',
+        color: color.white,
         zIndex: zLayer.hud,
         ...style,
       }}
