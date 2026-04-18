@@ -33,27 +33,27 @@ export const Position = trait({ distance: 0, lateral: 0 });
  * in order (their `.index`).
  */
 export const TrackSegment = trait({
-	index: 0,
-	/** Archetype slug (see src/config/archetypes/track-pieces.json). */
-	archetype: 'straight',
-	/** Starting distance in meters from run origin. */
-	distanceStart: 0,
-	/** Length in meters along the centerline. */
-	length: 0,
-	/** Cumulative heading rotation (radians) induced by this piece. */
-	deltaYaw: 0,
-	/** Cumulative pitch change (radians) — for hills/dips. */
-	deltaPitch: 0,
-	/** Lateral banking angle at piece midpoint (radians). */
-	bank: 0,
-	/** Start pose, produced by the generator and stored verbatim so the
-	 *  renderer never has to re-integrate. Re-integration in the renderer was
-	 *  a source of drift that became a visible seam over 80 pieces. */
-	startX: 0,
-	startY: 0,
-	startZ: 0,
-	startYaw: 0,
-	startPitch: 0,
+  index: 0,
+  /** Archetype slug (see src/config/archetypes/track-pieces.json). */
+  archetype: 'straight',
+  /** Starting distance in meters from run origin. */
+  distanceStart: 0,
+  /** Length in meters along the centerline. */
+  length: 0,
+  /** Cumulative heading rotation (radians) induced by this piece. */
+  deltaYaw: 0,
+  /** Cumulative pitch change (radians) — for hills/dips. */
+  deltaPitch: 0,
+  /** Lateral banking angle at piece midpoint (radians). */
+  bank: 0,
+  /** Start pose, produced by the generator and stored verbatim so the
+   *  renderer never has to re-integrate. Re-integration in the renderer was
+   *  a source of drift that became a visible seam over 80 pieces. */
+  startX: 0,
+  startY: 0,
+  startZ: 0,
+  startYaw: 0,
+  startPitch: 0,
 });
 
 /** Lane count on this segment. Separate trait so straights can inherit. */
@@ -76,19 +76,19 @@ export type ObstacleKind = 'barrier' | 'cone' | 'gate' | 'oil' | 'hammer' | 'cri
  * Position (distance + lateral) against the obstacle's distance + lateral.
  */
 export const Obstacle = trait({
-	kind: 'cone' as ObstacleKind,
-	distance: 0,
-	lateral: 0,
-	/** Set to true once player has hit this obstacle, so we don't re-trigger. */
-	consumed: false,
-	/** For critter obstacles: which animal to render. Empty string for non-critters. */
-	critterKind: '' as CritterKind | '',
-	/** For critter obstacles: performance.now() when honk scared this critter; 0 = not fleeing. */
-	fleeStartedAt: 0,
-	/** For critter obstacles: flee direction (-1 = left, 0 = idle, 1 = right). */
-	fleeDir: 0 as -1 | 0 | 1,
-	/** For hammer obstacles: initial swing phase offset (radians) so hammers animate out-of-sync. */
-	swingPhase: 0,
+  kind: 'cone' as ObstacleKind,
+  distance: 0,
+  lateral: 0,
+  /** Set to true once player has hit this obstacle, so we don't re-trigger. */
+  consumed: false,
+  /** For critter obstacles: which animal to render. Empty string for non-critters. */
+  critterKind: '' as CritterKind | '',
+  /** For critter obstacles: performance.now() when honk scared this critter; 0 = not fleeing. */
+  fleeStartedAt: 0,
+  /** For critter obstacles: flee direction (-1 = left, 0 = idle, 1 = right). */
+  fleeDir: 0 as -1 | 0 | 1,
+  /** For hammer obstacles: initial swing phase offset (radians) so hammers animate out-of-sync. */
+  swingPhase: 0,
 });
 
 /**
@@ -103,23 +103,23 @@ export type PickupKind = 'balloon' | 'boost' | 'mega';
  * speed cap increase. `consumed` gates double-fire.
  */
 export const Pickup = trait({
-	kind: 'balloon' as PickupKind,
-	distance: 0,
-	lateral: 0,
-	consumed: false,
+  kind: 'balloon' as PickupKind,
+  distance: 0,
+  lateral: 0,
+  consumed: false,
 });
 
 // ─── Scoring + status ───────────────────────────────────────────────────────
 
 export const Score = trait({
-	value: 0,
-	balloons: 0,
-	/** Non-zero while a boost pad is active; counts down each frame. */
-	boostRemaining: 0,
-	/** Hits taken (cones + oil). 3+ ends the run. */
-	damage: 0,
-	/** Seconds of clean driving since last hit — feeds the combo multiplier. */
-	cleanSeconds: 0,
+  value: 0,
+  balloons: 0,
+  /** Non-zero while a boost pad is active; counts down each frame. */
+  boostRemaining: 0,
+  /** Hits taken (cones + oil). 3+ ends the run. */
+  damage: 0,
+  /** Seconds of clean driving since last hit — feeds the combo multiplier. */
+  cleanSeconds: 0,
 });
 
 // ─── Zones ──────────────────────────────────────────────────────────────────
@@ -130,8 +130,8 @@ export type ZoneTheme = 'carnival' | 'funhouse' | 'ringmaster' | 'grandfinale';
  *  samples the track pose at `distance` and plants tapered banner meshes on
  *  each edge with the theme text printed via canvas texture. */
 export const Zone = trait({
-	theme: 'carnival' as ZoneTheme,
-	distance: 0,
+  theme: 'carnival' as ZoneTheme,
+  distance: 0,
 });
 
 // ─── Full run state (replaces zustand useGameStore) ──────────────────────────
@@ -146,16 +146,16 @@ export const Zone = trait({
  * scalar session metadata.
  */
 export const RunSession = trait({
-	running: false,
-	paused: false,
-	gameOver: false,
-	startedAt: 0,
-	seed: 0,
-	difficulty: 'kazoo' as Difficulty,
-	/** Human-readable phrase the seed came from, if any. Stored as '' when null. */
-	seedPhrase: '',
-	/** Effective permadeath flag. */
-	permadeath: false,
+  running: false,
+  paused: false,
+  gameOver: false,
+  startedAt: 0,
+  seed: 0,
+  difficulty: 'kazoo' as Difficulty,
+  /** Human-readable phrase the seed came from, if any. Stored as '' when null. */
+  seedPhrase: '',
+  /** Effective permadeath flag. */
+  permadeath: false,
 });
 
 /**
@@ -163,56 +163,56 @@ export const RunSession = trait({
  * `hype` = speed-as-percent, `sanity` = health-like (0..100), `crowdReaction` = score.
  */
 export const GameplayStats = trait({
-	distance: 0,
-	lateral: 0,
-	speedMps: 0,
-	targetSpeedMps: 0,
-	steer: 0,
-	/** 1 = auto-accelerate; 0 = coast. */
-	throttle: 1,
-	hype: 0,
-	sanity: 100,
-	crowdReaction: 0,
-	crashes: 0,
-	currentZone: 'midway-strip' as ZoneId,
-	/** Racing-line cleanliness [0..1]. */
-	cleanliness: 1,
+  distance: 0,
+  lateral: 0,
+  speedMps: 0,
+  targetSpeedMps: 0,
+  steer: 0,
+  /** 1 = auto-accelerate; 0 = coast. */
+  throttle: 1,
+  hype: 0,
+  sanity: 100,
+  crowdReaction: 0,
+  crashes: 0,
+  currentZone: 'midway-strip' as ZoneId,
+  /** Racing-line cleanliness [0..1]. */
+  cleanliness: 1,
 });
 
 /** Boost / mega-boost expiry timestamps (performance.now() epoch). */
 export const BoostState = trait({
-	boostUntil: 0,
-	megaBoostUntil: 0,
+  boostUntil: 0,
+  megaBoostUntil: 0,
 });
 
 /** Drop-in intro progress. `dropProgress` goes 0→1 over DROP_DURATION_MS. */
 export const DropIntro = trait({
-	dropProgress: 0,
-	dropStartedAt: 0,
+  dropProgress: 0,
+  dropStartedAt: 0,
 });
 
 /** Plunge state — player drove off side of a rail-free ramp. */
 export const PlungeState = trait({
-	plunging: false,
-	plungeStartedAt: 0,
-	plungeDirection: 0,
-	currentPieceKind: null as PieceKind | null,
+  plunging: false,
+  plungeStartedAt: 0,
+  plungeDirection: 0,
+  currentPieceKind: null as PieceKind | null,
 });
 
 /** Trick / airborne state. */
 export const TrickState = trait({
-	airborne: false,
-	trickActive: false,
-	trickRotationY: 0,
-	trickRotationZ: 0,
+  airborne: false,
+  trickActive: false,
+  trickRotationY: 0,
+  trickRotationZ: 0,
 });
 
 /** Per-run achievement counters. Reset at startRun. */
 export const RunCounters = trait({
-	scaresThisRun: 0,
-	maxComboThisRun: 0,
-	raidsSurvived: 0,
-	ticketsThisRun: 0,
+  scaresThisRun: 0,
+  maxComboThisRun: 0,
+  raidsSurvived: 0,
+  ticketsThisRun: 0,
 });
 
 /** Photo mode flag. */

@@ -10,5 +10,5 @@
  */
 
 export function PickupSystem(): null {
-	return null;
+  return null;
 }

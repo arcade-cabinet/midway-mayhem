@@ -79,10 +79,7 @@ export function stepCollisions(world: World, dt: number, cb: Callbacks = {}): vo
           speed.value *= 0.4;
           break;
       }
-    } else if (
-      Math.abs(dDist) < HIT_DISTANCE &&
-      lateralDelta < NEAR_MISS_LATERAL
-    ) {
+    } else if (Math.abs(dDist) < HIT_DISTANCE && lateralDelta < NEAR_MISS_LATERAL) {
       // Near-miss: player squeezed past an obstacle without hitting. One
       // event per obstacle (mark consumed so we don't double-fire as the
       // player pulls ahead).
