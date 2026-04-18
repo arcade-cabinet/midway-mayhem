@@ -29,11 +29,14 @@ import { useKeyboard } from '@/input/useKeyboard';
 import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
+import { ZoneProps } from '@/render/env/ZoneProps';
 import { GhostCar } from '@/render/obstacles/GhostCar';
 import { PostFX } from '@/render/PostFX';
 import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
+import { FinishBanner } from '@/render/track/FinishBanner';
+import { StartPlatform } from '@/render/track/StartPlatform';
 import { ZoneBanners } from '@/render/ZoneBanners';
 import { saveScore } from '@/storage/scores';
 import { AchievementToasts } from '@/ui/AchievementToasts';
@@ -102,9 +105,12 @@ export function App() {
           <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
           <Suspense fallback={null}>
             <BigTopEnvironment night={isNightFromUrl()} />
+            <ZoneProps />
           </Suspense>
           <Track />
           <TrackContent />
+          <StartPlatform />
+          <FinishBanner />
           <ZoneBanners />
           <GhostCar />
           <Cockpit />
