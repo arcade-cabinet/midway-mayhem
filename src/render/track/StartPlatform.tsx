@@ -23,10 +23,7 @@ export function StartPlatform() {
   const sampled = useSampledTrack();
   const signTexture = useMemo(() => makeStartSignTexture(), []);
 
-  const pose = useMemo(
-    () => (sampled.length > 0 ? sampleTrackPose(sampled, 0) : null),
-    [sampled],
-  );
+  const pose = useMemo(() => (sampled.length > 0 ? sampleTrackPose(sampled, 0) : null), [sampled]);
 
   if (!startPlatform || !pose) return null;
 
@@ -38,11 +35,7 @@ export function StartPlatform() {
   const strutRadius = 0.08;
 
   return (
-    <group
-      data-testid="start-platform"
-      position={[pose.x, 0, pose.z]}
-      rotation={[0, pose.yaw, 0]}
-    >
+    <group data-testid="start-platform" position={[pose.x, 0, pose.z]} rotation={[0, pose.yaw, 0]}>
       {/* Wire struts — 4 corners up to the rafters */}
       {(
         [

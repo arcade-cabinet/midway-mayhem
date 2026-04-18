@@ -27,6 +27,7 @@ import {
   TrickState,
 } from '@/ecs/traits';
 import { world } from '@/ecs/world';
+import { isDailyRoute } from '@/track/dailyRoute';
 import type { PieceKind } from '@/track/trackComposer';
 import type { ZoneId } from '@/utils/constants';
 import { combo } from './comboSystem';
@@ -40,7 +41,6 @@ import {
 import { applyCrashAction, applyPickupAction } from './gameStateCombat';
 import { DROP_DURATION_MS, tickGameState } from './gameStateTick';
 import { type OptimalPath, solveOptimalPath } from './optimalPath';
-import { isDailyRoute } from '@/track/dailyRoute';
 import { finishAndMaybeSave, startRecording } from './replayRecorder';
 import { persistRunEnd } from './runEndPersistence';
 import { buildRunPlan, type RunPlan } from './runPlan';
