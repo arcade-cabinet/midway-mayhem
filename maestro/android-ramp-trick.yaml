@@ -3,11 +3,9 @@ appId: com.midwaymayhem.app
 - launchApp:
     clearState: true
 - tapOn:
-    text: "NEW RUN"
-    optional: true
+    id: "start-button"
 - tapOn:
-    text: "▶ PLAY"
-    optional: true
+    id: "new-run-play"
 - waitForAnimationToEnd
 # Trick trigger — swipe up on the right half of the screen
 - swipe:

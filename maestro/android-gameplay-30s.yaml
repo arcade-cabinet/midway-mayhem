@@ -9,13 +9,11 @@ tags: [gameplay]
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-gameplay-00-title
 - tapOn:
-    text: "NEW RUN"
-    optional: true
+    id: "start-button"
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-gameplay-01-modal
 - tapOn:
-    text: "▶ PLAY"
-    optional: true
+    id: "new-run-play"
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-gameplay-02-started
 # Wait 5s + screenshot × 6

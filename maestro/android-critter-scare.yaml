@@ -3,11 +3,9 @@ appId: com.midwaymayhem.app
 - launchApp:
     clearState: true
 - tapOn:
-    text: "NEW RUN"
-    optional: true
+    id: "start-button"
 - tapOn:
-    text: "▶ PLAY"
-    optional: true
+    id: "new-run-play"
 - waitForAnimationToEnd
 # Simulate honk gesture — long-press center of screen for ~500ms
 - tapOn:

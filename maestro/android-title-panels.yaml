@@ -15,8 +15,7 @@ tags: [ui]
 
 # NEW RUN → modal opens, back dismisses
 - tapOn:
-    text: "NEW RUN"
-    optional: true
+    id: "start-button"
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-01-new-run
 - pressKey: back

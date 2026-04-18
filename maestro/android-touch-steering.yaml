@@ -11,8 +11,7 @@ tags: [input, gameplay]
     text: "NEW RUN"
 - waitForAnimationToEnd
 - tapOn:
-    text: "▶ PLAY"
-    optional: true
+    id: "new-run-play"
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-touch-00-started
 

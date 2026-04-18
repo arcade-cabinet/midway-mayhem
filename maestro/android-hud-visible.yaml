@@ -8,12 +8,10 @@ tags: [ui, gameplay]
     clearState: true
 - waitForAnimationToEnd
 - tapOn:
-    text: "NEW RUN"
-    optional: true
+    id: "start-button"
 - waitForAnimationToEnd
 - tapOn:
-    text: "▶ PLAY"
-    optional: true
+    id: "new-run-play"
 - waitForAnimationToEnd
 - extendedWaitUntil:
     timeout: 8000
