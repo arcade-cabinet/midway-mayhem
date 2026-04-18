@@ -11,14 +11,14 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import { eventsRng } from '@/game/runRngBus';
 import { useGameStore } from '@/game/gameState';
 import { hapticsBus } from '@/game/hapticsBus';
 import { RaidDirector } from '@/game/obstacles/raidDirector';
+import { eventsRng } from '@/game/runRngBus';
 
 declare global {
   interface Window {
-    __mmRaidDirector?: RaidDirector;
+    __mmRaidDirector?: RaidDirector | undefined;
   }
 }
 
@@ -30,7 +30,7 @@ export function RaidBridge() {
     // deterministic replay works: the raid schedule depends only on the
     // run's events-channel entropy.
     return () => {
-      delete window.__mmRaidDirector;
+      window.__mmRaidDirector = undefined;
       directorRef.current = null;
     };
   }, []);
