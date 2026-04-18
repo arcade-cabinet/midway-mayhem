@@ -9,7 +9,9 @@ import type { World } from 'koota';
 import { useCallback, useEffect, useRef } from 'react';
 import { tunables } from '@/config';
 import { Player, Speed, Steer } from '@/ecs/traits';
+import { useGameStore } from '@/game/gameState';
 import { type ArcadeAudioHandle, startArcadeAudio } from './arcadeAudio';
+import { conductor } from './conductor';
 
 export function useArcadeAudio(
   world: World,
@@ -32,6 +34,10 @@ export function useArcadeAudio(
         }
         handleRef.current = h;
         h.setMusicPlaying(true);
+        // Also start the procedural circus calliope in the current zone.
+        // The conductor is the primary music engine per DESIGN.md.
+        const zone = useGameStore.getState().currentZone;
+        conductor.start(zone);
       })
       .catch(() => {
         // Hard-fail would surface via error modal; for audio we accept
@@ -42,8 +48,16 @@ export function useArcadeAudio(
       handleRef.current?.setMusicPlaying(false);
       handleRef.current?.dispose();
       handleRef.current = null;
+      conductor.stop();
     };
   }, [ready]);
+
+  // Zone transitions — re-key the conductor to swap the phrase grammar.
+  const currentZone = useGameStore((s) => s.currentZone);
+  useEffect(() => {
+    if (!ready) return;
+    conductor.setZone(currentZone);
+  }, [ready, currentZone]);
 
   useFrame(() => {
     const h = handleRef.current;

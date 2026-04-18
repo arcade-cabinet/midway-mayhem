@@ -11,22 +11,47 @@
  * Mounted inside <WorldScroller>, so the pad drifts away behind the player as
  * the run progresses (exactly like every other track-anchored prop).
  */
+import { useQuery } from 'koota/react';
 import { useMemo } from 'react';
 import * as THREE from 'three';
+import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { TrackSegment } from '@/ecs/traits';
 import { useGameStore } from '@/game/gameState';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { COLORS } from '@/utils/constants';
 
 export function StartPlatform() {
   const startPlatform = useGameStore((s) => s.plan?.startPlatform);
-  const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
-
-  const pose = useMemo(() => trackToWorld(composition, 0, 0), [composition]);
-
+  const trackSegs = useQuery(TrackSegment);
   const signTexture = useMemo(() => makeStartSignTexture(), []);
 
-  if (!startPlatform) return null;
+  const sampled: SampledSegment[] = useMemo(() => {
+    const traits = trackSegs
+      .map((e) => e.get(TrackSegment))
+      .filter((x): x is NonNullable<typeof x> => !!x)
+      .sort((a, b) => a.index - b.index);
+    return traits.map((seg) => ({
+      startPose: {
+        x: seg.startX,
+        y: seg.startY,
+        z: seg.startZ,
+        yaw: seg.startYaw,
+        pitch: seg.startPitch,
+      },
+      archetypeId: seg.archetype,
+      length: seg.length,
+      deltaYaw: seg.deltaYaw,
+      deltaPitch: seg.deltaPitch,
+      bank: seg.bank,
+      distanceStart: seg.distanceStart,
+    }));
+  }, [trackSegs]);
+
+  const pose = useMemo(
+    () => (sampled.length > 0 ? sampleTrackPose(sampled, 0) : null),
+    [sampled],
+  );
+
+  if (!startPlatform || !pose) return null;
 
   const { widthM, depthM } = startPlatform;
   // Deck sits a hair BELOW the road surface so the player's car rolls off
@@ -39,7 +64,7 @@ export function StartPlatform() {
     <group
       data-testid="start-platform"
       position={[pose.x, 0, pose.z]}
-      rotation={[0, pose.heading, 0]}
+      rotation={[0, pose.yaw, 0]}
     >
       {/* Wire struts — 4 corners up to the rafters */}
       {(

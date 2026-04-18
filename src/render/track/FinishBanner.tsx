@@ -12,31 +12,52 @@
  * alignment; positioning here is done once with trackToWorld at the banner
  * distance.
  */
+import { useQuery } from 'koota/react';
 import { useMemo } from 'react';
 import * as THREE from 'three';
+import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { TrackSegment } from '@/ecs/traits';
 import { useGameStore } from '@/game/gameState';
-import { trackToWorld } from '@/game/obstacles/trackToWorld';
-import { composeTrack, DEFAULT_TRACK } from '@/track/trackComposer';
 import { COLORS, TRACK } from '@/utils/constants';
 
 export function FinishBanner() {
   const finishBanner = useGameStore((s) => s.plan?.finishBanner);
-  const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
+  const trackSegs = useQuery(TrackSegment);
+  const checkerTex = useMemo(() => makeCheckerTexture(), []);
+
+  const sampled: SampledSegment[] = useMemo(() => {
+    const traits = trackSegs
+      .map((e) => e.get(TrackSegment))
+      .filter((x): x is NonNullable<typeof x> => !!x)
+      .sort((a, b) => a.index - b.index);
+    return traits.map((seg) => ({
+      startPose: {
+        x: seg.startX,
+        y: seg.startY,
+        z: seg.startZ,
+        yaw: seg.startYaw,
+        pitch: seg.startPitch,
+      },
+      archetypeId: seg.archetype,
+      length: seg.length,
+      deltaYaw: seg.deltaYaw,
+      deltaPitch: seg.deltaPitch,
+      bank: seg.bank,
+      distanceStart: seg.distanceStart,
+    }));
+  }, [trackSegs]);
 
   const bannerPose = useMemo(
-    () => (finishBanner ? trackToWorld(composition, finishBanner.d, 0) : null),
-    [composition, finishBanner],
+    () => (finishBanner && sampled.length > 0 ? sampleTrackPose(sampled, finishBanner.d) : null),
+    [sampled, finishBanner],
   );
-  // Goal platform sits past the banner, along the track heading.
   const goalPose = useMemo(
     () =>
-      finishBanner && bannerPose
-        ? trackToWorld(composition, finishBanner.d + finishBanner.goalPlatformDepthM / 2, 0)
+      finishBanner && sampled.length > 0
+        ? sampleTrackPose(sampled, finishBanner.d + finishBanner.goalPlatformDepthM / 2)
         : null,
-    [composition, finishBanner, bannerPose],
+    [sampled, finishBanner],
   );
-
-  const checkerTex = useMemo(() => makeCheckerTexture(), []);
 
   if (!finishBanner || !bannerPose || !goalPose) return null;
 
@@ -49,7 +70,7 @@ export function FinishBanner() {
   return (
     <group data-testid="finish-banner">
       {/* Banner + posts group (at exact banner distance). */}
-      <group position={[bannerPose.x, 0, bannerPose.z]} rotation={[0, bannerPose.heading, 0]}>
+      <group position={[bannerPose.x, 0, bannerPose.z]} rotation={[0, bannerPose.yaw, 0]}>
         {/* Left post */}
         <mesh position={[-bannerWidth / 2, postHeight / 2, 0]}>
           <cylinderGeometry args={[postRadius, postRadius, postHeight, 14]} />
@@ -120,7 +141,7 @@ export function FinishBanner() {
           Rendered as a separate group at the goal-midpoint distance so it
           aligns with the post-banner track heading (which can differ on a
           curved segment). */}
-      <group position={[goalPose.x, 0, goalPose.z]} rotation={[0, goalPose.heading, 0]}>
+      <group position={[goalPose.x, 0, goalPose.z]} rotation={[0, goalPose.yaw, 0]}>
         <mesh position={[0, goalPose.y - 0.05, 0]}>
           <boxGeometry args={[TRACK.WIDTH + 6, 0.4, finishBanner.goalPlatformDepthM]} />
           <meshStandardMaterial color={COLORS.PURPLE} roughness={0.7} />
