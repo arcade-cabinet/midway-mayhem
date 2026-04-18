@@ -22,17 +22,15 @@ const CANON_PHRASES = [
 test.describe('seed-deterministic playthroughs', () => {
   for (const phrase of CANON_PHRASES) {
     test(`phrase "${phrase}" advances deterministically`, async ({ page }, testInfo) => {
-      // Mobile emulator runs too slowly for full 30-interval playthroughs.
-      test.skip(
-        testInfo.project.name === 'mobile-portrait',
-        'mobile playthroughs covered by dedicated short specs',
-      );
-      test.setTimeout(240_000);
+      // Mobile emulator is ~4x slower. Cap the mobile run short enough
+      // to stay within the test budget but still prove movement.
+      const isMobile = testInfo.project.name === 'mobile-portrait';
+      test.setTimeout(isMobile ? 120_000 : 240_000);
       const frames = await runPlaythrough(page, testInfo, {
         phrase,
         difficulty: 'plenty',
         intervalMs: 2000,
-        maxFrames: 15,
+        maxFrames: isMobile ? 6 : 15,
         stopWhen: /run complete|game over/i,
       });
 
@@ -55,10 +53,11 @@ test.describe('seed-deterministic playthroughs', () => {
       // Final sample should be meaningfully far from origin unless run ended.
       const last = frames[frames.length - 1];
       const lastDistance = (last?.diag?.distance as number) ?? 0;
+      const minDistance = isMobile ? 20 : 50;
       expect(
         lastDistance,
-        'expected final distance > 50m (proves the car actually moved)',
-      ).toBeGreaterThan(50);
+        `expected final distance > ${minDistance}m (proves the car actually moved)`,
+      ).toBeGreaterThan(minDistance);
     });
   }
 });
