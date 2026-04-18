@@ -6,27 +6,30 @@
  * Input listeners + motion loop are mounted unconditionally so the player
  * entity's state always reflects reality; gating is purely visual.
  */
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useRef, useState } from 'react';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
-import { type EndReason, resetGameOver, stepGameOver } from '@/ecs/systems/gameOver';
+import { type EndReason, resetGameOver } from '@/ecs/systems/gameOver';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { seedContent } from '@/ecs/systems/seedContent';
 import { seedZones } from '@/ecs/systems/seedZones';
 import { seedTrack } from '@/ecs/systems/track';
-import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
 import { Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
-import { resetAchievementsRun, stepAchievements } from '@/game/achievementRun';
-import { commitGhost, resetGhostRecorder, stepGhostRecorder } from '@/game/ghost';
+import { resetAchievementsRun } from '@/game/achievementRun';
+import { DebugCaptureBridge } from '@/game/debugCapture';
+import { installDiagnosticsBus } from '@/game/diagnosticsBus';
+import { ensureGameTraits } from '@/game/gameState';
+import { commitGhost, resetGhostRecorder } from '@/game/ghost';
+import { Governor } from '@/game/governor/Governor';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
 import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
-import { GhostCar } from '@/render/GhostCar';
+import { GhostCar } from '@/render/obstacles/GhostCar';
 import { PostFX } from '@/render/PostFX';
 import { SpeedLines } from '@/render/SpeedLines';
 import { Track } from '@/render/Track';
@@ -35,7 +38,9 @@ import { ZoneBanners } from '@/render/ZoneBanners';
 import { saveScore } from '@/storage/scores';
 import { AchievementToasts } from '@/ui/AchievementToasts';
 import { GameOverOverlay } from '@/ui/GameOverOverlay';
-import { TitleScreen } from '@/ui/TitleScreen';
+import type { NewRunConfig } from '@/ui/title/NewRunModal';
+import { TitleScreen } from '@/ui/title/TitleScreen';
+import { GameLoop } from './GameLoop';
 
 // Seed the world once at module load. ES modules are evaluated exactly
 // once per process, so this block runs only once even with React StrictMode
@@ -44,29 +49,12 @@ seedTrack(world, 42);
 seedContent(world, 42);
 seedZones(world);
 spawnPlayer(world);
+// Attach all run-state traits to the player entity now that it is spawned.
+ensureGameTraits(world);
 resetAchievementsRun();
 resetGhostRecorder();
-
-function GameLoop({
-  active,
-  onPickup,
-  onObstacle,
-  onEnd,
-}: {
-  active: boolean;
-  onPickup: (kind: 'balloon' | 'boost') => void;
-  onObstacle: (kind: 'cone' | 'oil') => void;
-  onEnd: (reason: EndReason) => void;
-}) {
-  usePlayerLoop(world, active, { onPickup, onObstacle });
-  useFrame(() => {
-    if (!active) return;
-    stepGameOver(world, { onEnd });
-    stepAchievements(world);
-    stepGhostRecorder(world);
-  });
-  return null;
-}
+// Install window.__mm.diag() etc for dev tooling.
+installDiagnosticsBus();
 
 function AudioBridge({
   active,
@@ -116,6 +104,7 @@ export function App() {
           <BoostRush />
           <PostFX />
           <GameLoop
+            world={world}
             active={playing}
             onPickup={(kind) => {
               if (kind === 'balloon') {
@@ -152,9 +141,19 @@ export function App() {
               thudRef.current = fns.thud;
             }}
           />
+          {/* Autonomous driver — active when ?governor=1 or ?autoplay=1 */}
+          <Governor />
+          {/* Debug frame capture — active in DEV or ?diag=1 */}
+          <DebugCaptureBridge />
         </Canvas>
         {titleVisible ? (
-          <TitleScreen onDrive={() => setTitleVisible(false)} />
+          <TitleScreen
+            onStart={(_config?: NewRunConfig) => {
+              // TODO(game-state): pass seed/difficulty/permadeath from config
+              // to the run seeding system once game-state agent lands.
+              setTitleVisible(false);
+            }}
+          />
         ) : (
           <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
         )}
