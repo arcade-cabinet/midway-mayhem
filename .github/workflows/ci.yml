@@ -90,7 +90,7 @@ jobs:
   build:
     name: Production Build + Bundle Budget
     runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, node-tests, jsdom-tests, browser-smoke]
+    needs: [lint-and-typecheck, node-tests, browser-smoke]
     permissions:
       contents: read
     steps:
