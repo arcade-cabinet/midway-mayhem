@@ -2,8 +2,13 @@
  * Achievement definitions + dispatcher. Each frame, poll the player's
  * Score; when a threshold crosses, emit an achievement event through the
  * `listeners` pub/sub so the UI can pop a toast + audio can fire a stinger.
- * Flags persist in localStorage so a given achievement only fires once
- * per browser/device.
+ *
+ * Persistence: first-time unlocks across all runs are written to
+ * localStorage so we know which achievements the player has ever earned.
+ * Toasts still fire once per run regardless of persistence — the celebratory
+ * moment of crossing 100k in THIS run feels good even if it's the tenth
+ * time. Crossed in PR #18 feedback: previously the implementation comment
+ * was misleading about this.
  */
 import type { World } from 'koota';
 import { Player, Score } from '@/ecs/traits';
@@ -50,21 +55,43 @@ export const ACHIEVEMENTS: Achievement[] = [
 
 const STORE_KEY = 'mm.achievements.v1';
 
-function loadFlags(): Set<string> {
-  if (typeof localStorage === 'undefined') return new Set();
+// Cache of the persisted flag set — loaded once on first access, mutated
+// on unlock. Prior version called loadFlags() every frame inside
+// stepAchievements, which hit localStorage+JSON.parse at 60fps. Flagged
+// in PR #18 review.
+let persistentCache: Set<string> | null = null;
+
+function getPersistent(): Set<string> {
+  if (persistentCache !== null) return persistentCache;
+  if (typeof localStorage === 'undefined') {
+    persistentCache = new Set();
+    return persistentCache;
+  }
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (!raw) return new Set();
+    if (!raw) {
+      persistentCache = new Set();
+      return persistentCache;
+    }
     const arr = JSON.parse(raw) as string[];
-    return new Set(Array.isArray(arr) ? arr : []);
+    persistentCache = new Set(Array.isArray(arr) ? arr : []);
+    return persistentCache;
   } catch {
-    return new Set();
+    persistentCache = new Set();
+    return persistentCache;
   }
 }
 
-function saveFlags(flags: Set<string>): void {
+function savePersistent(flags: Set<string>): void {
   if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(STORE_KEY, JSON.stringify([...flags]));
+  // setItem can throw on quota exceeded / private mode / storage disabled.
+  // Silently skip on failure — the in-memory cache still knows about it
+  // for this session, and the game keeps running. Flagged in PR #18 review.
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify([...flags]));
+  } catch {
+    // Nothing sensible to do — accept the session-only fallback.
+  }
 }
 
 type Listener = (a: Achievement) => void;
@@ -83,8 +110,8 @@ export function resetAchievementsRun(): void {
 }
 
 /** Per-frame hook: compare Score to each achievement's test; fire listeners
- *  (and persist) when crossed. Silent no-op if the player entity isn't
- *  present yet. */
+ *  (and persist on first-ever unlock) when crossed. Silent no-op if the
+ *  player entity isn't present yet. */
 export function stepAchievements(world: World): void {
   const entities = world.query(Player, Score);
   if (entities.length === 0) return;
@@ -93,18 +120,17 @@ export function stepAchievements(world: World): void {
   const score = e.get(Score);
   if (!score) return;
 
-  const persistent = loadFlags();
-
   for (const a of ACHIEVEMENTS) {
     if (thisRunFired.has(a.id)) continue;
     if (!a.test(score)) continue;
     thisRunFired.add(a.id);
-    // Fire even if previously persisted — the toast still feels good, but
-    // we only persist first-time unlocks (no-op if already in set).
+    // Always fire per-run toast — the celebration moment stands even if
+    // the player has earned this before on another device/browser.
     for (const l of listeners) l(a);
+    const persistent = getPersistent();
     if (!persistent.has(a.id)) {
       persistent.add(a.id);
-      saveFlags(persistent);
+      savePersistent(persistent);
     }
   }
 }

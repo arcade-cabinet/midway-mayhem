@@ -4,7 +4,7 @@
  * auto-dismisses after ~2.5s; title + detail come from the Achievement
  * definition.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type Achievement, onAchievement } from '@/game/achievements';
 
 interface Toast {
@@ -14,16 +14,29 @@ interface Toast {
 
 export function AchievementToasts() {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  // Track dismissal timers so the effect cleanup can cancel them on unmount.
+  // Without this, pending setTimeouts still fire after the component is
+  // gone and try to update stale state. Flagged in PR #18 review by
+  // both Copilot and Amazon Q.
+  const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   useEffect(() => {
     let counter = 0;
-    return onAchievement((ach) => {
+    const timers = timersRef.current;
+    const unsubscribe = onAchievement((ach) => {
       const key = ++counter;
       setToasts((prev) => [...prev, { key, ach }]);
-      setTimeout(() => {
+      const id = setTimeout(() => {
+        timers.delete(id);
         setToasts((prev) => prev.filter((t) => t.key !== key));
       }, 2500);
+      timers.add(id);
     });
+    return () => {
+      unsubscribe();
+      for (const id of timers) clearTimeout(id);
+      timers.clear();
+    };
   }, []);
 
   if (toasts.length === 0) return null;

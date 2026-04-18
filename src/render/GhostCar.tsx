@@ -10,7 +10,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useQuery } from 'koota/react';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type * as THREE from 'three';
 import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { TrackSegment } from '@/ecs/traits';
@@ -18,13 +18,16 @@ import { currentRunElapsed, type GhostRecord, loadBestGhost, sampleGhost } from 
 
 export function GhostCar() {
   const groupRef = useRef<THREE.Group>(null);
-  const ghostRef = useRef<GhostRecord | null>(null);
   const trackSegs = useQuery(TrackSegment);
-
-  // Load once on mount so we don't hit localStorage each frame.
-  if (ghostRef.current === null) {
-    ghostRef.current = loadBestGhost();
-  }
+  // Load the ghost in an effect instead of the render body. Previous
+  // implementation called loadBestGhost() conditionally on ghostRef.current
+  // being null — when no ghost existed, that "no-op" ran on every render
+  // and hit localStorage each time. Flagged in PR #19 review by both
+  // Amazon Q and Gemini.
+  const [ghost, setGhost] = useState<GhostRecord | null>(null);
+  useEffect(() => {
+    setGhost(loadBestGhost());
+  }, []);
 
   const sampled: SampledSegment[] = useMemo(() => {
     const traits = trackSegs
@@ -50,7 +53,6 @@ export function GhostCar() {
 
   useFrame(() => {
     const g = groupRef.current;
-    const ghost = ghostRef.current;
     if (!g || !ghost || sampled.length === 0) {
       if (g) g.visible = false;
       return;
@@ -70,7 +72,7 @@ export function GhostCar() {
   });
 
   // Don't render a placeholder if there's no ghost to play back.
-  if (ghostRef.current === null) return null;
+  if (ghost === null) return null;
 
   return (
     <group ref={groupRef} name="ghost-car" visible={false}>

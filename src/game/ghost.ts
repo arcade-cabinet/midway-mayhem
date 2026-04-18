@@ -57,13 +57,17 @@ export function commitGhost(world: World): void {
     samples: recording.slice(),
     createdAt: Date.now(),
   };
+  // localStorage.setItem can throw on quota / disabled / private mode.
+  // The whole block is wrapped so a storage failure never bubbles into
+  // the game loop. Flagged implicitly by same class of PR #18 concern.
   try {
     const existing = loadBestGhost();
     if (!existing || record.score > existing.score) {
       localStorage.setItem(STORE_KEY, JSON.stringify(record));
     }
   } catch {
-    // localStorage unavailable — silently skip; the ghost is ephemeral.
+    // localStorage unavailable / quota exceeded — silently skip; the
+    // ghost is ephemeral.
   }
 }
 
@@ -72,9 +76,23 @@ export function loadBestGhost(): GhostRecord | null {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as GhostRecord;
-    if (!parsed || !Array.isArray(parsed.samples)) return null;
-    return parsed;
+    const parsed = JSON.parse(raw) as Partial<GhostRecord>;
+    // Full shape check — corrupted/truncated localStorage could be missing
+    // any of these fields, which would crash commitGhost's score comparison.
+    // Flagged in PR #19 review.
+    if (
+      !parsed ||
+      typeof parsed.score !== 'number' ||
+      typeof parsed.createdAt !== 'number' ||
+      !Array.isArray(parsed.samples)
+    ) {
+      return null;
+    }
+    return {
+      score: parsed.score,
+      createdAt: parsed.createdAt,
+      samples: parsed.samples,
+    };
   } catch {
     return null;
   }

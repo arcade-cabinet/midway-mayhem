@@ -45,7 +45,11 @@ seedContent(world, 42);
 seedZones(world);
 spawnPlayer(world);
 resetAchievementsRun();
-resetGhostRecorder();
+// NOTE: resetGhostRecorder fires when the player clicks Drive (in App's
+// onDrive handler below) NOT at module load — we want the elapsed-time
+// clock to start when the run starts, not when the page loads, otherwise
+// time spent on the title screen corrupts the ghost playback sync.
+// Flagged in PR #19 review.
 
 function GameLoop({
   active,
@@ -154,7 +158,14 @@ export function App() {
           />
         </Canvas>
         {titleVisible ? (
-          <TitleScreen onDrive={() => setTitleVisible(false)} />
+          <TitleScreen
+            onDrive={() => {
+              // Start the ghost-recorder clock HERE, not at module load,
+              // so recorded timestamps line up with actual playing time.
+              resetGhostRecorder();
+              setTitleVisible(false);
+            }}
+          />
         ) : (
           <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
         )}
