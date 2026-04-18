@@ -57,6 +57,13 @@ export function resume(): void {
   fn();
 }
 
+/** Fire a CROWD CHAIN combo event (scare / pickup / near-miss). */
+export function comboEvent(kind: 'scare' | 'pickup' | 'near-miss'): void {
+  const fn = window.__mm?.comboEvent;
+  if (!fn) throw new Error('[integration] window.__mm.comboEvent is not wired');
+  fn(kind);
+}
+
 /** End the current run through the exposed __mm bus. */
 export function endRun(): void {
   const fn = window.__mm?.end;

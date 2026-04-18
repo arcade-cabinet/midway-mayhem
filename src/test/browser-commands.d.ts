@@ -31,5 +31,6 @@ interface Window {
     pickup?: (kind: 'ticket' | 'boost' | 'mega') => void;
     pause?: () => void;
     resume?: () => void;
+    comboEvent?: (kind: 'scare' | 'pickup' | 'near-miss') => void;
   };
 }
