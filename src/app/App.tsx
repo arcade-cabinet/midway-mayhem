@@ -45,6 +45,7 @@ import { FinishBanner } from '@/render/track/FinishBanner';
 import { StartPlatform } from '@/render/track/StartPlatform';
 import { ZoneBanners } from '@/render/ZoneBanners';
 import { saveScore } from '@/storage/scores';
+import { initDailyRouteFromUrl } from '@/track/dailyRoute';
 import { AchievementToasts } from '@/ui/AchievementToasts';
 import { GameOverOverlay } from '@/ui/GameOverOverlay';
 import { HUD } from '@/ui/hud/HUD';
@@ -55,6 +56,7 @@ import { GameLoop } from './GameLoop';
 // Seed the world once at module load. ES modules are evaluated exactly
 // once per process, so this block runs only once even with React StrictMode
 // double-invoking child components — no guard flag needed.
+initDailyRouteFromUrl();
 seedTrack(world, 42);
 seedContent(world, 42);
 seedZones(world);
