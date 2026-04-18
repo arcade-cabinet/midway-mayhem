@@ -49,7 +49,11 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # PAT with PR-create permissions — required because the org
+          # policy disables write permissions for the default
+          # GITHUB_TOKEN, which surfaces as "GitHub Actions is not
+          # permitted to create or approve pull requests".
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
 
   deploy-web:
     name: Build & deploy web to GitHub Pages
