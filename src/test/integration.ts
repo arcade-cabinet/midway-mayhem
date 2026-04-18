@@ -29,6 +29,13 @@ export function crash(heavy = false): void {
   fn(heavy);
 }
 
+/** Apply a pickup of the given kind through the exposed __mm bus. */
+export function pickup(kind: 'ticket' | 'boost' | 'mega'): void {
+  const fn = window.__mm?.pickup;
+  if (!fn) throw new Error('[integration] window.__mm.pickup is not wired');
+  fn(kind);
+}
+
 /** End the current run through the exposed __mm bus. */
 export function endRun(): void {
   const fn = window.__mm?.end;

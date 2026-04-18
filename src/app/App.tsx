@@ -78,6 +78,7 @@ wireDiagnosticsHooks(
   () => useGameStore.getState().startRun({ seed: 42, difficulty: 'plenty' }),
   () => useGameStore.getState().endRun(),
   (heavy: boolean) => useGameStore.getState().applyCrash(heavy),
+  (kind: 'ticket' | 'boost' | 'mega') => useGameStore.getState().applyPickup(kind),
 );
 
 function AudioBridge({

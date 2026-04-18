@@ -19,6 +19,8 @@ export interface DiagnosticsDump {
   dropProgress: number;
   /** True while the cockpit plunge animation is in progress. Tick frozen. */
   plunging: boolean;
+  /** Tickets earned this run from pickups (flushed to profile on endRun). */
+  ticketsThisRun: number;
   distance: number;
   speedMps: number;
   hype: number;
@@ -75,6 +77,7 @@ export function installDiagnosticsBus() {
         gameOver: s?.gameOver ?? false,
         dropProgress: s?.dropProgress ?? 0,
         plunging: s?.plunging ?? false,
+        ticketsThisRun: s?.ticketsThisRun ?? 0,
         distance: s?.distance ?? 0,
         speedMps: s?.speedMps ?? 0,
         hype: s?.hype ?? 0,
@@ -113,6 +116,12 @@ export function installDiagnosticsBus() {
         | undefined;
       fn?.(heavy);
     },
+    pickup(kind: 'ticket' | 'boost' | 'mega') {
+      const fn = (globalThis as Record<string, unknown>).__mmApplyPickup as
+        | ((kind: 'ticket' | 'boost' | 'mega') => void)
+        | undefined;
+      fn?.(kind);
+    },
   };
 }
 
@@ -127,6 +136,7 @@ export function wireDiagnosticsHooks(
   startRun: () => void,
   endRun: () => void,
   applyCrash?: (heavy: boolean) => void,
+  applyPickup?: (kind: 'ticket' | 'boost' | 'mega') => void,
 ) {
   (globalThis as Record<string, unknown>).__mmGetState = getState;
   (globalThis as Record<string, unknown>).__mmSetSteer = setSteer;
@@ -134,6 +144,9 @@ export function wireDiagnosticsHooks(
   (globalThis as Record<string, unknown>).__mmEndRun = endRun;
   if (applyCrash) {
     (globalThis as Record<string, unknown>).__mmApplyCrash = applyCrash;
+  }
+  if (applyPickup) {
+    (globalThis as Record<string, unknown>).__mmApplyPickup = applyPickup;
   }
 }
 
