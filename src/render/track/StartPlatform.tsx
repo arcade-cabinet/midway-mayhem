@@ -11,40 +11,17 @@
  * Mounted inside <WorldScroller>, so the pad drifts away behind the player as
  * the run progresses (exactly like every other track-anchored prop).
  */
-import { useQuery } from 'koota/react';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
-import { TrackSegment } from '@/ecs/traits';
+import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { useGameStore } from '@/game/gameState';
 import { COLORS } from '@/utils/constants';
 
 export function StartPlatform() {
   const startPlatform = useGameStore((s) => s.plan?.startPlatform);
-  const trackSegs = useQuery(TrackSegment);
+  const sampled = useSampledTrack();
   const signTexture = useMemo(() => makeStartSignTexture(), []);
-
-  const sampled: SampledSegment[] = useMemo(() => {
-    const traits = trackSegs
-      .map((e) => e.get(TrackSegment))
-      .filter((x): x is NonNullable<typeof x> => !!x)
-      .sort((a, b) => a.index - b.index);
-    return traits.map((seg) => ({
-      startPose: {
-        x: seg.startX,
-        y: seg.startY,
-        z: seg.startZ,
-        yaw: seg.startYaw,
-        pitch: seg.startPitch,
-      },
-      archetypeId: seg.archetype,
-      length: seg.length,
-      deltaYaw: seg.deltaYaw,
-      deltaPitch: seg.deltaPitch,
-      bank: seg.bank,
-      distanceStart: seg.distanceStart,
-    }));
-  }, [trackSegs]);
 
   const pose = useMemo(
     () => (sampled.length > 0 ? sampleTrackPose(sampled, 0) : null),
