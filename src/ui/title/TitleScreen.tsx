@@ -67,6 +67,7 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
   // governor autonomous playthroughs). Optional `&phrase=<seed>` and
   // `&difficulty=<tier>` override the defaults; with no overrides we generate
   // a random phrase so each run is unique.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: boot-time autoplay, fire-and-forget — beginRun is intentionally not in deps
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -82,7 +83,6 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
       difficulty,
       permadeath: false,
     });
-    // biome-ignore lint/correctness/useExhaustiveDependencies: boot-time autoplay, fire-and-forget
   }, []);
 
   useEffect(() => {
