@@ -125,6 +125,14 @@ export function installDiagnosticsBus() {
         | undefined;
       fn?.(kind);
     },
+    pause() {
+      const fn = (globalThis as Record<string, unknown>).__mmPause as (() => void) | undefined;
+      fn?.();
+    },
+    resume() {
+      const fn = (globalThis as Record<string, unknown>).__mmResume as (() => void) | undefined;
+      fn?.();
+    },
   };
 }
 
@@ -133,24 +141,27 @@ export function installDiagnosticsBus() {
  * imperative __mm.* functions used by the diagnostics bus.
  * Must be called after the player entity is spawned.
  */
-export function wireDiagnosticsHooks(
-  getState: () => import('./gameState').GameStateSnapshot,
-  setSteer: (v: number) => void,
-  startRun: () => void,
-  endRun: () => void,
-  applyCrash?: (heavy: boolean) => void,
-  applyPickup?: (kind: 'ticket' | 'boost' | 'mega') => void,
-) {
-  (globalThis as Record<string, unknown>).__mmGetState = getState;
-  (globalThis as Record<string, unknown>).__mmSetSteer = setSteer;
-  (globalThis as Record<string, unknown>).__mmStartRun = startRun;
-  (globalThis as Record<string, unknown>).__mmEndRun = endRun;
-  if (applyCrash) {
-    (globalThis as Record<string, unknown>).__mmApplyCrash = applyCrash;
-  }
-  if (applyPickup) {
-    (globalThis as Record<string, unknown>).__mmApplyPickup = applyPickup;
-  }
+export interface DiagHooks {
+  getState: () => import('./gameState').GameStateSnapshot;
+  setSteer: (v: number) => void;
+  startRun: () => void;
+  endRun: () => void;
+  applyCrash?: (heavy: boolean) => void;
+  applyPickup?: (kind: 'ticket' | 'boost' | 'mega') => void;
+  pause?: () => void;
+  resume?: () => void;
+}
+
+export function wireDiagnosticsHooks(hooks: DiagHooks): void {
+  const g = globalThis as Record<string, unknown>;
+  g.__mmGetState = hooks.getState;
+  g.__mmSetSteer = hooks.setSteer;
+  g.__mmStartRun = hooks.startRun;
+  g.__mmEndRun = hooks.endRun;
+  if (hooks.applyCrash) g.__mmApplyCrash = hooks.applyCrash;
+  if (hooks.applyPickup) g.__mmApplyPickup = hooks.applyPickup;
+  if (hooks.pause) g.__mmPause = hooks.pause;
+  if (hooks.resume) g.__mmResume = hooks.resume;
 }
 
 export function reportFrame(dt: number) {

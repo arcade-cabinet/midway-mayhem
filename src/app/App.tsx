@@ -72,14 +72,16 @@ resetGhostRecorder();
 // Install window.__mm.diag() etc for dev tooling.
 installDiagnosticsBus();
 // Wire __mmStartRun / __mmGetState / etc so the diag bus can read real state.
-wireDiagnosticsHooks(
-  () => useGameStore.getState(),
-  (v: number) => useGameStore.getState().setSteer(v),
-  () => useGameStore.getState().startRun({ seed: 42, difficulty: 'plenty' }),
-  () => useGameStore.getState().endRun(),
-  (heavy: boolean) => useGameStore.getState().applyCrash(heavy),
-  (kind: 'ticket' | 'boost' | 'mega') => useGameStore.getState().applyPickup(kind),
-);
+wireDiagnosticsHooks({
+  getState: () => useGameStore.getState(),
+  setSteer: (v) => useGameStore.getState().setSteer(v),
+  startRun: () => useGameStore.getState().startRun({ seed: 42, difficulty: 'plenty' }),
+  endRun: () => useGameStore.getState().endRun(),
+  applyCrash: (heavy) => useGameStore.getState().applyCrash(heavy),
+  applyPickup: (kind) => useGameStore.getState().applyPickup(kind),
+  pause: () => useGameStore.getState().pause(),
+  resume: () => useGameStore.getState().resume(),
+});
 
 function AudioBridge({
   active,
