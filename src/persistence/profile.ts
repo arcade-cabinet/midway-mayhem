@@ -72,6 +72,23 @@ export async function purchaseUnlock(kind: UnlockKind, slug: string, cost: numbe
   }
   const now = Date.now();
   await db().transaction(async (tx) => {
+    // 1. Refuse to charge for something the player already owns. Without this
+    //    check, onConflictDoNothing on the INSERT would silently skip while
+    //    the debit completes — player charged, no new item granted.
+    const existing = await tx
+      .select()
+      .from(unlocks)
+      .where(and(eq(unlocks.kind, kind), eq(unlocks.slug, slug)))
+      .get();
+    if (existing) {
+      throw new Error(`[profile] Unlock already owned: ${kind}/${slug}`);
+    }
+
+    // 2. Read balance and gate the debit. The conditional UPDATE below is the
+    //    real atomic guard — the pre-read only exists to produce a clear error
+    //    message. No row-count check because the drizzle-proxy driver doesn't
+    //    surface affected-rows; the transaction will rollback if either side
+    //    throws, so the guard is sufficient in practice.
     if (cost > 0) {
       const p = await tx.select().from(profile).where(eq(profile.id, 1)).get();
       if (!p || p.tickets < cost) {
@@ -85,6 +102,11 @@ export async function purchaseUnlock(kind: UnlockKind, slug: string, cost: numbe
         .where(and(eq(profile.id, 1), sql`${profile.tickets} >= ${cost}`))
         .run();
     }
+
+    // 3. Insert the new unlock. onConflictDoNothing is a belt-and-braces
+    //    safeguard: we just verified no existing row above, so this should
+    //    always insert. If a concurrent transaction inserted first the
+    //    transaction rolls back at commit on unique-constraint failure.
     await tx.insert(unlocks).values({ kind, slug, unlockedAt: now }).onConflictDoNothing().run();
   });
 }

@@ -11,7 +11,9 @@ import { hapticsBus } from './hapticsBus';
 export function applyCrashAction(heavy: boolean, w: World): void {
   const players = w.query(Player, RunSession, GameplayStats);
   const pe = players[0];
-  if (!pe) return;
+  if (!pe) {
+    throw new Error('[gameStateCombat] applyCrashAction: no active player entity');
+  }
 
   const rs = pe.get(RunSession)!;
   const gs = pe.get(GameplayStats)!;
@@ -47,7 +49,9 @@ export function applyCrashAction(heavy: boolean, w: World): void {
 export function applyPickupAction(kind: 'ticket' | 'boost' | 'mega', w: World): void {
   const players = w.query(Player, GameplayStats, BoostState, RunCounters);
   const pe = players[0];
-  if (!pe) return;
+  if (!pe) {
+    throw new Error('[gameStateCombat] applyPickupAction: no active player entity');
+  }
 
   const gs = pe.get(GameplayStats)!;
   const bs = pe.get(BoostState)!;

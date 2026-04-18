@@ -34,7 +34,8 @@ export function stepPlayer(world: World, dt: number): void {
   const runActive = world.query(Player, RunSession).length > 0;
   if (runActive) return;
 
-  const { cruiseMps, maxSteerRate, throttleResponse } = tunables;
+  const { maxSteerRate, throttleResponse } = tunables;
+  const { cruiseMps } = tunables.speed;
   const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
   const maxLateral = halfWidth - trackArchetypes.laneWidth * 0.4;
 
