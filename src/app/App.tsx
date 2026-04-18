@@ -19,8 +19,8 @@ import { Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
 import { resetAchievementsRun } from '@/game/achievementRun';
 import { DebugCaptureBridge } from '@/game/debugCapture';
-import { installDiagnosticsBus } from '@/game/diagnosticsBus';
-import { ensureGameTraits } from '@/game/gameState';
+import { installDiagnosticsBus, wireDiagnosticsHooks } from '@/game/diagnosticsBus';
+import { ensureGameTraits, useGameStore } from '@/game/gameState';
 import { commitGhost, resetGhostRecorder } from '@/game/ghost';
 import { Governor } from '@/game/governor/Governor';
 import { haptic } from '@/input/haptics';
@@ -55,6 +55,13 @@ resetAchievementsRun();
 resetGhostRecorder();
 // Install window.__mm.diag() etc for dev tooling.
 installDiagnosticsBus();
+// Wire __mmStartRun / __mmGetState / etc so the diag bus can read real state.
+wireDiagnosticsHooks(
+  () => useGameStore.getState(),
+  (v: number) => useGameStore.getState().setSteer(v),
+  () => useGameStore.getState().startRun({ seed: 42, difficulty: 'plenty' }),
+  () => useGameStore.getState().endRun(),
+);
 
 function AudioBridge({
   active,
@@ -148,9 +155,21 @@ export function App() {
         </Canvas>
         {titleVisible ? (
           <TitleScreen
-            onStart={(_config?: NewRunConfig) => {
-              // TODO(game-state): pass seed/difficulty/permadeath from config
-              // to the run seeding system once game-state agent lands.
+            onStart={(config?: NewRunConfig) => {
+              // Start the run — sets RunSession.running=true, initializes
+              // the run RNG + optimal path + combo + difficulty profile.
+              const store = useGameStore.getState();
+              if (config) {
+                store.startRun({
+                  seed: config.seed,
+                  difficulty: config.difficulty,
+                  seedPhrase: config.seedPhrase,
+                  permadeath: config.permadeath,
+                });
+              } else {
+                // Autoplay-without-config path (keyboard fallback).
+                store.startRun({ seed: 42, difficulty: 'plenty' });
+              }
               setTitleVisible(false);
             }}
           />

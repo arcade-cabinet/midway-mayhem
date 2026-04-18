@@ -27,7 +27,9 @@ export function GameOverOverlay({ reason, score, balloons, onRestart }: GameOver
         alignItems: 'center',
         justifyContent: 'center',
         background:
-          'radial-gradient(ellipse at center, rgba(11, 15, 26, 0.82) 0%, rgba(11, 15, 26, 0.96) 70%)',
+          'radial-gradient(ellipse at center, rgba(11, 15, 26, 0.55) 0%, rgba(11, 15, 26, 0.8) 85%)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
         color: '#fff1db',
         fontFamily: '"Helvetica Neue", Arial, sans-serif',
         zIndex: 50,

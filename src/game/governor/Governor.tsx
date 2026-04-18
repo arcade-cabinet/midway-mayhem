@@ -8,7 +8,9 @@
  * on `window` — exercises the same input pipeline a human player uses.
  */
 import { useFrame } from '@react-three/fiber';
+import { useWorld } from 'koota/react';
 import { useEffect, useRef } from 'react';
+import { Player, Throttle } from '@/ecs/traits';
 import { useGameStore } from '@/game/gameState';
 import { GovernorDriver } from './GovernorDriver';
 
@@ -28,6 +30,7 @@ function dispatchKey(code: 'ArrowLeft' | 'ArrowRight', type: 'keydown' | 'keyup'
 }
 
 export function Governor() {
+  const world = useWorld();
   const enabled = useRef(false);
   const driverRef = useRef(new GovernorDriver());
   const currentKey = useRef<KeyState>('neutral');
@@ -53,6 +56,12 @@ export function Governor() {
 
   useFrame((_, dt) => {
     if (!enabled.current) return;
+    // Autopilot: always floor the throttle so the car actually moves
+    // regardless of whether RunSession.running has been toggled by the
+    // title-screen startRun() flow.
+    world.query(Player, Throttle).updateEach(([t]) => {
+      t.value = 1;
+    });
     const s = useGameStore.getState();
     if (!s.running) return;
     // biome-ignore lint/suspicious/noExplicitAny: obstacle spawner

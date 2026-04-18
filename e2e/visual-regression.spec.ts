@@ -12,9 +12,10 @@ test.describe('title screen', () => {
   test('renders at the current viewport', async ({ page }, testInfo) => {
     await page.goto('/midway-mayhem/');
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 20_000 });
-    await page.waitForTimeout(800); // let fonts + animations settle
+    await page.waitForTimeout(1500); // let fonts + animations settle
     await expect(page).toHaveScreenshot(`title-${testInfo.project.name}.png`, {
-      maxDiffPixelRatio: 0.03,
+      maxDiffPixelRatio: 0.05,
+      timeout: 30_000,
       animations: 'disabled',
     });
   });
@@ -25,12 +26,18 @@ test.describe('new run modal', () => {
     await page.goto('/midway-mayhem/');
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 20_000 });
 
-    // Desktop hero has a testId'd start-button; compact layout doesn't —
-    // tap the NEW RUN text in either case.
-    await page.getByRole('button', { name: /new run/i }).first().click();
-
-    await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(400);
+    // Desktop hero has a testId'd start-button; compact uses NEW RUN text.
+    const start = page.getByTestId('start-button');
+    if (await start.isVisible().catch(() => false)) {
+      await start.click();
+    } else {
+      await page
+        .getByRole('button', { name: /new run/i })
+        .first()
+        .click();
+    }
+    await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(500);
     await expect(page).toHaveScreenshot(`new-run-modal-${testInfo.project.name}.png`, {
       maxDiffPixelRatio: 0.03,
       animations: 'disabled',

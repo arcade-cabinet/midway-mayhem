@@ -14,8 +14,11 @@ import {
   GameplayStats,
   Player,
   PlungeState,
+  Position,
   RunCounters,
   RunSession,
+  Score,
+  Speed,
 } from '@/ecs/traits';
 import type { PieceKind } from '@/track/trackComposer';
 import type { ZoneId } from '@/utils/constants';
@@ -119,6 +122,24 @@ export function tickGameState(dt: number, now: number, w: World): void {
     currentZone,
     cleanliness: nextCleanliness,
   });
+
+  // Keep the legacy Position/Speed/Score traits in sync so the v2 renderers
+  // (Track, TrackContent, Cockpit, DiegeticHUD) and ECS gameOver detector
+  // all see the same distance/speed as GameplayStats.
+  const pos = pe.get(Position);
+  if (pos) {
+    pe.set(Position, { distance, lateral: gs.lateral });
+  }
+  const sp = pe.get(Speed);
+  if (sp) {
+    pe.set(Speed, { value: speed, target });
+  }
+  const sc = pe.get(Score);
+  if (sc) {
+    // Score = cumulative distance * cleanliness multiplier. Keeps the HUD
+    // diegetic read the same number gameState uses for end-of-run summary.
+    pe.set(Score, { ...sc, value: distance * (1 + nextCleanliness) });
+  }
 
   if (maxComboThisRun !== rc.maxComboThisRun) {
     pe.set(RunCounters, { ...rc, maxComboThisRun });
