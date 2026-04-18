@@ -7,6 +7,8 @@
  * Only active in DEV or when ?diag=1 / ?governor=1 is set.
  */
 
+import { combo } from './comboSystem';
+
 export interface DiagnosticsDump {
   generatedAt: number;
   fps: number;
@@ -23,6 +25,10 @@ export interface DiagnosticsDump {
   ticketsThisRun: number;
   /** Racing-line cleanliness EMA 0→1. 1 = on the optimal line, 0 = far off. */
   cleanliness: number;
+  /** Current CROWD CHAIN combo length (0 if expired). */
+  comboChain: number;
+  /** Current combo multiplier (1× when chain=0, up to 8× at max chain). */
+  comboMultiplier: number;
   distance: number;
   speedMps: number;
   hype: number;
@@ -81,6 +87,8 @@ export function installDiagnosticsBus() {
         plunging: s?.plunging ?? false,
         ticketsThisRun: s?.ticketsThisRun ?? 0,
         cleanliness: s?.cleanliness ?? 1,
+        comboChain: combo.getChainLength(),
+        comboMultiplier: combo.getMultiplier(),
         distance: s?.distance ?? 0,
         speedMps: s?.speedMps ?? 0,
         hype: s?.hype ?? 0,
@@ -132,6 +140,9 @@ export function installDiagnosticsBus() {
     resume() {
       const fn = (globalThis as Record<string, unknown>).__mmResume as (() => void) | undefined;
       fn?.();
+    },
+    comboEvent(kind: 'scare' | 'pickup' | 'near-miss') {
+      combo.registerEvent(kind);
     },
   };
 }
