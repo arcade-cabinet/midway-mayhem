@@ -10,7 +10,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useWorld } from 'koota/react';
 import { useEffect, useRef } from 'react';
-import { Player, Throttle } from '@/ecs/traits';
+import { Obstacle, Pickup, Player, Position, Throttle } from '@/ecs/traits';
 import { useGameStore } from '@/game/gameState';
 import { GovernorDriver } from './GovernorDriver';
 
@@ -64,24 +64,55 @@ export function Governor() {
     });
     const s = useGameStore.getState();
     if (!s.running) return;
-    // biome-ignore lint/suspicious/noExplicitAny: obstacle spawner
-    const spawner = (window as any).__mmSpawner;
-    if (!spawner) return;
+
+    // Read player distance/lateral from the authoritative ECS source
+    // (Position trait, kept in sync by gameStateTick).
+    const playerEntity = world.query(Player, Position)[0];
+    const playerPos = playerEntity?.get(Position);
+    const playerD = playerPos?.distance ?? s.distance;
+    const playerLateral = playerPos?.lateral ?? s.lateral;
+
+    // Query obstacles + pickups from ECS directly — no reliance on the
+    // reference spawner bridge. Only perceive entities that are ahead
+    // of the player and within the perception horizon.
     const PERCEPTION_AHEAD_M = 60;
-    const all: Array<{ d: number; x: number; z: number; type: string; radius: number }> =
-      spawner.getObstacles();
-    const pickupsAll: Array<{ d: number; x: number; z: number; type: string; radius: number }> =
-      spawner.getPickups();
-    const obstacles = all.filter((o) => {
-      const ahead = o.d - s.distance;
-      return ahead > 0 && ahead < PERCEPTION_AHEAD_M;
+    const obstacles: Array<{
+      d: number;
+      x: number;
+      z: number;
+      type: string;
+      radius: number;
+    }> = [];
+    world.query(Obstacle).updateEach(([ob]) => {
+      if (ob.consumed) return;
+      const ahead = ob.distance - playerD;
+      if (ahead > 0 && ahead < PERCEPTION_AHEAD_M) {
+        obstacles.push({
+          d: ob.distance,
+          x: ob.lateral,
+          z: 0,
+          type: ob.kind,
+          radius: ob.kind === 'cone' ? 0.5 : 0.7,
+        });
+      }
     });
-    const pickups = pickupsAll.filter((p) => {
-      const ahead = p.d - s.distance;
-      return ahead > 0 && ahead < PERCEPTION_AHEAD_M;
+    const pickups: Array<{ d: number; x: number; z: number; type: string; radius: number }> = [];
+    world.query(Pickup).updateEach(([pu]) => {
+      if (pu.consumed) return;
+      const ahead = pu.distance - playerD;
+      if (ahead > 0 && ahead < PERCEPTION_AHEAD_M) {
+        pickups.push({
+          d: pu.distance,
+          x: pu.lateral,
+          z: 0,
+          type: pu.kind,
+          radius: 0.7,
+        });
+      }
     });
+
     const result = driverRef.current.step(
-      { playerD: s.distance, playerLateral: s.lateral, obstacles, pickups },
+      { playerD, playerLateral, obstacles, pickups },
       dt,
     );
     const next = steerToKey(result.steer);
