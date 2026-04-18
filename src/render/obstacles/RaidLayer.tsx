@@ -10,22 +10,19 @@
  * zustand/context dependency in the renderer.
  */
 
-import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-// TODO(gameState): useGameStore from the in-flight gameState port
 import { useGameStore } from '@/game/gameState';
 import type { RaidState } from '@/game/obstacles/raidDirector';
-
-// NOTE: assetUrl is not yet ported to src/. Using a placeholder path for
-// now — this will be wired once src/assets/manifest.ts lands.
-// TODO(assets): replace with assetUrl('gltf:critter_cow') once manifest is ported.
-const COW_URL = '/models/critter_cow.glb';
 
 const KNIFE_GEO = new THREE.BoxGeometry(0.15, 0.8, 0.05);
 const CANNONBALL_GEO = new THREE.SphereGeometry(0.5, 16, 12);
 const SMOKE_GEO = new THREE.SphereGeometry(0.3, 8, 6);
+// Primitive "tiger" — orange rounded box silhouette. Stays on-brand with
+// the rest of the procedural visuals; Kenney GLBs land in a later PR.
+const TIGER_BODY_GEO = new THREE.BoxGeometry(1.8, 0.8, 0.6);
+const TIGER_HEAD_GEO = new THREE.SphereGeometry(0.35, 12, 10);
 
 const KNIFE_MAT = new THREE.MeshStandardMaterial({
   color: '#bfbfbf',
@@ -41,8 +38,6 @@ const SMOKE_MAT = new THREE.MeshStandardMaterial({
 const TIGER_MAT = new THREE.MeshStandardMaterial({ color: '#f36f21', roughness: 0.6 });
 
 export function RaidLayer() {
-  const cowGltf = useGLTF(COW_URL) as unknown as { scene: THREE.Object3D };
-
   const groupRef = useRef<THREE.Group>(null);
   const tigerRef = useRef<THREE.Object3D | null>(null);
   const knifeRefs = useRef<THREE.Mesh[]>([]);
@@ -55,18 +50,19 @@ export function RaidLayer() {
     const g = groupRef.current;
     if (!g) return;
 
-    // Tiger: clone cow, apply orange material
+    // Tiger: primitive composite (body + head). Swap for a GLB when
+    // Kenney assets land under public/models/.
     if (!tigerRef.current) {
-      const t = cowGltf.scene.clone(true);
-      t.scale.setScalar(4);
-      t.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          (child as THREE.Mesh).material = TIGER_MAT;
-        }
-      });
-      t.position.set(0, -9999, 0);
-      g.add(t);
-      tigerRef.current = t;
+      const tigerGroup = new THREE.Group();
+      const body = new THREE.Mesh(TIGER_BODY_GEO, TIGER_MAT);
+      body.position.set(0, 0, 0);
+      tigerGroup.add(body);
+      const head = new THREE.Mesh(TIGER_HEAD_GEO, TIGER_MAT);
+      head.position.set(0.9, 0.3, 0);
+      tigerGroup.add(head);
+      tigerGroup.position.set(0, -9999, 0);
+      g.add(tigerGroup);
+      tigerRef.current = tigerGroup;
     }
 
     // Knives: 5 mesh slots
@@ -224,5 +220,3 @@ export function RaidLayer() {
 
   return <group ref={groupRef} data-testid="raid-layer" />;
 }
-
-useGLTF.preload(COW_URL);
