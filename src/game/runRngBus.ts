@@ -31,16 +31,15 @@ export function initRunRng(masterSeed: number): void {
 }
 
 /**
- * Return the active RunRng. If no run has been started yet (unit tests in
- * isolation, diagnostics tooling) we lazily create one from a random seed —
- * gameplay code paths always call initRunRng() first so this fallback is
- * only ever hit by sandboxed tests.
+ * Return the active RunRng. Hard-fails if called before initRunRng — every
+ * gameplay path should set up the run's RNG first. Silent fallbacks here would
+ * break deterministic replay, so we surface the init-order bug instead.
  */
 export function getRunRng(): RunRng {
   if (!_rng) {
-    initRunRng(Math.floor(Math.random() * 2 ** 31));
+    throw new Error('runRngBus.getRunRng called before initRunRng');
   }
-  return _rng as RunRng;
+  return _rng;
 }
 
 /** Convenience: track channel. Use for run-construction placements. */

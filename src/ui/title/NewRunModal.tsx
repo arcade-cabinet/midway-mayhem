@@ -65,9 +65,10 @@ export function NewRunModal({ onPlay, onClose, initialDifficulty = DEFAULT_DIFFI
   }
 
   function handlePlay() {
+    const finalPhrase = phrase.trim() || shufflePhrase().phrase;
     onPlay({
-      seed,
-      seedPhrase: phrase.trim() || shufflePhrase().phrase,
+      seed: phraseToSeed(finalPhrase),
+      seedPhrase: finalPhrase,
       difficulty,
       permadeath: effectivePerma,
     });

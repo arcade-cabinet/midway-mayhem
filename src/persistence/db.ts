@@ -157,28 +157,47 @@ export async function initDb(): Promise<void> {
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    const native = isNativePlatform();
-    if (isTestEnv() || typeof window === 'undefined') {
-      const result = await openInMemorySqlJs(schema);
-      _drizzle = result.drizzle;
-      _sqlJsDb = result.sqlJsDb;
-    } else if (native) {
-      const result = await openCapacitorConnection(true, schema);
-      _drizzle = result.drizzle;
-      _sqliteDb = result.sqliteDb ?? null;
-    } else if (hasOpfsSupport()) {
-      const result = await openOpfsSqlJs(schema);
-      _drizzle = result.drizzle;
-      _sqlJsDb = result.sqlJsDb;
-      _opfsFile = result.opfsFile ?? null;
-    } else {
-      // Fallback: in-memory sql.js (data not persisted across page loads)
-      const result = await openInMemorySqlJs(schema);
-      _drizzle = result.drizzle;
-      _sqlJsDb = result.sqlJsDb;
+    // Stage everything into locals so a mid-init failure leaves the module
+    // handles null instead of poisoned. Only publish after migrations +
+    // defaults succeed — a later initDb() call will then re-run cleanly.
+    let stagedDrizzle: SqliteRemoteDatabase<typeof schema> | null = null;
+    let stagedSqlJsDb: SqlJsDatabase = null;
+    let stagedSqliteDb: SqliteConnection | null = null;
+    let stagedOpfsFile: FileSystemFileHandle | null = null;
+    try {
+      const native = isNativePlatform();
+      if (isTestEnv() || typeof window === 'undefined') {
+        const result = await openInMemorySqlJs(schema);
+        stagedDrizzle = result.drizzle;
+        stagedSqlJsDb = result.sqlJsDb;
+      } else if (native) {
+        const result = await openCapacitorConnection(true, schema);
+        stagedDrizzle = result.drizzle;
+        stagedSqliteDb = result.sqliteDb ?? null;
+      } else if (hasOpfsSupport()) {
+        const result = await openOpfsSqlJs(schema);
+        stagedDrizzle = result.drizzle;
+        stagedSqlJsDb = result.sqlJsDb;
+        stagedOpfsFile = result.opfsFile ?? null;
+      } else {
+        // Fallback: in-memory sql.js (data not persisted across page loads)
+        const result = await openInMemorySqlJs(schema);
+        stagedDrizzle = result.drizzle;
+        stagedSqlJsDb = result.sqlJsDb;
+      }
+      _drizzle = stagedDrizzle;
+      _sqlJsDb = stagedSqlJsDb;
+      _sqliteDb = stagedSqliteDb;
+      _opfsFile = stagedOpfsFile;
+      await runMigrations();
+      await seedDefaults();
+    } catch (err) {
+      _drizzle = null;
+      _sqlJsDb = null;
+      _sqliteDb = null;
+      _opfsFile = null;
+      throw err;
     }
-    await runMigrations();
-    await seedDefaults();
   })().finally(() => {
     _initPromise = null;
   });

@@ -4,6 +4,7 @@
  * Two font stacks (display = Bangers, ui = Rajdhani) + mono for errors/stack.
  * Every text element reads its type from here.
  */
+import type { CSSProperties } from 'react';
 
 export const font = {
   display: '"Bangers", "Impact", system-ui, sans-serif',
@@ -106,7 +107,7 @@ export const mono: Record<'stack' | 'inline', TypeStyle> = {
 };
 
 /** Convert a TypeStyle into a CSSProperties object for direct spread */
-export function typeStyle(s: TypeStyle): React.CSSProperties {
+export function typeStyle(s: TypeStyle): CSSProperties {
   return {
     fontFamily: s.family,
     fontSize: s.size,

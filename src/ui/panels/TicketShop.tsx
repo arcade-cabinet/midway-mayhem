@@ -23,7 +23,7 @@ import { color, elevation, radius, space, zLayer } from '@/design/tokens';
 import { typeStyle, ui } from '@/design/typography';
 import { reportError } from '@/game/errorBus';
 import { useLoadoutStore } from '@/hooks/useLoadout';
-import { grantUnlock, hasUnlock, spendTickets } from '@/persistence/profile';
+import { hasUnlock, purchaseUnlock } from '@/persistence/profile';
 import { ShopRow } from './ShopRow';
 
 // ─── Tab definition ─────────────────────────────────────────────────────────
@@ -93,8 +93,9 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
 
   const handleBuy = async (item: ShopItem) => {
     try {
-      await spendTickets(item.cost);
-      await grantUnlock(item.kind, item.slug);
+      // Atomic: ticket debit + unlock insert happen in one DB transaction, so
+      // the player can't end up charged without the item or vice versa.
+      await purchaseUnlock(item.kind, item.slug, item.cost);
       onTicketsChange(tickets - item.cost);
       setOwnedMap((m) => new Map(m).set(item.slug, true));
       // Auto-equip on purchase

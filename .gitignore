@@ -19,6 +19,7 @@ coverage
 playwright-report
 playwright/.cache
 test-results
+.cr
 
 android/app/build
 android/build

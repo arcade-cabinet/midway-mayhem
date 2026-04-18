@@ -19,7 +19,8 @@
       "!**/coverage",
       "!**/reference",
       "!**/public/sql-wasm.wasm",
-      "!**/.capture"
+      "!**/.capture",
+      "!**/.cr"
     ]
   },
   "formatter": {

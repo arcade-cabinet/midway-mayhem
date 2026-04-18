@@ -6,7 +6,7 @@
  *
  * import-safe: only calls db() inside async functions, never at module scope.
  */
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from './db';
 import type { UnlockKind } from './schema';
 import { loadout, profile, unlocks } from './schema';
@@ -30,24 +30,63 @@ export async function getProfile(): Promise<ProfileRow> {
 }
 
 export async function addTickets(n: number): Promise<void> {
+  if (!Number.isFinite(n) || n <= 0) {
+    throw new Error(`[profile] addTickets requires a positive amount (got ${n})`);
+  }
   const now = Date.now();
-  const p = await getProfile();
+  // Single atomic UPDATE using SQL-side increment — no read-then-write race.
   await db()
     .update(profile)
-    .set({ tickets: p.tickets + n, updatedAt: now })
+    .set({ tickets: sql`${profile.tickets} + ${n}`, updatedAt: now })
     .where(eq(profile.id, 1))
     .run();
 }
 
 export async function spendTickets(n: number): Promise<void> {
+  if (!Number.isFinite(n) || n <= 0) {
+    throw new Error(`[profile] spendTickets requires a positive amount (got ${n})`);
+  }
+  // Pre-check balance to surface a clear error message. The real atomic
+  // guard lives in the UPDATE's WHERE clause below, which refuses to
+  // decrement below zero even under concurrent writers.
   const p = await getProfile();
-  if (p.tickets < n) throw new Error(`[profile] Not enough tickets (have ${p.tickets}, need ${n})`);
+  if (p.tickets < n) {
+    throw new Error(`[profile] Not enough tickets (have ${p.tickets}, need ${n})`);
+  }
   const now = Date.now();
   await db()
     .update(profile)
-    .set({ tickets: p.tickets - n, updatedAt: now })
-    .where(eq(profile.id, 1))
+    .set({ tickets: sql`${profile.tickets} - ${n}`, updatedAt: now })
+    .where(and(eq(profile.id, 1), sql`${profile.tickets} >= ${n}`))
     .run();
+}
+
+/**
+ * Atomically debit tickets and grant an unlock. Both mutations happen inside
+ * a DB transaction so the player can never be charged without receiving the
+ * item (and vice versa).
+ */
+export async function purchaseUnlock(kind: UnlockKind, slug: string, cost: number): Promise<void> {
+  if (!Number.isFinite(cost) || cost < 0) {
+    throw new Error(`[profile] purchaseUnlock requires a non-negative cost (got ${cost})`);
+  }
+  const now = Date.now();
+  await db().transaction(async (tx) => {
+    if (cost > 0) {
+      const p = await tx.select().from(profile).where(eq(profile.id, 1)).get();
+      if (!p || p.tickets < cost) {
+        throw new Error(
+          `[profile] Not enough tickets for ${kind}/${slug} (have ${p?.tickets ?? 0}, cost ${cost})`,
+        );
+      }
+      await tx
+        .update(profile)
+        .set({ tickets: sql`${profile.tickets} - ${cost}`, updatedAt: now })
+        .where(and(eq(profile.id, 1), sql`${profile.tickets} >= ${cost}`))
+        .run();
+    }
+    await tx.insert(unlocks).values({ kind, slug, unlockedAt: now }).onConflictDoNothing().run();
+  });
 }
 
 export async function recordRun({
