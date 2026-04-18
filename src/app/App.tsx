@@ -23,6 +23,7 @@ import { installDiagnosticsBus, wireDiagnosticsHooks } from '@/game/diagnosticsB
 import { ensureGameTraits, useGameStore } from '@/game/gameState';
 import { commitGhost, resetGhostRecorder } from '@/game/ghost';
 import { Governor } from '@/game/governor/Governor';
+import { useGameSystems } from '@/game/useGameSystems';
 import { useSettings } from '@/hooks/useSettings';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
@@ -37,8 +38,8 @@ import { BarkerCrowd } from '@/render/obstacles/BarkerCrowd';
 import { FireHoopGate } from '@/render/obstacles/FireHoopGate';
 import { GhostCar } from '@/render/obstacles/GhostCar';
 import { MirrorLayer } from '@/render/obstacles/MirrorLayer';
-import { RaidBridge } from '@/render/obstacles/RaidBridge';
 import { ObstacleSystem } from '@/render/obstacles/ObstacleSystem';
+import { RaidBridge } from '@/render/obstacles/RaidBridge';
 import { RaidLayer } from '@/render/obstacles/RaidLayer';
 import { PostFX } from '@/render/PostFX';
 import { SpeedLines } from '@/render/SpeedLines';
@@ -103,6 +104,7 @@ export function App() {
 
   useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
   useMouseSteer({ world, enabled: playing });
+  useGameSystems();
 
   return (
     <WorldProvider world={world}>
