@@ -7,12 +7,13 @@
  */
 import { useFrame } from '@react-three/fiber';
 import type { World } from 'koota';
+import type { ObstacleKind, PickupKind } from '@/ecs/traits';
 import { stepCollisions } from './collisions';
 import { stepPlayer } from './playerMotion';
 
 interface LoopHooks {
-  onObstacle?: (kind: 'cone' | 'oil') => void;
-  onPickup?: (kind: 'balloon' | 'boost') => void;
+  onObstacle?: (kind: ObstacleKind) => void;
+  onPickup?: (kind: PickupKind) => void;
 }
 
 export function usePlayerLoop(world: World, enabled: boolean, hooks: LoopHooks = {}): void {

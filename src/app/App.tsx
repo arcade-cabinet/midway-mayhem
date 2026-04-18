@@ -115,17 +115,16 @@ export function App() {
             world={world}
             active={playing}
             onPickup={(kind) => {
-              if (kind === 'balloon') {
-                dingRef.current();
-                void haptic('light');
-              } else {
-                dingRef.current();
-                void haptic('medium');
-              }
+              dingRef.current();
+              if (kind === 'balloon') void haptic('light');
+              else if (kind === 'mega') void haptic('heavy');
+              else void haptic('medium');
             }}
-            onObstacle={() => {
+            onObstacle={(kind) => {
               thudRef.current();
-              void haptic('heavy');
+              // Oil slicks feel wobbly, not crashy; everything else thuds.
+              if (kind === 'oil') void haptic('medium');
+              else void haptic('heavy');
             }}
             onEnd={(r) => {
               setEndReason(r);

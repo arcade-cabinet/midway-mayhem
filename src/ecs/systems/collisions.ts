@@ -5,11 +5,20 @@
  */
 import type { World } from 'koota';
 import { tunables } from '@/config';
-import { Obstacle, Pickup, Player, Position, Score, Speed } from '@/ecs/traits';
+import {
+  Obstacle,
+  type ObstacleKind,
+  Pickup,
+  type PickupKind,
+  Player,
+  Position,
+  Score,
+  Speed,
+} from '@/ecs/traits';
 
 interface Callbacks {
-  onObstacle?: (kind: 'cone' | 'oil') => void;
-  onPickup?: (kind: 'balloon' | 'boost') => void;
+  onObstacle?: (kind: ObstacleKind) => void;
+  onPickup?: (kind: PickupKind) => void;
 }
 
 /** Half-widths defining what counts as a hit. */
@@ -35,12 +44,35 @@ export function stepCollisions(world: World, dt: number, cb: Callbacks = {}): vo
     if (dDist < -8 || dDist > 12) return; // out of interest band
     if (Math.abs(dDist) < HIT_DISTANCE && Math.abs(ob.lateral - pos.lateral) < HIT_LATERAL) {
       ob.consumed = true;
-      score.damage += 1;
       score.cleanSeconds = 0;
       cb.onObstacle?.(ob.kind);
-      if (ob.kind === 'cone') {
-        // Cones briefly slow the player.
-        speed.value *= 0.6;
+      // Per-kind behaviour.
+      switch (ob.kind) {
+        case 'barrier':
+          // Hard stop: full damage + severe slow.
+          score.damage += 2;
+          speed.value *= 0.3;
+          break;
+        case 'cone':
+          // Minor: 1 damage + mild slow.
+          score.damage += 1;
+          speed.value *= 0.6;
+          break;
+        case 'gate':
+          // Gate is a "safe lane" marker — hitting the frame edge is a
+          // graze, not a full crash.
+          score.damage += 1;
+          speed.value *= 0.75;
+          break;
+        case 'oil':
+          // Slick: no damage, just kills speed briefly.
+          speed.value *= 0.5;
+          break;
+        case 'hammer':
+          // Timed hazard: heavy crash.
+          score.damage += 2;
+          speed.value *= 0.4;
+          break;
       }
     }
   });
@@ -52,11 +84,20 @@ export function stepCollisions(world: World, dt: number, cb: Callbacks = {}): vo
     if (dDist < -4 || dDist > 4) return;
     if (Math.abs(dDist) < HIT_DISTANCE && Math.abs(pu.lateral - pos.lateral) < HIT_LATERAL) {
       pu.consumed = true;
-      if (pu.kind === 'balloon') {
-        score.value += 100;
-        score.balloons += 1;
-      } else {
-        score.boostRemaining = 2.5;
+      switch (pu.kind) {
+        case 'balloon':
+          score.value += 100;
+          score.balloons += 1;
+          break;
+        case 'boost':
+          // Regular speed boost — 2.5s at cruise × BOOST_MULT.
+          score.boostRemaining = 2.5;
+          break;
+        case 'mega':
+          // Rarer — longer window, stacks on regular.
+          score.boostRemaining = Math.max(score.boostRemaining, 3.5);
+          score.value += 250;
+          break;
       }
       cb.onPickup?.(pu.kind);
     }

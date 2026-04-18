@@ -61,7 +61,15 @@ export const LaneCount = trait({ value: 4 });
 
 // ─── Obstacles + pickups ────────────────────────────────────────────────────
 
-export type ObstacleKind = 'cone' | 'oil';
+/**
+ * Five obstacle types per vision spec:
+ *  - barrier: unbreakable block, swerve around it
+ *  - cones:   stack of traffic cones, minor damage
+ *  - gate:    gap-in-the-wall that telegraphs the correct lane
+ *  - oil:     slick patch, reduces steer authority for ~1s
+ *  - hammer:  swinging carnival hammer, timed obstacle
+ */
+export type ObstacleKind = 'barrier' | 'cone' | 'gate' | 'oil' | 'hammer';
 /**
  * Obstacle sitting on the track. Collision check compares the player's
  * Position (distance + lateral) against the obstacle's distance + lateral.
@@ -74,7 +82,13 @@ export const Obstacle = trait({
   consumed: false,
 });
 
-export type PickupKind = 'balloon' | 'boost';
+/**
+ * Three pickup types per vision spec:
+ *  - balloon: +100 score, small flourish.
+ *  - boost:   +2.5s speed boost to BOOST cap.
+ *  - mega:    +3.5s speed boost to MEGA cap; rarer than boost.
+ */
+export type PickupKind = 'balloon' | 'boost' | 'mega';
 /**
  * Collectible or buff pickup. Balloons grant score; boosts grant temporary
  * speed cap increase. `consumed` gates double-fire.

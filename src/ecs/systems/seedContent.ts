@@ -7,7 +7,7 @@
  */
 import type { World } from 'koota';
 import { trackArchetypes } from '@/config';
-import { Obstacle, Pickup } from '@/ecs/traits';
+import { Obstacle, type ObstacleKind, Pickup, type PickupKind } from '@/ecs/traits';
 import { createRng } from '@/utils/rng';
 
 interface Options {
@@ -31,8 +31,19 @@ export function seedContent(world: World, seed: number, opts: Options = {}): voi
   const minDistance = leadIn;
   const maxDistance = totalLen - 40;
 
+  // Obstacle kind weights — cones + oil dominate, others add variety.
+  const obstacleKinds: readonly ObstacleKind[] = [
+    'cone',
+    'cone',
+    'cone',
+    'oil',
+    'oil',
+    'barrier',
+    'gate',
+    'hammer',
+  ];
   for (let i = 0; i < obstacleCount; i++) {
-    const kind: 'cone' | 'oil' = rng.next() > 0.4 ? 'cone' : 'oil';
+    const kind = obstacleKinds[rng.int(0, obstacleKinds.length)] ?? 'cone';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
     // Snap lateral to a lane center.
     const lane = rng.int(0, trackArchetypes.lanes);
@@ -40,8 +51,19 @@ export function seedContent(world: World, seed: number, opts: Options = {}): voi
     world.spawn(Obstacle({ kind, distance, lateral, consumed: false }));
   }
 
+  // Pickup kind weights — balloons dominate, boost occasional, mega rare.
+  const pickupKinds: readonly PickupKind[] = [
+    'balloon',
+    'balloon',
+    'balloon',
+    'balloon',
+    'balloon',
+    'boost',
+    'boost',
+    'mega',
+  ];
   for (let i = 0; i < pickupCount; i++) {
-    const kind: 'balloon' | 'boost' = rng.next() > 0.18 ? 'balloon' : 'boost';
+    const kind = pickupKinds[rng.int(0, pickupKinds.length)] ?? 'balloon';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
     const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);

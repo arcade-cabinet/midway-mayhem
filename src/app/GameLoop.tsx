@@ -11,7 +11,7 @@ import { useFrame } from '@react-three/fiber';
 import type { World } from 'koota';
 import { type EndReason, resetGameOver, stepGameOver } from '@/ecs/systems/gameOver';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
-import { Obstacle, Pickup, TrackSegment } from '@/ecs/traits';
+import { Obstacle, type ObstacleKind, Pickup, type PickupKind, TrackSegment } from '@/ecs/traits';
 import { resetAchievementsRun, stepAchievements } from '@/game/achievementRun';
 import { reportCounts, reportFrame, reportScene } from '@/game/diagnosticsBus';
 import { ensureGameTraits, tick } from '@/game/gameState';
@@ -20,8 +20,8 @@ import { commitGhost, resetGhostRecorder, stepGhostRecorder } from '@/game/ghost
 interface GameLoopProps {
   world: World;
   active: boolean;
-  onPickup: (kind: 'balloon' | 'boost') => void;
-  onObstacle: (kind: 'cone' | 'oil') => void;
+  onPickup: (kind: PickupKind) => void;
+  onObstacle: (kind: ObstacleKind) => void;
   onEnd: (reason: EndReason) => void;
 }
 
