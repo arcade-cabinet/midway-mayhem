@@ -38,6 +38,7 @@ import { FireHoopGate } from '@/render/obstacles/FireHoopGate';
 import { GhostCar } from '@/render/obstacles/GhostCar';
 import { MirrorLayer } from '@/render/obstacles/MirrorLayer';
 import { RaidBridge } from '@/render/obstacles/RaidBridge';
+import { ObstacleSystem } from '@/render/obstacles/ObstacleSystem';
 import { RaidLayer } from '@/render/obstacles/RaidLayer';
 import { PostFX } from '@/render/PostFX';
 import { SpeedLines } from '@/render/SpeedLines';
@@ -123,6 +124,7 @@ export function App() {
           </Suspense>
           <Track />
           <TrackContent />
+          <ObstacleSystem />
           <StartPlatform />
           <FinishBanner />
           <BalloonLayer />

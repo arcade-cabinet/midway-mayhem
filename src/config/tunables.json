@@ -12,7 +12,24 @@
     "interpResponse": 1.3
   },
   "combo": {
-    "chainThresholds": [[15, 8], [7, 4], [3, 2], [0, 1]],
+    "chainThresholds": [
+      [
+        15,
+        8
+      ],
+      [
+        7,
+        4
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        0,
+        1
+      ]
+    ],
     "chainExpiryMs": 3500
   },
   "damage": {
@@ -60,17 +77,59 @@
     "barrelRollDuration": 0.8,
     "wheelieDuration": 1.0,
     "handstandDuration": 1.2,
-    "spin180Duration": 0.7
+    "spin180Duration": 0.7,
+    "rampLookAheadM": 8,
+    "rampYRiseThreshold": 0.5,
+    "rampMinSpeedMps": 15,
+    "airborneWindowMs": 600,
+    "flickThresholdPx": 40,
+    "flickWindowMs": 300,
+    "trickScoreBase": 100,
+    "trickScorePerRot": 50
   },
   "haptics": {
-    "crashLight": { "web": 40 },
-    "crashHeavy": { "web": [80, 30, 40] },
-    "boost": { "web": 20 },
-    "megaBoost": { "web": [20, 50, 30, 50, 60] },
-    "pickupTicket": { "web": 15 },
-    "honk": { "web": 15 },
-    "gameOver": { "web": [150, 50, 200] },
-    "zoneTransition": { "web": [20, 40, 20] }
+    "crashLight": {
+      "web": 40
+    },
+    "crashHeavy": {
+      "web": [
+        80,
+        30,
+        40
+      ]
+    },
+    "boost": {
+      "web": 20
+    },
+    "megaBoost": {
+      "web": [
+        20,
+        50,
+        30,
+        50,
+        60
+      ]
+    },
+    "pickupTicket": {
+      "web": 15
+    },
+    "honk": {
+      "web": 15
+    },
+    "gameOver": {
+      "web": [
+        150,
+        50,
+        200
+      ]
+    },
+    "zoneTransition": {
+      "web": [
+        20,
+        40,
+        20
+      ]
+    }
   },
   "difficulty": {
     "silly": {

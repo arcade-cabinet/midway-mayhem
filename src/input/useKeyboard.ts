@@ -6,18 +6,22 @@
  * hook; returns nothing. Horn is edge-triggered via an onHorn callback so
  * the audio layer can fire tones without polling.
  *
- * Key bindings (WASD + arrows, space = horn):
+ * Key bindings (WASD + arrows, space = horn, Q/E/R = tricks):
  *   ArrowLeft / A        Steer left
  *   ArrowRight / D       Steer right
  *   ArrowUp / W          Throttle up
  *   ArrowDown / S        Brake
  *   Space                Honk (onHorn edge-trigger)
+ *   Q                    Left barrel roll (left-left trick sequence)
+ *   E                    Right barrel roll (right-right trick sequence)
+ *   R                    Backflip (up-up trick sequence)
  */
 
 import type { World } from 'koota';
 import { useEffect } from 'react';
 import { Player, RunSession, Steer, Throttle } from '@/ecs/traits';
 import { pause, resume } from '@/game/gameState';
+import { trickInputBus } from '@/game/trickInputBus';
 
 interface UseKeyboardOptions {
   world: World;
@@ -63,6 +67,27 @@ export function useKeyboard({ world, onHorn, enabled = true }: UseKeyboardOption
           pressed.add(mapped);
           applyToPlayer();
         }
+        e.preventDefault();
+        return;
+      }
+      // Trick shortcuts — desktop aliases for mobile swipe gestures.
+      // Q = left barrel roll, E = right barrel roll, R = backflip (up-up).
+      // Space is reserved for horn and must NEVER trigger a trick.
+      if (k === 'q' && !e.repeat) {
+        trickInputBus.push('left');
+        trickInputBus.push('left');
+        e.preventDefault();
+        return;
+      }
+      if (k === 'e' && !e.repeat) {
+        trickInputBus.push('right');
+        trickInputBus.push('right');
+        e.preventDefault();
+        return;
+      }
+      if (k === 'r' && !e.repeat) {
+        trickInputBus.push('up');
+        trickInputBus.push('up');
         e.preventDefault();
         return;
       }
