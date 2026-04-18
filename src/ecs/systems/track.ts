@@ -11,7 +11,7 @@
 import type { World } from 'koota';
 import { type TrackArchetype, trackArchetypes } from '@/config';
 import { LaneCount, TrackSegment } from '@/ecs/traits';
-import { Rng } from '@/utils/rng';
+import { createRng } from '@/utils/rng';
 
 export interface Pose {
   x: number;
@@ -68,7 +68,7 @@ const PITCH_MIN = -0.8;
 
 /** Pure generator — for tests + for the world-seeding system. */
 export function generateTrack(seed: number): GeneratedSegment[] {
-  const rng = new Rng(seed);
+  const rng = createRng(seed);
   const archetypes = trackArchetypes.archetypes;
   const weights = archetypes.map((a) => a.weight);
   const segments: GeneratedSegment[] = [];

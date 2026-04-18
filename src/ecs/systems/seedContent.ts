@@ -8,7 +8,7 @@
 import type { World } from 'koota';
 import { trackArchetypes } from '@/config';
 import { Obstacle, Pickup } from '@/ecs/traits';
-import { Rng } from '@/utils/rng';
+import { createRng } from '@/utils/rng';
 
 interface Options {
   /** How many obstacles to spawn across the track. */
@@ -20,7 +20,10 @@ interface Options {
 }
 
 export function seedContent(world: World, seed: number, opts: Options = {}): void {
-  const rng = new Rng(seed ^ 0xbee5); // fork the seed so track/content don't alias
+  // Content placement shares the deterministic track channel (obstacle + pickup
+  // lane picks must match across replays). The xor-0xbee5 salt keeps content
+  // from aliasing track-segment draws when both go through the same channel.
+  const rng = createRng(seed ^ 0xbee5);
   const { obstacleCount = 30, pickupCount = 40, leadIn = 40 } = opts;
   const halfWidth = (trackArchetypes.laneWidth * trackArchetypes.lanes) / 2;
   const laneWidth = trackArchetypes.laneWidth;
@@ -32,7 +35,7 @@ export function seedContent(world: World, seed: number, opts: Options = {}): voi
     const kind: 'cone' | 'oil' = rng.next() > 0.4 ? 'cone' : 'oil';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
     // Snap lateral to a lane center.
-    const lane = rng.nextInt(0, trackArchetypes.lanes - 1);
+    const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);
     world.spawn(Obstacle({ kind, distance, lateral, consumed: false }));
   }
@@ -40,7 +43,7 @@ export function seedContent(world: World, seed: number, opts: Options = {}): voi
   for (let i = 0; i < pickupCount; i++) {
     const kind: 'balloon' | 'boost' = rng.next() > 0.18 ? 'balloon' : 'boost';
     const distance = minDistance + rng.next() * (maxDistance - minDistance);
-    const lane = rng.nextInt(0, trackArchetypes.lanes - 1);
+    const lane = rng.int(0, trackArchetypes.lanes);
     const lateral = -halfWidth + laneWidth * (lane + 0.5);
     world.spawn(Pickup({ kind, distance, lateral, consumed: false }));
   }
