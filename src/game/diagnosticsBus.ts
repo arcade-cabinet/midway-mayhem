@@ -15,6 +15,10 @@ export interface DiagnosticsDump {
   running: boolean;
   paused: boolean;
   gameOver: boolean;
+  /** Drop-in intro progress 0→1. Gameplay tick is frozen while < 1. */
+  dropProgress: number;
+  /** True while the cockpit plunge animation is in progress. Tick frozen. */
+  plunging: boolean;
   distance: number;
   speedMps: number;
   hype: number;
@@ -69,6 +73,8 @@ export function installDiagnosticsBus() {
         running: s?.running ?? false,
         paused: s?.paused ?? false,
         gameOver: s?.gameOver ?? false,
+        dropProgress: s?.dropProgress ?? 0,
+        plunging: s?.plunging ?? false,
         distance: s?.distance ?? 0,
         speedMps: s?.speedMps ?? 0,
         hype: s?.hype ?? 0,
