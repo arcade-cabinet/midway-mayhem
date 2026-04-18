@@ -25,6 +25,9 @@ interface Callbacks {
 /** Half-widths defining what counts as a hit. */
 const HIT_DISTANCE = 2.4;
 const HIT_LATERAL = 1.6;
+/** Lateral band where a narrowly-missed obstacle counts as a near-miss. */
+const NEAR_MISS_LATERAL = 2.8;
+const NEAR_MISS_CROWD_BONUS = 5;
 /** When boost is active we cap speed higher than cruise. */
 const BOOST_MULT = 1.6;
 
@@ -43,7 +46,8 @@ export function stepCollisions(world: World, dt: number, cb: Callbacks = {}): vo
     if (ob.consumed) return;
     const dDist = ob.distance - pos.distance;
     if (dDist < -8 || dDist > 12) return; // out of interest band
-    if (Math.abs(dDist) < HIT_DISTANCE && Math.abs(ob.lateral - pos.lateral) < HIT_LATERAL) {
+    const lateralDelta = Math.abs(ob.lateral - pos.lateral);
+    if (Math.abs(dDist) < HIT_DISTANCE && lateralDelta < HIT_LATERAL) {
       ob.consumed = true;
       score.cleanSeconds = 0;
       cb.onObstacle?.(ob.kind);
@@ -75,6 +79,18 @@ export function stepCollisions(world: World, dt: number, cb: Callbacks = {}): vo
           speed.value *= 0.4;
           break;
       }
+    } else if (
+      Math.abs(dDist) < HIT_DISTANCE &&
+      lateralDelta < NEAR_MISS_LATERAL
+    ) {
+      // Near-miss: player squeezed past an obstacle without hitting. One
+      // event per obstacle (mark consumed so we don't double-fire as the
+      // player pulls ahead).
+      ob.consumed = true;
+      combo.registerEvent('near-miss');
+      // Crowd bonus — hype the reaction by a small amount.
+      // Accumulates into score.value via the existing cleanSeconds multiplier.
+      score.value += NEAR_MISS_CROWD_BONUS;
     }
   });
 
