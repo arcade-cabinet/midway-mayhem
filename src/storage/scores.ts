@@ -20,7 +20,7 @@ const MAX_ROWS = 25;
 
 async function hasNativeSqlite(): Promise<boolean> {
   try {
-    const cap = (await import(/* @vite-ignore */ '@capacitor/core')) as {
+    const cap = (await import('@capacitor/core')) as {
       Capacitor: { isNativePlatform: () => boolean };
     };
     return cap.Capacitor.isNativePlatform();
@@ -49,7 +49,7 @@ interface DbConnector {
 }
 
 async function openDb(): Promise<DbConn> {
-  const mod = (await import(/* @vite-ignore */ '@capacitor-community/sqlite')) as unknown as {
+  const mod = (await import('@capacitor-community/sqlite')) as unknown as {
     CapacitorSQLite: unknown;
     SQLiteConnection: new (cs: unknown) => DbConnector;
   };
