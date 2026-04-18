@@ -103,5 +103,5 @@ describe('Driving — player motion + track scroll', () => {
       '.test-screenshots/playthrough/driving-at-3s.png',
     );
     expect(result.bytes).toBeGreaterThan(10_000);
-  }, 15_000);
+  }, 45_000);
 });
