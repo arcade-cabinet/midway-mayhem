@@ -166,6 +166,12 @@ export function SettingsPanel({ onClose }: Props) {
           testId="setting-racing-line"
           onChange={(v) => patch({ showRacingLine: v })}
         />
+        <ToggleRow
+          label="Night mode"
+          checked={settings.nightMode}
+          testId="setting-night-mode"
+          onChange={(v) => patch({ nightMode: v })}
+        />
 
         {/* UI Scale slider */}
         <SectionLabel>Interface Scale</SectionLabel>

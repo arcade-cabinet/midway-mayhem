@@ -28,6 +28,8 @@ export interface GameSettings {
   subtitles: boolean;
   /** Show the racing-line ghost overlay during gameplay. Default true. */
   showRacingLine: boolean;
+  /** Force night-mode lighting. URL flag `?night=1` also sets this. */
+  nightMode: boolean;
 }
 
 const DEFAULTS: GameSettings = {
@@ -40,6 +42,7 @@ const DEFAULTS: GameSettings = {
   showZoneBanner: true,
   subtitles: false,
   showRacingLine: true,
+  nightMode: false,
 };
 
 // Preferences key (without the "mm." prefix — prefGetJSON adds that)
@@ -76,6 +79,7 @@ function validate(raw: unknown): GameSettings {
   const subtitles = typeof r.subtitles === 'boolean' ? r.subtitles : DEFAULTS.subtitles;
   const showRacingLine =
     typeof r.showRacingLine === 'boolean' ? r.showRacingLine : DEFAULTS.showRacingLine;
+  const nightMode = typeof r.nightMode === 'boolean' ? r.nightMode : DEFAULTS.nightMode;
 
   return {
     audioEnabled,
@@ -87,6 +91,7 @@ function validate(raw: unknown): GameSettings {
     showZoneBanner,
     subtitles,
     showRacingLine,
+    nightMode,
   };
 }
 

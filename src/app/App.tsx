@@ -23,6 +23,7 @@ import { installDiagnosticsBus, wireDiagnosticsHooks } from '@/game/diagnosticsB
 import { ensureGameTraits, useGameStore } from '@/game/gameState';
 import { commitGhost, resetGhostRecorder } from '@/game/ghost';
 import { Governor } from '@/game/governor/Governor';
+import { useSettings } from '@/hooks/useSettings';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
@@ -94,6 +95,9 @@ export function App() {
   const hornRef = useRef<() => void>(() => {});
   const dingRef = useRef<() => void>(() => {});
   const thudRef = useRef<() => void>(() => {});
+  const settings = useSettings();
+  // Night mode: either the URL flag OR the persisted setting forces it.
+  const night = isNightFromUrl() || (settings?.nightMode ?? false);
 
   useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
 
@@ -112,7 +116,7 @@ export function App() {
           <ambientLight intensity={0.45} color="#ffd6a8" />
           <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
           <Suspense fallback={null}>
-            <BigTopEnvironment night={isNightFromUrl()} />
+            <BigTopEnvironment night={night} />
             <ZoneProps />
           </Suspense>
           <Track />

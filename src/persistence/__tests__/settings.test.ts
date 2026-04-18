@@ -97,6 +97,7 @@ describe('singleton behavior', () => {
       showZoneBanner: false,
       subtitles: true,
       showRacingLine: false,
+      nightMode: true,
     };
     await updateSettings(full);
     const result = await getSettings();
