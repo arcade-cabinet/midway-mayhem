@@ -4,20 +4,21 @@ tags: [ui]
 # Exercise every TitleScreen panel: new-run modal, settings, how-to-play,
 # credits, achievements, stats, ticket shop. Proves all panels open and
 # close without errors on Android.
+#
+# Panels use the word "CLOSE" as their dismiss button text. NewRunModal
+# uses an ✕ icon so we tap elsewhere / use Back to dismiss it.
 - launchApp:
     clearState: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-00-cold
 
-# NEW RUN → modal opens
+# NEW RUN → modal opens. Dismiss via Android back gesture.
 - tapOn:
     text: "NEW RUN"
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-01-new-run
-- tapOn:
-    text: "CLOSE"
-    optional: true
+- pressKey: back
 - waitForAnimationToEnd
 
 # HOW TO PLAY
