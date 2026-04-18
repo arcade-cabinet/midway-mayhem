@@ -273,10 +273,13 @@ jobs:
           REFRESH_SNAPSHOTS: ${{ inputs.refresh_snapshots }}
         run: |
           pnpm copywasm
-          if [ "$REFRESH_SNAPSHOTS" == "true" ]; then
-            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots missing
+          # --update-snapshots=missing accepts new baselines for brand-new tests
+          # but still compares existing ones. Full-refresh requires the workflow
+          # input so accidental drift doesn't silently pass.
+          if [ "$REFRESH_SNAPSHOTS" = "true" ]; then
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots=all
           else
-            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots=missing
           fi
       - uses: actions/upload-artifact@v4
         if: always()

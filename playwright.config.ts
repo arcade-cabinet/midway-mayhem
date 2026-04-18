@@ -29,6 +29,10 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },
+  // Snapshots are intentionally *not* per-platform. Cross-OS pixel diffs
+  // would break CI/local parity. Renderer noise + font hinting across OSes
+  // is absorbed via maxDiffPixelRatio at each call site.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   projects: [
     {
       name: 'desktop-chromium',
