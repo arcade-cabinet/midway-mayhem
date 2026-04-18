@@ -5,14 +5,15 @@ tags: [ui]
 # credits, achievements, stats, ticket shop. Proves all panels open and
 # close without errors on Android.
 #
-# Panels use the word "CLOSE" as their dismiss button text. NewRunModal
-# uses an ✕ icon so we tap elsewhere / use Back to dismiss it.
+# Panels use different dismiss affordances (CLOSE button text vs ✕ icon)
+# so we press Android back after each — it fires the panel's Escape
+# handler which all panels wire to onClose.
 - launchApp:
     clearState: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-00-cold
 
-# NEW RUN → modal opens. Dismiss via Android back gesture.
+# NEW RUN → modal opens, back dismisses
 - tapOn:
     text: "NEW RUN"
     optional: true
@@ -27,9 +28,7 @@ tags: [ui]
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-02-how-to-play
-- tapOn:
-    text: "CLOSE"
-    optional: true
+- pressKey: back
 - waitForAnimationToEnd
 
 # SETTINGS
@@ -38,9 +37,7 @@ tags: [ui]
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-03-settings
-- tapOn:
-    text: "CLOSE"
-    optional: true
+- pressKey: back
 - waitForAnimationToEnd
 
 # CREDITS
@@ -49,9 +46,7 @@ tags: [ui]
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-04-credits
-- tapOn:
-    text: "CLOSE"
-    optional: true
+- pressKey: back
 - waitForAnimationToEnd
 
 # ACHIEVEMENTS
@@ -60,9 +55,7 @@ tags: [ui]
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-05-achievements
-- tapOn:
-    text: "CLOSE"
-    optional: true
+- pressKey: back
 - waitForAnimationToEnd
 
 # STATS
@@ -71,9 +64,7 @@ tags: [ui]
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: docs/media/maestro/android-title-06-stats
-- tapOn:
-    text: "CLOSE"
-    optional: true
+- pressKey: back
 - waitForAnimationToEnd
 
 - takeScreenshot: docs/media/maestro/android-title-07-back-to-title
