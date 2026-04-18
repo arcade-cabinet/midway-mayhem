@@ -23,6 +23,7 @@ import { color, elevation, radius, space, zLayer } from '@/design/tokens';
 import { typeStyle, ui } from '@/design/typography';
 import { reportError } from '@/game/errorBus';
 import { useLoadoutStore } from '@/hooks/useLoadout';
+import { initDb } from '@/persistence/db';
 import { hasUnlock, purchaseUnlock } from '@/persistence/profile';
 import { ShopRow } from './ShopRow';
 
@@ -77,6 +78,7 @@ export function TicketShop({ tickets, onClose, onTicketsChange }: TicketShopProp
   };
 
   const refreshOwned = useCallback(async () => {
+    await initDb();
     const items = itemsForTab();
     const entries = await Promise.all(
       items.map(async (item) => {
