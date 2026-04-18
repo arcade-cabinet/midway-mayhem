@@ -29,5 +29,7 @@ interface Window {
     end?: () => void;
     crash?: (heavy?: boolean) => void;
     pickup?: (kind: 'ticket' | 'boost' | 'mega') => void;
+    pause?: () => void;
+    resume?: () => void;
   };
 }

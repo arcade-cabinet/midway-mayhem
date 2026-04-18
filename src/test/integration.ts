@@ -43,6 +43,20 @@ export function setSteer(v: number): void {
   fn(v);
 }
 
+/** Pause the active run through the exposed __mm bus. */
+export function pause(): void {
+  const fn = window.__mm?.pause;
+  if (!fn) throw new Error('[integration] window.__mm.pause is not wired');
+  fn();
+}
+
+/** Resume a paused run through the exposed __mm bus. */
+export function resume(): void {
+  const fn = window.__mm?.resume;
+  if (!fn) throw new Error('[integration] window.__mm.resume is not wired');
+  fn();
+}
+
 /** End the current run through the exposed __mm bus. */
 export function endRun(): void {
   const fn = window.__mm?.end;
