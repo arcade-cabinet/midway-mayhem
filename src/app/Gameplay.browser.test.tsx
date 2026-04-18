@@ -14,12 +14,6 @@ import { describe, expect, it } from 'vitest';
 import { waitFrames } from '@/test/scene';
 import { App } from './App';
 
-declare global {
-  interface Window {
-    __mm?: { diag?: () => Record<string, unknown> };
-  }
-}
-
 function findButton(root: HTMLElement, match: RegExp): HTMLButtonElement | null {
   const buttons = Array.from(root.querySelectorAll('button')) as HTMLButtonElement[];
   return buttons.find((b) => match.test((b.textContent || '').trim())) ?? null;
