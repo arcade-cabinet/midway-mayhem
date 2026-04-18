@@ -13,6 +13,8 @@
  *   - Replay sampleFrame                → GameLoop.tsx
  *   - recordRun / finishAndMaybeSave    → runEndPersistence.ts
  */
+
+import { sql } from 'drizzle-orm';
 import { useEffect } from 'react';
 import { audioBus } from '@/audio/audioBus';
 import { honk } from '@/audio/honkBus';
@@ -22,7 +24,7 @@ import { useGameStore } from '@/game/gameState';
 import { BalloonSpawner } from '@/game/obstacles/balloonSpawner';
 import { MirrorDuplicator } from '@/game/obstacles/mirrorDuplicator';
 import { eventsRng } from '@/game/runRngBus';
-import { db } from '@/persistence/db';
+import { db, persistToOpfs } from '@/persistence/db';
 import { dailyRuns } from '@/persistence/schema';
 import { getDailySeed, isDailyRoute, utcDateString } from '@/track/dailyRoute';
 
@@ -55,24 +57,20 @@ export function useGameSystems(): void {
         const seed = s.seed || getDailySeed();
         const distCm = Math.round(s.distance * 100);
         const crowd = s.crowdReaction;
-        import('drizzle-orm').then(({ sql }) => {
-          db()
-            .insert(dailyRuns)
-            .values({ dateUtc: today, seed, bestDistanceCm: distCm, bestCrowd: crowd, runCount: 1 })
-            .onConflictDoUpdate({
-              target: dailyRuns.dateUtc,
-              set: {
-                seed,
-                bestDistanceCm: sql`MAX(${dailyRuns.bestDistanceCm}, excluded.best_distance_cm)`,
-                bestCrowd: sql`MAX(${dailyRuns.bestCrowd}, excluded.best_crowd)`,
-                runCount: sql`${dailyRuns.runCount} + 1`,
-              },
-            })
-            .catch((err: unknown) => reportError(err, 'useGameSystems.dailyRuns.upsert'));
-        });
-        import('@/persistence/db').then(({ persistToOpfs }) =>
-          persistToOpfs().catch((err: unknown) => reportError(err, 'useGameSystems.persistToOpfs')),
-        );
+        db()
+          .insert(dailyRuns)
+          .values({ dateUtc: today, seed, bestDistanceCm: distCm, bestCrowd: crowd, runCount: 1 })
+          .onConflictDoUpdate({
+            target: dailyRuns.dateUtc,
+            set: {
+              seed,
+              bestDistanceCm: sql`MAX(${dailyRuns.bestDistanceCm}, excluded.best_distance_cm)`,
+              bestCrowd: sql`MAX(${dailyRuns.bestCrowd}, excluded.best_crowd)`,
+              runCount: sql`${dailyRuns.runCount} + 1`,
+            },
+          })
+          .catch((err: unknown) => reportError(err, 'useGameSystems.dailyRuns.upsert'));
+        persistToOpfs().catch((err: unknown) => reportError(err, 'useGameSystems.persistToOpfs'));
       }
     });
 
