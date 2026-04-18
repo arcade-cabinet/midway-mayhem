@@ -40,6 +40,8 @@ import {
 import { applyCrashAction, applyPickupAction } from './gameStateCombat';
 import { DROP_DURATION_MS, tickGameState } from './gameStateTick';
 import { type OptimalPath, solveOptimalPath } from './optimalPath';
+import { isDailyRoute } from '@/track/dailyRoute';
+import { finishAndMaybeSave, startRecording } from './replayRecorder';
 import { persistRunEnd } from './runEndPersistence';
 import { buildRunPlan, type RunPlan } from './runPlan';
 import { getOptimalPath, getPlan, resetRunPlanRefs, setOptimalPath, setPlan } from './runPlanRefs';
@@ -393,6 +395,10 @@ export function startRun(options?: StartRunOptions, w: World = world): void {
     ticketsThisRun: 0,
   });
   pe.set(PhotoMode, { active: false });
+
+  // Replay recorder: start sampling for the new run. Trace is saved at
+  // endRun when the run beats today's best in daily mode.
+  startRecording();
 }
 
 export function endRun(w: World = world): void {
@@ -413,6 +419,9 @@ export function endRun(w: World = world): void {
     plunged: s.plunging,
     startedAt: s.startedAt,
   });
+  // Replay recorder: freeze the trace and save-if-best (daily mode only,
+  // guarded inside finishAndMaybeSave).
+  void finishAndMaybeSave(s.distance, s.crowdReaction, isDailyRoute());
 }
 
 export function tick(dt: number, now: number, w: World = world): void {
