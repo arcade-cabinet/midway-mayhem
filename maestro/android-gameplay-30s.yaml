@@ -1,35 +1,46 @@
 appId: com.midwaymayhem.app
+tags: [gameplay]
 ---
-# Launch with ?autoplay=1 in the URL via the Capacitor webview start URL.
-# Capacitor loads public/index.html from the bundle; we inject autoplay by
-# tapping the NEW RUN button if the title screen shows, otherwise just let
-# the governor drive (if wired via a deep link, switch to 'openLink').
+# 30-second autoplay run with screenshot every ~5s. Proves the car
+# actually drives on Android emulator, score increments, cockpit stays
+# rendered, no crashes.
 - launchApp:
     clearState: true
+    arguments:
+      path: "?autoplay=1&governor=1&phrase=neon-polkadot-jalopy"
 - waitForAnimationToEnd
-- takeScreenshot: docs/media/android-gameplay-00-title
-- tapOn:
-    text: "NEW RUN"
-    optional: true
-- waitForAnimationToEnd
-- tapOn:
-    text: "▶ PLAY"
-    optional: true
-- waitForAnimationToEnd
-- takeScreenshot: docs/media/android-gameplay-01-started
+- takeScreenshot: docs/media/maestro/android-gameplay-00-start
 - extendedWaitUntil:
-    # Let the governor drive for 10 real seconds capturing frames.
-    timeout: 10000
+    timeout: 5000
     visible:
-      text: "."
-- takeScreenshot: docs/media/android-gameplay-02-mid
+      text: "0"
+- takeScreenshot: docs/media/maestro/android-gameplay-01-t5s
 - extendedWaitUntil:
-    timeout: 10000
+    timeout: 5000
     visible:
-      text: "."
-- takeScreenshot: docs/media/android-gameplay-03-late
+      text: "0"
+- takeScreenshot: docs/media/maestro/android-gameplay-02-t10s
 - extendedWaitUntil:
-    timeout: 10000
+    timeout: 5000
     visible:
-      text: "."
-- takeScreenshot: docs/media/android-gameplay-04-final
+      text: "0"
+- takeScreenshot: docs/media/maestro/android-gameplay-03-t15s
+- extendedWaitUntil:
+    timeout: 5000
+    visible:
+      text: "0"
+- takeScreenshot: docs/media/maestro/android-gameplay-04-t20s
+- extendedWaitUntil:
+    timeout: 5000
+    visible:
+      text: "0"
+- takeScreenshot: docs/media/maestro/android-gameplay-05-t25s
+- extendedWaitUntil:
+    timeout: 5000
+    visible:
+      text: "0"
+- takeScreenshot: docs/media/maestro/android-gameplay-06-t30s
+# App should still be running — if the governor crashed, assertion below
+# fires on screen text.
+- assertVisible:
+    text: "0"

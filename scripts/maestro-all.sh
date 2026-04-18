@@ -11,15 +11,22 @@ set -u
 MAESTRO="$HOME/.maestro/bin/maestro"
 FAILED=0
 FLOWS=(
+  # Launch + app-alive
   "maestro/android-smoke.yaml"
+  # Game loop
   "maestro/android-gameplay-30s.yaml"
+  "maestro/android-hud-visible.yaml"
+  "maestro/android-touch-steering.yaml"
+  # UI surfaces
+  "maestro/android-title-panels.yaml"
+  # Gameplay mechanics
   "maestro/android-critter-scare.yaml"
   "maestro/android-ramp-trick.yaml"
   "maestro/android-pause-resume.yaml"
   "maestro/android-game-over.yaml"
 )
 
-mkdir -p docs/media
+mkdir -p docs/media/maestro
 
 for FLOW in "${FLOWS[@]}"; do
   if [ ! -f "$FLOW" ]; then

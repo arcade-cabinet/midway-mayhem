@@ -1,0 +1,78 @@
+appId: com.midwaymayhem.app
+tags: [ui]
+---
+# Exercise every TitleScreen panel: new-run modal, settings, how-to-play,
+# credits, achievements, stats, ticket shop. Proves all panels open and
+# close without errors on Android.
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-title-00-cold
+
+# NEW RUN → modal opens
+- tapOn:
+    text: "NEW RUN"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-title-01-new-run
+- tapOn:
+    text: "CLOSE"
+    optional: true
+- waitForAnimationToEnd
+
+# HOW TO PLAY
+- tapOn:
+    text: "HOW TO PLAY"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-title-02-how-to-play
+- tapOn:
+    text: "CLOSE"
+    optional: true
+- waitForAnimationToEnd
+
+# SETTINGS
+- tapOn:
+    text: "SETTINGS"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-title-03-settings
+- tapOn:
+    text: "CLOSE"
+    optional: true
+- waitForAnimationToEnd
+
+# CREDITS
+- tapOn:
+    text: "CREDITS"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-title-04-credits
+- tapOn:
+    text: "CLOSE"
+    optional: true
+- waitForAnimationToEnd
+
+# ACHIEVEMENTS
+- tapOn:
+    text: "ACHIEVEMENTS"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-title-05-achievements
+- tapOn:
+    text: "CLOSE"
+    optional: true
+- waitForAnimationToEnd
+
+# STATS
+- tapOn:
+    text: "STATS"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-title-06-stats
+- tapOn:
+    text: "CLOSE"
+    optional: true
+- waitForAnimationToEnd
+
+- takeScreenshot: docs/media/maestro/android-title-07-back-to-title

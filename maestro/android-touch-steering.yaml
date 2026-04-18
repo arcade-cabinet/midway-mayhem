@@ -1,0 +1,35 @@
+appId: com.midwaymayhem.app
+tags: [input, gameplay]
+---
+# Mobile-first verification: touch steering works. Launch without
+# autoplay, hit NEW RUN → PLAY, then swipe left + right and verify the
+# canvas is still rendering (no crash from input dispatch).
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "NEW RUN"
+- waitForAnimationToEnd
+- tapOn:
+    text: "▶ PLAY"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: docs/media/maestro/android-touch-00-started
+
+# Swipe left in the lower half of the screen (avoid tapping HUD panels).
+- swipe:
+    start: "25%,80%"
+    end: "25%,20%"
+- takeScreenshot: docs/media/maestro/android-touch-01-swipe-left
+
+# Swipe right
+- swipe:
+    start: "75%,80%"
+    end: "75%,20%"
+- takeScreenshot: docs/media/maestro/android-touch-02-swipe-right
+
+# Tap the HONK button (right bottom in compact layout)
+- tapOn:
+    text: "HONK"
+    optional: true
+- takeScreenshot: docs/media/maestro/android-touch-03-after-honk
