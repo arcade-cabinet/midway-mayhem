@@ -38,6 +38,7 @@ import { ZoneBanners } from '@/render/ZoneBanners';
 import { saveScore } from '@/storage/scores';
 import { AchievementToasts } from '@/ui/AchievementToasts';
 import { GameOverOverlay } from '@/ui/GameOverOverlay';
+import { HUD } from '@/ui/hud/HUD';
 import type { NewRunConfig } from '@/ui/title/NewRunModal';
 import { TitleScreen } from '@/ui/title/TitleScreen';
 import { GameLoop } from './GameLoop';
@@ -174,7 +175,10 @@ export function App() {
             }}
           />
         ) : (
-          <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+          <>
+            <HUD />
+            <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+          </>
         )}
         <AchievementToasts />
         {endReason !== null ? (
