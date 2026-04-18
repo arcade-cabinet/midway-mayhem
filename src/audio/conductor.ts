@@ -69,6 +69,7 @@ class CircusConductor {
   private reverb: Tone.Reverb | null = null;
   private currentZone: ZoneId | null = null;
   private sequence: Tone.Part | null = null;
+  private bassLoop: Tone.Loop | null = null;
 
   init(): void {
     if (this.calliope) return;
@@ -105,11 +106,16 @@ class CircusConductor {
   }
 
   stop(): void {
+    this.bassLoop?.stop();
+    this.bassLoop?.dispose();
+    this.bassLoop = null;
     if (this.sequence) {
       this.sequence.stop();
       this.sequence.dispose();
       this.sequence = null;
     }
+    // Clear currentZone so start(zone) with the same zone rebuilds the sequence
+    this.currentZone = null;
     Tone.Transport.stop();
   }
 
@@ -122,6 +128,9 @@ class CircusConductor {
   }
 
   private buildSequence(rootPitch: string): void {
+    this.bassLoop?.stop();
+    this.bassLoop?.dispose();
+    this.bassLoop = null;
     if (this.sequence) {
       this.sequence.stop();
       this.sequence.dispose();
@@ -165,18 +174,15 @@ class CircusConductor {
     this.sequence.start(0);
 
     // Oom-pah bass on downbeats
-    const beat = new Tone.Loop((time) => {
+    this.bassLoop = new Tone.Loop((time) => {
       if (!this.tuba) return;
       const rootOctDown = Tone.Frequency(rootPitch).transpose(-12).toFrequency();
       this.tuba.triggerAttackRelease(rootOctDown, '8n', time);
     }, '4n').start(0);
-    // keep the loop reference attached so dispose cleans up
-    // biome-ignore lint/suspicious/noExplicitAny: transient
-    (this.sequence as any)._mmBassLoop = beat;
   }
 
   dispose(): void {
-    this.stop();
+    this.stop(); // also disposes bassLoop and sequence, clears currentZone
     this.calliope?.dispose();
     this.tuba?.dispose();
     this.reverb?.dispose();

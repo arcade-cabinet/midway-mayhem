@@ -50,6 +50,15 @@ export function initBuses(): Buses {
   return buses;
 }
 
+let duckingLoopId: number | null = null;
+
+export function stopDuckingLoop(): void {
+  if (duckingLoopId !== null && typeof cancelAnimationFrame !== 'undefined') {
+    cancelAnimationFrame(duckingLoopId);
+    duckingLoopId = null;
+  }
+}
+
 function startDuckingLoop(b: Buses): void {
   const DUCK_DEPTH_DB = -8;
   const DUCK_THRESHOLD_DB = -24;
@@ -62,7 +71,11 @@ function startDuckingLoop(b: Buses): void {
     const duck = Math.min(1, over / 10) * DUCK_DEPTH_DB;
     const target = REST_VOL_DB + duck;
     b.musicBus.volume.rampTo(target, 0.08);
-    if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(loop);
+    if (typeof requestAnimationFrame !== 'undefined') {
+      duckingLoopId = requestAnimationFrame(loop);
+    }
   };
-  if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(loop);
+  if (typeof requestAnimationFrame !== 'undefined') {
+    duckingLoopId = requestAnimationFrame(loop);
+  }
 }

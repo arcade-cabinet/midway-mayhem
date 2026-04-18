@@ -68,39 +68,61 @@ export async function getStats(): Promise<LifetimeStatsRow> {
 /**
  * Atomically increment all relevant counters and update personal bests.
  * Called exactly once per game-over from gameState finalization.
+ *
+ * The read/merge/write is wrapped in a transaction so concurrent run
+ * completions cannot drop totals or overwrite a better zone-time merge.
  */
 export async function recordRun(summary: RunSummary): Promise<void> {
-  const current = await getStats();
   const distanceCm = Math.round(summary.distanceM * 100);
 
-  // Merge per-zone best times
-  const mergedZoneTimes: Record<string, number> = { ...current.bestZoneTimeMs };
-  if (summary.zoneTimesMs) {
-    for (const [zone, ms] of Object.entries(summary.zoneTimesMs)) {
-      const existing = mergedZoneTimes[zone];
-      if (existing === undefined || ms < existing) {
-        mergedZoneTimes[zone] = ms;
+  await db().transaction(async (tx) => {
+    const row = await tx.select().from(lifetimeStats).where(eq(lifetimeStats.id, 1)).get();
+    if (!row)
+      throw new Error('[lifetimeStats] Row missing inside transaction — was initDb() called?');
+
+    const current: LifetimeStatsRow = {
+      totalDistanceCm: row.totalDistanceCm,
+      totalCrashes: row.totalCrashes,
+      totalScares: row.totalScares,
+      totalTicketsEarned: row.totalTicketsEarned,
+      totalRunsCompleted: row.totalRunsCompleted,
+      totalGameOversByPlunge: row.totalGameOversByPlunge,
+      totalGameOversBySanity: row.totalGameOversBySanity,
+      longestComboChain: row.longestComboChain,
+      maxSingleRunCrowd: row.maxSingleRunCrowd,
+      bestZoneTimeMs: JSON.parse(row.bestZoneTimeMs) as Record<string, number>,
+      secondsPlayed: row.secondsPlayed,
+    };
+
+    // Merge per-zone best times
+    const mergedZoneTimes: Record<string, number> = { ...current.bestZoneTimeMs };
+    if (summary.zoneTimesMs) {
+      for (const [zone, ms] of Object.entries(summary.zoneTimesMs)) {
+        const existing = mergedZoneTimes[zone];
+        if (existing === undefined || ms < existing) {
+          mergedZoneTimes[zone] = ms;
+        }
       }
     }
-  }
 
-  await db()
-    .update(lifetimeStats)
-    .set({
-      totalDistanceCm: current.totalDistanceCm + distanceCm,
-      totalCrashes: current.totalCrashes + summary.crashes,
-      totalScares: current.totalScares + summary.scares,
-      totalTicketsEarned: current.totalTicketsEarned + summary.ticketsEarned,
-      totalRunsCompleted: current.totalRunsCompleted + 1,
-      totalGameOversByPlunge: current.totalGameOversByPlunge + (summary.plunged ? 1 : 0),
-      totalGameOversBySanity: current.totalGameOversBySanity + (summary.plunged ? 0 : 1),
-      longestComboChain: Math.max(current.longestComboChain, summary.maxComboChain),
-      maxSingleRunCrowd: Math.max(current.maxSingleRunCrowd, summary.crowd),
-      bestZoneTimeMs: JSON.stringify(mergedZoneTimes),
-      secondsPlayed: current.secondsPlayed + Math.round(summary.secondsPlayed),
-    })
-    .where(eq(lifetimeStats.id, 1))
-    .run();
+    await tx
+      .update(lifetimeStats)
+      .set({
+        totalDistanceCm: current.totalDistanceCm + distanceCm,
+        totalCrashes: current.totalCrashes + summary.crashes,
+        totalScares: current.totalScares + summary.scares,
+        totalTicketsEarned: current.totalTicketsEarned + summary.ticketsEarned,
+        totalRunsCompleted: current.totalRunsCompleted + 1,
+        totalGameOversByPlunge: current.totalGameOversByPlunge + (summary.plunged ? 1 : 0),
+        totalGameOversBySanity: current.totalGameOversBySanity + (summary.plunged ? 0 : 1),
+        longestComboChain: Math.max(current.longestComboChain, summary.maxComboChain),
+        maxSingleRunCrowd: Math.max(current.maxSingleRunCrowd, summary.crowd),
+        bestZoneTimeMs: JSON.stringify(mergedZoneTimes),
+        secondsPlayed: current.secondsPlayed + Math.round(summary.secondsPlayed),
+      })
+      .where(eq(lifetimeStats.id, 1))
+      .run();
+  });
 }
 
 /**

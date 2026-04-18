@@ -56,19 +56,33 @@ class SF2Bridge {
       // calliope in conductor.ts is the primary music engine; SF2 is a
       // nice-to-have sweetener. See docs/ARCHITECTURE.md#audio.
       if (!(ctx instanceof (globalThis.BaseAudioContext ?? AudioContext))) {
+        reportError(
+          new Error('SF2 disabled: AudioContext wrapper incompatible with AudioWorklet'),
+          'sf2Bridge.init',
+        );
         this.disabled = true;
         return;
       }
 
       // Spessasynth requires the processor module to be registered on the
       // audio context BEFORE the WorkletSynthesizer is constructed.
-      await ctx.audioWorklet.addModule(spessasynthProcessorUrl);
+      try {
+        await ctx.audioWorklet.addModule(spessasynthProcessorUrl);
+      } catch (err) {
+        reportError(err, 'sf2Bridge.init — addModule failed');
+        this.disabled = true;
+        return;
+      }
 
       // Fetch SF2 bytes. If the fetch 404s (SF2 not downloaded into
       // public/soundfonts/), fall back to disabled mode so the procedural
       // layer keeps working.
       const resp = await fetch(soundfontUrl);
       if (!resp.ok) {
+        reportError(
+          new Error(`SF2 soundfont not found at ${soundfontUrl} (status ${resp.status})`),
+          'sf2Bridge.init',
+        );
         this.disabled = true;
         return;
       }

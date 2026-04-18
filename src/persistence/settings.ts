@@ -1,16 +1,17 @@
 /**
  * @module persistence/settings
  *
- * Cross-run player preferences backed by @capacitor/preferences.
- * KV store — not SQLite — because settings are small atomics read at cold-start
- * before drizzle initializes.
+ * Cross-run player preferences backed by the shared preferences abstraction
+ * (prefGetJSON / prefSetJSON from src/persistence/preferences.ts), which
+ * handles native Capacitor vs. web OPFS routing automatically.
  *
  * Dispatch: updateSettings fires a settingsChanged CustomEvent on window so
  * systems like hapticsBus can react immediately.
  */
 
-import { Preferences } from '@capacitor/preferences';
+import { reportError } from '@/game/errorBus';
 import { hapticsBus } from '@/game/hapticsBus';
+import { prefGetJSON, prefSetJSON } from './preferences';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -41,33 +42,74 @@ const DEFAULTS: GameSettings = {
   showRacingLine: true,
 };
 
-// Preferences key
-const PREFS_KEY = 'mm_settings';
+// Preferences key (without the "mm." prefix — prefGetJSON adds that)
+const PREFS_KEY = 'settings';
 
-// ─── Serialization ───────────────────────────────────────────────────────────
+// ─── Validation ──────────────────────────────────────────────────────────────
 
-function serialize(s: GameSettings): string {
-  return JSON.stringify(s);
-}
+const VALID_CONTROLS: ReadonlySet<string> = new Set(['pointer', 'keyboard', 'touch', 'gamepad']);
 
-function deserialize(raw: string): GameSettings {
-  const parsed = JSON.parse(raw) as Partial<GameSettings>;
-  // Merge with defaults so new fields added in future versions get defaults
-  return { ...DEFAULTS, ...parsed };
+/**
+ * Validate and normalize a raw parsed object into a safe GameSettings.
+ * Only well-typed fields are accepted; anything invalid falls back to DEFAULTS.
+ */
+function validate(raw: unknown): GameSettings {
+  if (raw === null || typeof raw !== 'object') return { ...DEFAULTS };
+  const r = raw as Record<string, unknown>;
+
+  const audioEnabled = typeof r.audioEnabled === 'boolean' ? r.audioEnabled : DEFAULTS.audioEnabled;
+  const hapticsEnabled =
+    typeof r.hapticsEnabled === 'boolean' ? r.hapticsEnabled : DEFAULTS.hapticsEnabled;
+  const reducedMotion =
+    typeof r.reducedMotion === 'boolean' ? r.reducedMotion : DEFAULTS.reducedMotion;
+  const uiScaleMultiplier =
+    typeof r.uiScaleMultiplier === 'number' && Number.isFinite(r.uiScaleMultiplier)
+      ? r.uiScaleMultiplier
+      : DEFAULTS.uiScaleMultiplier;
+  const preferredControl =
+    typeof r.preferredControl === 'string' && VALID_CONTROLS.has(r.preferredControl)
+      ? (r.preferredControl as PreferredControl)
+      : DEFAULTS.preferredControl;
+  const showFps = typeof r.showFps === 'boolean' ? r.showFps : DEFAULTS.showFps;
+  const showZoneBanner =
+    typeof r.showZoneBanner === 'boolean' ? r.showZoneBanner : DEFAULTS.showZoneBanner;
+  const subtitles = typeof r.subtitles === 'boolean' ? r.subtitles : DEFAULTS.subtitles;
+  const showRacingLine =
+    typeof r.showRacingLine === 'boolean' ? r.showRacingLine : DEFAULTS.showRacingLine;
+
+  return {
+    audioEnabled,
+    hapticsEnabled,
+    reducedMotion,
+    uiScaleMultiplier,
+    preferredControl,
+    showFps,
+    showZoneBanner,
+    subtitles,
+    showRacingLine,
+  };
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
- * Read settings from Preferences. Returns defaults if never set.
+ * Read settings from preferences. Returns defaults if never set.
+ * Hard-fails (via reportError) if the stored value is corrupt, then returns
+ * defaults so the game is still playable after the error modal.
  */
 export async function getSettings(): Promise<GameSettings> {
-  const { value } = await Preferences.get({ key: PREFS_KEY });
-  if (!value) return { ...DEFAULTS };
+  let raw: unknown;
   try {
-    return deserialize(value);
-  } catch {
-    // Corrupt entry — return defaults (not a hard-fail; settings are user-recoverable)
+    raw = await prefGetJSON<unknown>(PREFS_KEY);
+  } catch (err) {
+    reportError(err, 'settings.getSettings');
+    return { ...DEFAULTS };
+  }
+  if (raw === null) return { ...DEFAULTS };
+  try {
+    return validate(raw);
+  } catch (err) {
+    reportError(err, 'settings.getSettings — corrupt settings');
     return { ...DEFAULTS };
   }
 }
@@ -81,7 +123,7 @@ export async function updateSettings(partial: Partial<GameSettings>): Promise<vo
   const current = await getSettings();
   const next: GameSettings = { ...current, ...partial };
 
-  await Preferences.set({ key: PREFS_KEY, value: serialize(next) });
+  await prefSetJSON(PREFS_KEY, next);
 
   // Wire hapticsBus immediately
   hapticsBus.setEnabled(next.hapticsEnabled);

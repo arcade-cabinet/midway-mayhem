@@ -5,27 +5,10 @@ import { color, space } from '@/design/tokens';
 import { display, typeStyle, ui } from '@/design/typography';
 import { reportError } from '@/game/errorBus';
 import { getStats, type LifetimeStatsRow } from '@/persistence/lifetimeStats';
+import { formatDistance, formatDuration, formatMs } from '@/utils/formatters';
 
 interface Props {
   onClose: () => void;
-}
-
-function formatDistance(cm: number): string {
-  if (cm < 100_000) return `${(cm / 100).toFixed(0)} m`;
-  return `${(cm / 100_000).toFixed(2)} km`;
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const m = Math.floor(seconds / 60);
-  if (m < 60) return `${m}m ${seconds % 60}s`;
-  const h = Math.floor(m / 60);
-  return `${h}h ${m % 60}m`;
-}
-
-function formatMs(ms: number): string {
-  const s = ms / 1000;
-  return `${s.toFixed(2)}s`;
 }
 
 interface StatRow {
@@ -35,12 +18,22 @@ interface StatRow {
 
 export function StatsPanel({ onClose }: Props) {
   const [stats, setStats] = useState<LifetimeStatsRow | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
+    let mounted = true;
     getStats()
-      .then(setStats)
-      .catch((e) => reportError(e, 'StatsPanel.load'));
+      .then((data) => {
+        if (mounted) setStats(data);
+      })
+      .catch((e) => {
+        reportError(e, 'StatsPanel.load');
+        if (mounted) setLoadError(true);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -78,7 +71,12 @@ export function StatsPanel({ onClose }: Props) {
     <Dialog role="dialog" ariaLabel="Lifetime stats" testId="stats-panel" tone="info">
       <div style={{ maxWidth: 640, padding: space.xl, display: 'grid', gap: space.lg }}>
         <div style={{ ...typeStyle(display.banner), color: color.yellow }}>LIFETIME STATS</div>
-        {!stats && <div style={{ ...typeStyle(ui.body), opacity: 0.7 }}>Loading…</div>}
+        {!stats && !loadError && (
+          <div style={{ ...typeStyle(ui.body), opacity: 0.7 }}>Loading…</div>
+        )}
+        {loadError && (
+          <div style={{ ...typeStyle(ui.body), color: color.red }}>Failed to load stats.</div>
+        )}
         {stats && (
           <>
             <StatGrid label="TOTALS" rows={lifetime} />

@@ -1,3 +1,4 @@
+import { reportError } from '@/game/errorBus';
 import { HONK } from '@/utils/constants';
 import { audioBus } from './audioBus';
 
@@ -45,8 +46,19 @@ export function honk(): boolean {
   const now = performance.now();
   if (now - lastHonkAt < HONK.COOLDOWN_S * 1000) return false;
   lastHonkAt = now;
-  playHornForSlug(_hornSlug);
-  for (const h of handlers) h();
+  try {
+    playHornForSlug(_hornSlug);
+  } catch (err) {
+    reportError(err, 'honkBus.honk — playHornForSlug failed');
+    throw err;
+  }
+  for (const h of handlers) {
+    try {
+      h();
+    } catch (err) {
+      reportError(err, 'honkBus.honk — handler threw');
+    }
+  }
   return true;
 }
 

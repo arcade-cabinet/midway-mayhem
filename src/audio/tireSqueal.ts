@@ -13,6 +13,7 @@
  */
 
 import * as Tone from 'tone';
+import { reportError } from '@/game/errorBus';
 import { getBuses } from './buses';
 
 const SQUEAL_START_THRESHOLD = 0.8;
@@ -48,13 +49,13 @@ export class TireSquealSystem {
     this.initialized = true;
 
     // Brown noise → bandpass filter → gain → sfxBus
-    // getBuses() may throw if buses haven't been initialized yet.
+    // getBuses() throws if buses haven't been initialized yet; surface via error modal.
     let sfxBus: ReturnType<typeof getBuses>['sfxBus'];
     try {
       sfxBus = getBuses().sfxBus;
-    } catch {
-      // Audio not initialized yet — retry on next update
+    } catch (err) {
       this.initialized = false;
+      reportError(err, 'TireSquealSystem.init — audio buses not ready');
       return;
     }
 

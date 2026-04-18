@@ -30,7 +30,9 @@ class AudioBus {
     await Tone.start();
 
     initBuses();
-    const { sfxBus, musicBus } = getBuses();
+    const { sfxBus, musicBus, master } = getBuses();
+    // Re-apply any setEnabled() calls that arrived before init() completed
+    master.mute = !this.enabled;
 
     // biome-ignore lint/suspicious/noExplicitAny: Tone.Listener is a deprecated-but-functional singleton in Tone 15
     this.listener = (Tone as any).Listener;

@@ -11,6 +11,71 @@
     "rampPerMetre": 0.005,
     "interpResponse": 1.3
   },
+  "combo": {
+    "chainThresholds": [[15, 8], [7, 4], [3, 2], [0, 1]],
+    "chainExpiryMs": 3500
+  },
+  "damage": {
+    "pristineThreshold": 70,
+    "dentedThreshold": 40,
+    "badThreshold": 15
+  },
+  "obstacles": {
+    "forwardRenderM": 500,
+    "behindRenderM": 40,
+    "nearMissLateral": 0.7,
+    "nearMissDist": 3,
+    "critterPoolSize": 10,
+    "critterScale": 3.5
+  },
+  "raid": {
+    "telegraphMs": 2000,
+    "tigerActiveMs": 3000,
+    "knivesActiveMs": 2500,
+    "cannonballActiveMs": 2000,
+    "cooldownMinMs": 30000,
+    "cooldownMaxMs": 45000,
+    "laneCenterSpacing": 3.3,
+    "laneHalfWidth": 1.65,
+    "tigerLaneRange": 8,
+    "tigerAheadZ": 12,
+    "tigerScale": 4,
+    "knifeStartY": 8,
+    "knifeAheadZ": 8,
+    "knifeSpacing": 1.5,
+    "cannonballStartX": -12,
+    "cannonballY": 1.5,
+    "cannonballAheadZ": 6,
+    "smokeDelayScale": 0.15,
+    "smokeTrailSpeed": 6,
+    "cannonballCrowdBonus": 75,
+    "tigerCrowdBonusAirborne": 100,
+    "tigerCrowdBonusDodge": 50,
+    "tigerHitThreshold": 2
+  },
+  "tricks": {
+    "cleanLandingToleranceDeg": 15,
+    "cleanSanityReward": 15,
+    "cleanCrowdReward": 150,
+    "barrelRollDuration": 0.8,
+    "wheelieDuration": 1.0,
+    "handstandDuration": 1.2,
+    "spin180Duration": 0.7
+  },
+  "haptics": {
+    "crashLight": { "web": 40 },
+    "crashHeavy": { "web": [80, 30, 40] },
+    "boost": { "web": 20 },
+    "megaBoost": { "web": [20, 50, 30, 50, 60] },
+    "pickupTicket": { "web": 15 },
+    "honk": { "web": 15 },
+    "gameOver": { "web": [150, 50, 200] },
+    "zoneTransition": { "web": [20, 40, 20] }
+  },
+  "rngSalt": 48869,
+  "plungeOvershootM": 0.5,
+  "plungeDurationS": 1.5,
+  "dropDurationMs": 1800,
   "cockpit": {
     "dropHeight": {
       "phonePortrait": 0.9,
