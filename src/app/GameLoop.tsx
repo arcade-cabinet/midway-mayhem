@@ -11,11 +11,21 @@ import { useFrame } from '@react-three/fiber';
 import type { World } from 'koota';
 import { type EndReason, resetGameOver, stepGameOver } from '@/ecs/systems/gameOver';
 import { usePlayerLoop } from '@/ecs/systems/usePlayerLoop';
-import { Obstacle, type ObstacleKind, Pickup, type PickupKind, TrackSegment } from '@/ecs/traits';
+import {
+  Obstacle,
+  type ObstacleKind,
+  Pickup,
+  type PickupKind,
+  Player,
+  Speed,
+  Steer,
+  TrackSegment,
+} from '@/ecs/traits';
 import { resetAchievementsRun, stepAchievements } from '@/game/achievementRun';
 import { reportCounts, reportFrame, reportScene } from '@/game/diagnosticsBus';
-import { ensureGameTraits, tick } from '@/game/gameState';
+import { ensureGameTraits, tick, useGameStore } from '@/game/gameState';
 import { commitGhost, resetGhostRecorder, stepGhostRecorder } from '@/game/ghost';
+import { sampleFrame } from '@/game/replayRecorder';
 
 interface GameLoopProps {
   world: World;
@@ -36,6 +46,16 @@ export function GameLoop({ world, active, onPickup, onObstacle, onEnd }: GameLoo
       stepGameOver(world, { onEnd });
       stepAchievements(world);
       stepGhostRecorder(world);
+
+      // Replay recorder — throttled to ~30Hz inside sampleFrame itself.
+      // Start/stop lifecycle is owned by gameState.startRun / endRun.
+      const pe = world.query(Player, Speed, Steer)[0];
+      if (pe) {
+        const speed = pe.get(Speed)?.value ?? 0;
+        const steer = pe.get(Steer)?.value ?? 0;
+        const lateral = useGameStore.getState().lateral;
+        sampleFrame(now, lateral, speed, steer);
+      }
     }
     reportFrame(clamped);
 
