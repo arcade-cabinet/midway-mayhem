@@ -4,7 +4,8 @@
  * Test-factory helpers: convert a RunPlan + desired PathOutcome into a
  * pre-computed keyboard-event timeline that the e2e governor can replay.
  *
- * Separated from optimalPath.ts so the solver stays under 300 LOC.
+ * Separated from optimalPath.ts so runtime solver logic stays testable
+ * without dragging in test-only fixture plumbing.
  */
 
 import { composeTrack, DEFAULT_TRACK, type PieceKind } from '@/track/trackComposer';

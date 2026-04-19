@@ -5,7 +5,9 @@
  * Portrait: logo top, buttons stacked vertically.
  * Landscape: logo left, buttons column right (so thumbs reach both).
  *
- * Extracted from TitleScreen.tsx to keep that file under 300 LOC.
+ * Separated from TitleScreen.tsx so each form-factor layout is
+ * reviewable on its own — phone compact vs. desktop hero are
+ * independent visual variants.
  */
 import { BrandButton } from '@/design/components/BrandButton';
 import { color, space } from '@/design/tokens';

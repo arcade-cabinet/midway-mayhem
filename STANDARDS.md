@@ -11,7 +11,7 @@ domain: technical
 
 - **TypeScript strict.** `noUnusedLocals`, `noUnusedParameters`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noFallthroughCasesInSwitch` all on.
 - **No JS files.** `.ts` / `.tsx` only in `src/`, `e2e/`, `scripts/` (bpy exempt).
-- **Max 300 LOC per file.** Anything bigger splits by responsibility.
+- **LOC is contextual, not a hard cap.** A 400-line config table, generated schema, or single-responsibility controller is fine; a 250-line file that tangles three subsystems is not. Use judgment — flag files that genuinely do too much (mixed abstraction layers, hard to hold in your head, mixed responsibilities) and split those by responsibility.
 - **Biome config is law.** Run `pnpm lint:fix` before every commit.
 
 ## Error discipline

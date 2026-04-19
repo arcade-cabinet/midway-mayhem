@@ -5,7 +5,9 @@
  * useFrame. Drives: player motion, collision resolution, game-over detection,
  * achievements, ghost recorder, trick system, and the full game-state tick.
  *
- * Extracted from App.tsx to keep that file under 300 LOC.
+ * Extracted from App.tsx so App stays a composition file (mounts
+ * subsystems, wires contexts) while GameLoop owns the per-frame
+ * responsibility. Different responsibilities, different files.
  */
 import { useFrame } from '@react-three/fiber';
 import type { World } from 'koota';

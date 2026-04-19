@@ -7,7 +7,9 @@
  * Buttons distributed: info nav top-left, leaderboard top-right,
  * ticket pill above action row, action row pinned bottom-center.
  *
- * Extracted from TitleScreen.tsx to keep that file under 300 LOC.
+ * Separated from TitleScreen.tsx so each form-factor layout is
+ * reviewable on its own — tablet/desktop hero vs. phone compact are
+ * independent visual variants that share nothing but the brand tokens.
  */
 
 import type React from 'react';
