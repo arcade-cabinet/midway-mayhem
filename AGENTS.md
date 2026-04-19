@@ -102,9 +102,9 @@ See `docs/TESTING.md` for the pyramid + coverage targets.
 
 ## Diagnostics surface
 
-All diagnostics surfaces are gated by `DEV || ?diag=1 || ?governor=1`. On a bare `pnpm preview` run (production + no flags) they are **not present**. E2E specs must add `?diag=1` to `page.goto()` if they call `readDiag()`.
+`window.__mm` is installed on every boot — DEV, `pnpm preview`, and production alike. The `?diag=1` / `?governor=1` flags remain accepted for legacy/test URLs but are no-ops for installation: the bus is always there. (Hide it again by reintroducing the URL gate in `installDiagnosticsBus` if needed.)
 
-`window.__mm` (gated):
+`window.__mm`:
 - `.diag()` returns a JSON-serializable snapshot of fps/distance/speed/hype/sanity/crashes/crowd/zone/steer/lateral/obstacleCount/pickupCount
 - `.setSteer(v)` programmatic steering (governor uses internal path instead)
 - `.start()` / `.end()` run control

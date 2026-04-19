@@ -34,7 +34,7 @@ URL flags (dev + test):
 |------|--------|
 | `?skip=1` | Skip title screen, drop into gameplay immediately |
 | `?governor=1` | Yuka.js autonomous driver plays the game |
-| `?diag=1` | Expose `window.__mm.diag()` for telemetry |
+| `?diag=1` | (legacy) `window.__mm.diag()` is now always installed; the flag is a no-op but accepted for test URLs |
 
 ---
 
