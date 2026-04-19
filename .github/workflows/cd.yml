@@ -80,8 +80,8 @@ jobs:
       - name: Lint & Type Check
         run: pnpm exec biome ci . && pnpm exec tsc --noEmit
 
-      - name: Run tests
-        run: pnpm test
+      - name: Run tests (node project only — browser tests need GPU + live Chrome, run separately in ci.yml)
+        run: pnpm test:node
 
       - name: Build production bundle
         run: pnpm build
