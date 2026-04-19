@@ -141,6 +141,14 @@ describe('installDiagnosticsBus gating', () => {
     expect(GLOBAL.__mm).toBeUndefined();
   });
 
+  it('installs __mm unconditionally (no URL flag needed)', async () => {
+    setSearch('');
+    const mod = await freshModule();
+    mod.installDiagnosticsBus();
+    const win = GLOBAL.window as { __mm?: unknown };
+    expect(win.__mm).toBeDefined();
+  });
+
   it('installs __mm when ?diag=1 is set', async () => {
     setSearch('?diag=1');
     const mod = await freshModule();

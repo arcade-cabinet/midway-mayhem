@@ -4,7 +4,9 @@
  * Diagnostics bus — installs window.__mm.diag() and per-frame perf counters.
  * Reads game state from the ECS world (via useGameStore.getState()).
  *
- * Only active in DEV or when ?diag=1 / ?governor=1 is set.
+ * Always on — the red-slab hunt and live debugging need __mm available on
+ * the bare deployed URL with no flags. If we ever need to hide this in a
+ * shipped build, reintroduce the URL gate here.
  */
 
 import { combo } from './comboSystem';
@@ -62,10 +64,6 @@ const bus = {
 
 export function installDiagnosticsBus() {
   if (typeof window === 'undefined') return;
-  const params = new URLSearchParams(window.location.search);
-  const enabled =
-    import.meta.env.DEV || params.get('diag') === '1' || params.get('governor') === '1';
-  if (!enabled) return;
 
   // biome-ignore lint/suspicious/noExplicitAny: diagnostic handle
   (window as any).__mm = {

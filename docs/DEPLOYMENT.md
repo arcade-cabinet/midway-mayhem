@@ -81,7 +81,7 @@ These flags are only active when `import.meta.env.DEV` is true or the flag is ex
 |------|--------|
 | `?debug=1` | Expose `window.__mm` diagnostics object + `window.__mmCapture()` |
 | `?governor=1` | Start Yuka.js autonomous driver (governor playthrough) |
-| `?diag=1` | Enable `window.__mm.diag()` for e2e telemetry reads |
+| `?diag=1` | (legacy, no-op) `window.__mm.diag()` is now always installed |
 | `?skip=1` | Skip title screen, drop directly into gameplay |
 | `?autoplay=1` | Alias for skip — auto-starts a run on load |
 | `?daily=1` | Boot into daily-route mode (deterministic seed from today's date) |

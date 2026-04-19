@@ -5,9 +5,8 @@
  *    server command. Implementation: scripts/vitest-write-png-command.ts.
  *    Wiring: vite.config.ts `commands: { writePngFromDataUrl }`.
  *
- * 2. The `window.__mm` debug handle installed by diagnosticsBus when
- *    `import.meta.env.DEV` is true (always on in the vitest-browser env)
- *    or the URL contains `?diag=1`. Integration tests read from .diag()
+ * 2. The `window.__mm` debug handle installed by diagnosticsBus on every
+ *    boot (DEV, preview, production). Integration tests read from .diag()
  *    and drive run lifecycle via .start() / .end().
  *
  * This file intentionally has NO top-level imports/exports — it stays a

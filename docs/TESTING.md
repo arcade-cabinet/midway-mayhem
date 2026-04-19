@@ -97,7 +97,7 @@ await expectNoErrorModal(page);   // at exit
 - `?governor=1` activates `playthrough-governor.ts` (Yuka.js autonomous driver)
 - Spec must complete ≥ 300 metres without dying
 - Zone smoke: governor must enter at least Zones 1 + 2
-- `readDiag()` helper reads `window.__mm.diag()` — requires `?diag=1` flag in `page.goto()`
+- `readDiag()` helper reads `window.__mm.diag()` — always installed; no flag required
 
 **How to run:**
 ```bash

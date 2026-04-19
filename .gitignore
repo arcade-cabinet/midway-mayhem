@@ -54,6 +54,11 @@ ChatGPT-*.md
 # Debug pause-and-capture output
 .capture/
 
+# Ad-hoc Playwright MCP snapshots (console + page dumps) + stray
+# screenshots from live-debugging sessions — never checked in.
+.playwright-mcp/
+/*.png
+
 # v1 codebase moved here for reference; not a live module
 # (lint/tsc/tests all exclude it)
 
