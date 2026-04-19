@@ -223,6 +223,13 @@ jobs:
     # of real play. We keep the suite for telemetry + regression screenshots
     # but do not block merge on it — the authoritative gate is vitest-browser.
     continue-on-error: true
+    # Cap the whole E2E job so a stalled playwright run can't tie up a
+    # GitHub Actions runner for hours. Individual Playwright test
+    # timeouts (120s–300s per test set in playwright.config.ts) still
+    # produce useful failure reports inside this window. Past 20 min
+    # we're almost certainly in a preview-server / browser-crash
+    # cascade and the run needs to be killed so the next one can start.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v5
