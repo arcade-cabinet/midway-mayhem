@@ -26,6 +26,7 @@ import { CockpitMeshNode } from './blueprintMesh';
 import { DiegeticHUD } from './DiegeticHUD';
 import { FlowerOrnament, isFlowerMesh } from './FlowerOrnament';
 import { GaugeNeedles, isGaugeNeedleMesh } from './GaugeNeedles';
+import { isMirrorGlassMesh, RearViewMirror } from './RearViewMirror';
 import { useCockpitFeel } from './useCockpitFeel';
 import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
 
@@ -59,7 +60,9 @@ export function Cockpit({ tier }: CockpitProps) {
   const meshEntries = useMemo(
     () =>
       Object.entries(cockpitBlueprint.meshes)
-        .filter(([name]) => !isFlowerMesh(name) && !isGaugeNeedleMesh(name))
+        .filter(
+          ([name]) => !isFlowerMesh(name) && !isGaugeNeedleMesh(name) && !isMirrorGlassMesh(name),
+        )
         .sort(([a], [b]) => a.localeCompare(b)),
     [],
   );
@@ -108,6 +111,11 @@ export function Cockpit({ tier }: CockpitProps) {
 
         {/* LAUGHS + FUN gauge needles, sweeping live with sanity / hype. */}
         <GaugeNeedles />
+
+        {/* Drei MeshReflectorMaterial-backed rear-view mirror. The frame
+            + stem + dice are still plain blueprint meshes; only the glass
+            plane gets the reflective material. */}
+        <RearViewMirror />
       </group>
 
       {/* Diegetic HUD — speedometer + lane indicator as 3D meshes. Stays
