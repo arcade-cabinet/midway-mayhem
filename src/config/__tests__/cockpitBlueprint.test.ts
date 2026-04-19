@@ -50,7 +50,10 @@ describe('cockpitBlueprint (parsed cockpit-blueprint.json)', () => {
   it('every mesh references a real material in the materials table', () => {
     const materialIds = new Set(Object.keys(cockpitBlueprint.materials));
     for (const [name, mesh] of Object.entries(cockpitBlueprint.meshes)) {
-      expect(materialIds.has(mesh.materialRef), `${name} → unknown material ${mesh.materialRef}`).toBe(true);
+      expect(
+        materialIds.has(mesh.materialRef),
+        `${name} → unknown material ${mesh.materialRef}`,
+      ).toBe(true);
     }
   });
 
@@ -61,9 +64,10 @@ describe('cockpitBlueprint (parsed cockpit-blueprint.json)', () => {
     // Hood back cap must be at least 0.3m forward of camera (POC rule #2).
     const camZ = cockpitBlueprint.cameraPosition[2];
     const backCapZ = hood?.backCapZ ?? Number.POSITIVE_INFINITY;
-    expect(camZ - backCapZ, 'hood backCapZ must leave ≥0.3m forward clearance').toBeGreaterThanOrEqual(
-      0.3,
-    );
+    expect(
+      camZ - backCapZ,
+      'hood backCapZ must leave ≥0.3m forward clearance',
+    ).toBeGreaterThanOrEqual(0.3);
   });
 
   it('has 4 wheel spokes (not 2, per POC identity spec)', () => {
