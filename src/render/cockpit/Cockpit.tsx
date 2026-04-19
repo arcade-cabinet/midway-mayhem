@@ -27,6 +27,7 @@ import { DiegeticHUD } from './DiegeticHUD';
 import { FlowerOrnament, isFlowerMesh } from './FlowerOrnament';
 import { GaugeNeedles, isGaugeNeedleMesh } from './GaugeNeedles';
 import { Headlights } from './Headlights';
+import { HonkableHorn, isHonkableMesh } from './HonkableHorn';
 import { isMirrorGlassMesh, RearViewMirror } from './RearViewMirror';
 import { useCockpitFeel } from './useCockpitFeel';
 import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
@@ -62,7 +63,11 @@ export function Cockpit({ tier }: CockpitProps) {
     () =>
       Object.entries(cockpitBlueprint.meshes)
         .filter(
-          ([name]) => !isFlowerMesh(name) && !isGaugeNeedleMesh(name) && !isMirrorGlassMesh(name),
+          ([name]) =>
+            !isFlowerMesh(name) &&
+            !isGaugeNeedleMesh(name) &&
+            !isMirrorGlassMesh(name) &&
+            !isHonkableMesh(name),
         )
         .sort(([a], [b]) => a.localeCompare(b)),
     [],
@@ -122,6 +127,9 @@ export function Cockpit({ tier }: CockpitProps) {
             cones of light on the track ahead. Inside the body group so
             the lights bank into turns with the cockpit. */}
         <Headlights />
+
+        {/* Clickable red horn cap. Click → honk + squish animation. */}
+        <HonkableHorn />
       </group>
 
       {/* Diegetic HUD — speedometer + lane indicator as 3D meshes. Stays

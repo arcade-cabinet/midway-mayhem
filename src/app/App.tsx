@@ -31,6 +31,7 @@ import { useKeyboard } from '@/input/useKeyboard';
 import { useMouseSteer } from '@/input/useMouseSteer';
 import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
+import { HonkContext } from '@/render/cockpit/HonkContext';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
@@ -167,7 +168,9 @@ export function App() {
           </TrackScroller>
           <RaidBridge />
           <RaidLayer />
-          <Cockpit />
+          <HonkContext.Provider value={() => hornRef.current()}>
+            <Cockpit />
+          </HonkContext.Provider>
           <SpeedLines />
           <BoostRush />
           <PostFX />
