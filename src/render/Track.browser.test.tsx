@@ -12,11 +12,10 @@
  * PNG size) as a cheap oracle that composition didn't blow up.
  */
 import { render, waitFor } from '@testing-library/react';
+import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
-import { commands } from 'vitest/browser';
 import { seedTrack } from '@/ecs/systems/track';
 import { BigTopEnvironment } from '@/render/Environment';
 import { Track } from '@/render/Track';

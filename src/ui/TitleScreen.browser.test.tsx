@@ -6,10 +6,9 @@
  * visually for a PNG dump at full-res.
  */
 import { render, waitFor } from '@testing-library/react';
+import { commands } from '@vitest/browser/context';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
-import { commands } from 'vitest/browser';
 import { TitleScreen } from './TitleScreen';
 
 function TestWrapper() {
