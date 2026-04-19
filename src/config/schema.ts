@@ -232,3 +232,82 @@ export const TunablesSchema = z.object({
 });
 
 export type Tunables = z.infer<typeof TunablesSchema>;
+
+// ─── Cockpit blueprint (Blender → R3F port) ─────────────────────────────────
+
+const Vec3 = z.tuple([z.number(), z.number(), z.number()]);
+const Vec2 = z.tuple([z.number(), z.number()]);
+const HexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+
+const CockpitMaterialSchema = z
+  .object({
+    baseColor: HexColor,
+    roughness: z.number().min(0).max(1).default(0.5),
+    metalness: z.number().min(0).max(1).default(0),
+    dotColor: HexColor.optional(),
+    dotsPerSide: z.number().int().positive().optional(),
+  })
+  .strict();
+
+/**
+ * Each mesh kind carries the parametric data Three.js needs to rebuild it.
+ * Parsing is permissive (passthrough-style) because the Blender exporter
+ * writes extra hints (notes, labels) that the loader ignores.
+ */
+const CockpitMeshSchema = z
+  .object({
+    type: z.enum([
+      'cappedHemisphere',
+      'cylinderSweep',
+      'cylinder',
+      'halfTorus',
+      'torus',
+      'box',
+      'sphere',
+      'plane',
+    ]),
+    position: Vec3.optional(),
+    rotation: Vec3.optional(),
+    rotationEuler: Vec3.optional(),
+    scale: Vec3.optional(),
+    size: z.union([Vec3, Vec2]).optional(),
+    radius: z.number().positive().optional(),
+    length: z.number().positive().optional(),
+    majorRadius: z.number().positive().optional(),
+    minorRadius: z.number().positive().optional(),
+    widthScale: z.number().positive().optional(),
+    depthScale: z.number().positive().optional(),
+    heightScale: z.number().positive().optional(),
+    widthAlongX: z.number().positive().optional(),
+    arcDeg: z.number().positive().optional(),
+    fromPos: Vec3.optional(),
+    toPos: Vec3.optional(),
+    materialRef: z.string(),
+    // Exporter hints — ignored by the loader, kept for round-trip parity.
+    note: z.string().optional(),
+    label: z.string().optional(),
+    pointsUp: z.boolean().optional(),
+    frontTipZ: z.number().optional(),
+    backCapZ: z.number().optional(),
+  })
+  .strict();
+
+export const CockpitBlueprintSchema = z
+  .object({
+    cameraPosition: Vec3,
+    cameraTargetForward: Vec3,
+    cameraFov: z
+      .object({
+        horizontalDeg: z.number().positive(),
+        near: z.number().positive(),
+        far: z.number().positive(),
+      })
+      .strict(),
+    meshes: z.record(z.string(), CockpitMeshSchema),
+    materials: z.record(z.string(), CockpitMaterialSchema),
+  })
+  .strict();
+
+export type CockpitBlueprint = z.infer<typeof CockpitBlueprintSchema>;
+export type CockpitMesh = z.infer<typeof CockpitMeshSchema>;
+export type CockpitMaterial = z.infer<typeof CockpitMaterialSchema>;
