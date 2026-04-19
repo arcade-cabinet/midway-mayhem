@@ -60,6 +60,34 @@ export function WorldScroller({ children }: { children: ReactNode }) {
         visible: c.visible,
       }));
     }
+    // Expose a scene-enumeration helper on __mm for ad-hoc debugging.
+    // Usage from devtools: __mm.enumerateMeshes() → array of {name, center,
+    // size, color} per mesh. Lets us track down mystery geometry like the
+    // red slab in #119 without holding a scene handle at build time.
+    if (w.__mm && !w.__mm.enumerateMeshes) {
+      w.__mm.enumerateMeshes = () => {
+        const scene = state.scene;
+        const out: Array<Record<string, unknown>> = [];
+        const bbox = new THREE.Box3();
+        const center = new THREE.Vector3();
+        scene.traverse((o) => {
+          // biome-ignore lint/suspicious/noExplicitAny: duck-typed THREE.Mesh
+          const mesh = o as any;
+          if (!mesh.isMesh) return;
+          bbox.setFromObject(mesh);
+          bbox.getCenter(center);
+          const color = mesh.material?.color?.getHexString?.() ?? null;
+          out.push({
+            name: mesh.name || '(unnamed)',
+            center: [center.x, center.y, center.z],
+            size: [bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z],
+            color,
+            visible: mesh.visible,
+          });
+        });
+        return out;
+      };
+    }
     const camPos = state.camera.getWorldPosition(new THREE.Vector3());
     reportScene({
       trackPieces,
