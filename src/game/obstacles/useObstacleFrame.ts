@@ -5,17 +5,12 @@
  * hide unused slots, and run collision/near-miss/pickup detection.
  *
  * Extracted from ObstacleSystem.tsx to keep that file under 300 LOC.
- *
- * NOTE: imports @/game/gameState (useGameStore) which is ported by a
- * parallel agent (Task #124 / game-state). Will typecheck once that lands.
  */
 import { useFrame } from '@react-three/fiber';
 import type * as THREE from 'three';
 import { audioBus } from '@/audio/audioBus';
 import { tunables } from '@/config';
 import { combo } from '@/game/comboSystem';
-// TODO(gameState): useGameStore comes from the in-flight gameState port.
-// When @/game/gameState lands this import resolves automatically.
 import { useGameStore } from '@/game/gameState';
 import type { ObstacleSpawner } from '@/game/obstacles/obstacleSpawner';
 import { eventsRng } from '@/game/runRngBus';
