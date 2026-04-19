@@ -149,7 +149,13 @@ export function GameLoop({ world, active, onPickup, onObstacle, onEnd }: GameLoo
       const sc = pe2.get(Score);
       const po = pe2.get(Position);
       if (sc && po) {
-        reportEcsStats({ ecsDamage: sc.damage, ecsDistance: po.distance, ecsLateral: po.lateral });
+        reportEcsStats({
+          ecsDamage: sc.damage,
+          ecsDistance: po.distance,
+          ecsLateral: po.lateral,
+          ecsBoostRemaining: sc.boostRemaining,
+          ecsCleanSeconds: sc.cleanSeconds,
+        });
       }
     }
   });

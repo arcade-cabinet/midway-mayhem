@@ -33,11 +33,31 @@ export interface DiagnosticsDump {
   comboMultiplier: number;
   distance: number;
   speedMps: number;
+  /** Physics target speed the motion system is easing toward. */
+  targetSpeedMps: number;
+  /** Last throttle input: -1 = brake, 0 = coast, +1 = full throttle. */
+  throttle: number;
   hype: number;
   sanity: number;
   crowdReaction: number;
   crashes: number;
   currentZone: string;
+  /** Active difficulty tier for this run (kazoo | plenty | nightmare | ultra-nightmare). */
+  difficulty: string;
+  /** The seed phrase that generated this run. Null if the run hasn't started. */
+  seedPhrase: string | null;
+  /** Track archetype the player is currently over (flat | ramp | plunge | etc). Null before first piece. */
+  currentPieceKind: string | null;
+  /** True when the cockpit is off the track — i.e. mid-trick airborne window. */
+  airborne: boolean;
+  /** True while a trick animation is mid-flight. */
+  trickActive: boolean;
+  /** Critters scared cumulatively this run. */
+  scaresThisRun: number;
+  /** Highest CROWD CHAIN length reached this run. */
+  maxComboThisRun: number;
+  /** Completed raid events this run. */
+  raidsSurvived: number;
   steer: number;
   lateral: number;
   obstacleCount: number;
@@ -53,6 +73,10 @@ export interface DiagnosticsDump {
   ecsDistance: number;
   /** ECS Position.lateral — drives collisions. */
   ecsLateral: number;
+  /** ECS Score.boostRemaining — seconds left on the active boost (0 when inactive). */
+  ecsBoostRemaining: number;
+  /** ECS Score.cleanSeconds — consecutive seconds without a collision. */
+  ecsCleanSeconds: number;
 }
 
 const bus = {
@@ -69,6 +93,8 @@ const bus = {
   ecsDamage: 0,
   ecsDistance: 0,
   ecsLateral: 0,
+  ecsBoostRemaining: 0,
+  ecsCleanSeconds: 0,
 };
 
 export function installDiagnosticsBus() {
@@ -98,11 +124,21 @@ export function installDiagnosticsBus() {
         comboMultiplier: combo.getMultiplier(),
         distance: s?.distance ?? 0,
         speedMps: s?.speedMps ?? 0,
+        targetSpeedMps: s?.targetSpeedMps ?? 0,
+        throttle: s?.throttle ?? 0,
         hype: s?.hype ?? 0,
         sanity: s?.sanity ?? 100,
         crowdReaction: s?.crowdReaction ?? 0,
         crashes: s?.crashes ?? 0,
         currentZone: s?.currentZone ?? 'midway-strip',
+        difficulty: s?.difficulty ?? 'plenty',
+        seedPhrase: s?.seedPhrase ?? null,
+        currentPieceKind: s?.currentPieceKind ?? null,
+        airborne: s?.airborne ?? false,
+        trickActive: s?.trickActive ?? false,
+        scaresThisRun: s?.scaresThisRun ?? 0,
+        maxComboThisRun: s?.maxComboThisRun ?? 0,
+        raidsSurvived: s?.raidsSurvived ?? 0,
         steer: s?.steer ?? 0,
         lateral: s?.lateral ?? 0,
         obstacleCount: bus.obstacleCount,
@@ -115,6 +151,8 @@ export function installDiagnosticsBus() {
         ecsDamage: bus.ecsDamage,
         ecsDistance: bus.ecsDistance,
         ecsLateral: bus.ecsLateral,
+        ecsBoostRemaining: bus.ecsBoostRemaining,
+        ecsCleanSeconds: bus.ecsCleanSeconds,
       };
     },
     setSteer(v: number) {
@@ -219,8 +257,12 @@ export function reportEcsStats(info: {
   ecsDamage: number;
   ecsDistance: number;
   ecsLateral: number;
+  ecsBoostRemaining: number;
+  ecsCleanSeconds: number;
 }) {
   bus.ecsDamage = info.ecsDamage;
   bus.ecsDistance = info.ecsDistance;
   bus.ecsLateral = info.ecsLateral;
+  bus.ecsBoostRemaining = info.ecsBoostRemaining;
+  bus.ecsCleanSeconds = info.ecsCleanSeconds;
 }
