@@ -1,22 +1,25 @@
 #!/usr/bin/env -S npx tsx
 import { type ChildProcess, spawn } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 /**
- * E2E playthrough governor: launches the real app in real Chrome, drives
- * through a scripted 15-second playthrough (click DRIVE, hold throttle,
- * alternate steer), captures 10 screenshots across the run to
- * .test-screenshots/playthrough/.
+ * E2E playthrough governor: launches the real app in real Chrome, drops
+ * into gameplay via `?autoplay=1&phrase=<seed>` (no click-through), and
+ * samples interval frames (PNG + window.__mm.diag() JSON) at a fixed
+ * cadence.
  *
- * This is the "governor" the user asked for — proves end-to-end that the
- * game works from the cockpit perspective as a player would, not just in
- * isolated unit tests.
+ * This is the local-dev counterpart to `e2e/_factory.ts`. Both use the
+ * same URL driver so "it worked in the governor" and "it worked in CI"
+ * describe the same execution path — no separate click-chain or steer
+ * plan to maintain.
  *
- * Usage: pnpm dev in another terminal, then:
- *   pnpm tsx scripts/playthrough-governor.ts
- * (or) with a bundled server: the script starts vite preview itself if
- * the `--self-host` flag is passed.
+ * Usage:
+ *   pnpm dev             (in another terminal)
+ *   pnpm playthrough     (talks to localhost:5173)
+ *
+ *   or self-hosted:
+ *   pnpm playthrough:self --self-host
  */
 import { chromium } from 'playwright';
 
@@ -25,12 +28,16 @@ const __dirname = dirname(__filename);
 const REPO_ROOT = resolve(__dirname, '..');
 const OUTPUT_DIR = resolve(REPO_ROOT, '.test-screenshots/playthrough');
 const APP_URL_DEFAULT = 'http://localhost:5173/midway-mayhem/';
+const DEFAULT_PHRASE = 'neon-polkadot-jalopy';
+const DEFAULT_DIFFICULTY = 'plenty';
 
 interface Options {
   url: string;
   selfHost: boolean;
-  frames: number;
-  durationMs: number;
+  phrase: string;
+  difficulty: string;
+  intervalMs: number;
+  maxFrames: number;
 }
 
 function parseArgs(): Options {
@@ -38,15 +45,19 @@ function parseArgs(): Options {
   const opts: Options = {
     url: APP_URL_DEFAULT,
     selfHost: false,
-    frames: 10,
-    durationMs: 15_000,
+    phrase: DEFAULT_PHRASE,
+    difficulty: DEFAULT_DIFFICULTY,
+    intervalMs: 2_000,
+    maxFrames: 10,
   };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === '--url') opts.url = args[++i] ?? opts.url;
     else if (a === '--self-host') opts.selfHost = true;
-    else if (a === '--frames') opts.frames = Number(args[++i] ?? opts.frames);
-    else if (a === '--duration-ms') opts.durationMs = Number(args[++i] ?? opts.durationMs);
+    else if (a === '--phrase') opts.phrase = args[++i] ?? opts.phrase;
+    else if (a === '--difficulty') opts.difficulty = args[++i] ?? opts.difficulty;
+    else if (a === '--interval-ms') opts.intervalMs = Number(args[++i] ?? opts.intervalMs);
+    else if (a === '--max-frames') opts.maxFrames = Number(args[++i] ?? opts.maxFrames);
   }
   return opts;
 }
@@ -76,14 +87,23 @@ async function startPreviewServer(): Promise<{ proc: ChildProcess; url: string }
 
 async function run() {
   const opts = parseArgs();
-  await mkdir(OUTPUT_DIR, { recursive: true });
+  const outDir = resolve(OUTPUT_DIR, opts.phrase);
+  await mkdir(outDir, { recursive: true });
 
   let server: { proc: ChildProcess; url: string } | null = null;
-  let url = opts.url;
+  let baseUrl = opts.url;
   if (opts.selfHost) {
     server = await startPreviewServer();
-    url = server.url;
+    baseUrl = server.url;
   }
+
+  const params = new URLSearchParams({
+    autoplay: '1',
+    governor: '1',
+    phrase: opts.phrase,
+    difficulty: opts.difficulty,
+  });
+  const url = `${baseUrl}?${params.toString()}`;
 
   const browser = await chromium.launch({
     channel: 'chrome',
@@ -98,76 +118,82 @@ async function run() {
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const page = await context.newPage();
 
+  const consoleErrors: string[] = [];
   page.on('console', (msg) => {
-    // eslint-disable-next-line no-console
     console.log(`[browser:${msg.type()}]`, msg.text());
+    if (msg.type() === 'error') consoleErrors.push(msg.text());
   });
   page.on('pageerror', (err) => {
-    // eslint-disable-next-line no-console
     console.error('[browser:pageerror]', err.message);
+    consoleErrors.push(String(err));
   });
 
-  // eslint-disable-next-line no-console
   console.log(`[governor] navigating to ${url}`);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('[data-testid="title-drive-button"]', { timeout: 10_000 });
-  await page.click('[data-testid="title-drive-button"]');
-  await page.waitForTimeout(600); // allow title fade
+  await page.waitForSelector('canvas', { timeout: 20_000 });
 
-  // Start throttle.
-  await page.keyboard.down('ArrowUp');
+  const start = Date.now();
+  interface FrameDump {
+    frame: number;
+    elapsedMs: number;
+    diag: Record<string, unknown> | null;
+    screenshotPath: string;
+  }
+  const frames: FrameDump[] = [];
 
-  const captureAt = (idx: number, label: string) =>
-    page.screenshot({
-      path: resolve(OUTPUT_DIR, `${String(idx).padStart(2, '0')}-${label}.png`),
-      fullPage: false,
+  for (let i = 0; i < opts.maxFrames; i++) {
+    await page.waitForTimeout(opts.intervalMs);
+    const elapsedMs = Date.now() - start;
+
+    const diag = await page.evaluate(() => {
+      const w = window as { __mm?: { diag?: () => unknown } };
+      try {
+        return (w.__mm?.diag?.() as Record<string, unknown>) ?? null;
+      } catch {
+        return null;
+      }
     });
 
-  const frameInterval = opts.durationMs / opts.frames;
-  // Alternate steer across run: LEFT for thirds 0..2, NONE, RIGHT 3..5, NONE, LEFT 6..8, NONE.
-  const steerPlan: (KeyboardKey | null)[] = [
-    'ArrowLeft',
-    null,
-    'ArrowRight',
-    null,
-    'ArrowLeft',
-    null,
-    'ArrowRight',
-    null,
-    'ArrowLeft',
-    null,
-  ];
-
-  let currentSteer: KeyboardKey | null = null;
-  for (let i = 0; i < opts.frames; i++) {
-    const targetSteer = steerPlan[i % steerPlan.length] ?? null;
-    if (currentSteer !== targetSteer) {
-      if (currentSteer) await page.keyboard.up(currentSteer);
-      if (targetSteer) await page.keyboard.down(targetSteer);
-      currentSteer = targetSteer;
-    }
-    await page.waitForTimeout(frameInterval);
-    await captureAt(i, `t${String(Math.round((i + 1) * frameInterval)).padStart(5, '0')}ms`);
-    // eslint-disable-next-line no-console
-    console.log(`[governor] captured frame ${i + 1}/${opts.frames}`);
+    const pngName = `frame-${String(i).padStart(2, '0')}.png`;
+    const jsonName = `frame-${String(i).padStart(2, '0')}.json`;
+    const pngPath = resolve(outDir, pngName);
+    const jsonPath = resolve(outDir, jsonName);
+    await page.screenshot({ type: 'png', path: pngPath });
+    await writeFile(
+      jsonPath,
+      JSON.stringify(
+        { frame: i, elapsedMs, phrase: opts.phrase, difficulty: opts.difficulty, diag },
+        null,
+        2,
+      ),
+    );
+    frames.push({ frame: i, elapsedMs, diag, screenshotPath: pngPath });
+    console.log(`[governor] frame ${i + 1}/${opts.maxFrames} @ t+${elapsedMs}ms`);
   }
 
-  if (currentSteer) await page.keyboard.up(currentSteer);
-  await page.keyboard.up('ArrowUp');
+  await writeFile(
+    resolve(outDir, 'summary.json'),
+    JSON.stringify(
+      {
+        phrase: opts.phrase,
+        difficulty: opts.difficulty,
+        intervalMs: opts.intervalMs,
+        frameCount: frames.length,
+        firstDiag: frames[0]?.diag ?? null,
+        lastDiag: frames[frames.length - 1]?.diag ?? null,
+        consoleErrors,
+      },
+      null,
+      2,
+    ),
+  );
 
   await browser.close();
   if (server) server.proc.kill();
-  // eslint-disable-next-line no-console
-  console.log(`[governor] done — ${opts.frames} frames in ${OUTPUT_DIR}`);
+  console.log(`[governor] done — ${frames.length} frames in ${outDir}`);
 }
 
-type KeyboardKey = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | ' ';
-
 run().catch((err) => {
-  // eslint-disable-next-line no-console
   console.error('[governor] failed:', err);
   process.exitCode = 1;
 });
-
-// Quieten unused-path when building.
-void dirname;
