@@ -84,28 +84,31 @@ domain: context
 
 ---
 
-## What is NOT done (Track C — wire the orphan code)
+## Track C (wire the orphan code) — done
 
-These modules compiled successfully in PR #21 but nothing imports them in the live `App.tsx`. They are "dark code." See `docs/gap-analysis/PLAN.md` Track C for the full wiring plan.
+All dark code from PR #21 is now wired. Audit confirms imports in live App/GameLoop:
 
 | Module | Status |
 |--------|--------|
-| `src/game/runPlan.ts` → drives spawns | Live `seedContent` not replaced yet |
-| `ObstacleSystem` + `PickupSystem` | Compiled, not imported |
-| `StartPlatform` + `FinishBanner` | Compiled, not imported |
-| `RaidDirector` | Compiled, not wired into GameLoop |
-| `BalloonLayer` / `MirrorLayer` / `FireHoopGate` | Compiled, not gated by zone |
-| `conductor.ts` | Compiled, not called on run start |
-| `BarkerCrowd` | Compiled, not in scene |
-| `replayRecorder` | Compiled, not wired |
-| `RacingLineGhost` | Compiled, not in cockpit scene |
-| `src/track/trackComposer.ts` | Decision: DELETE (PLAN.md A5) |
+| `src/game/runPlan.ts` | Wired — drives canonical spawns |
+| `ObstacleSystem` | Wired |
+| `PickupSystem` | Deliberately a null shell (visuals owned by `TrackContent.tsx`) |
+| `StartPlatform` + `FinishBanner` | Wired |
+| `RaidDirector` | Wired into GameLoop |
+| `BalloonLayer` / `MirrorLayer` / `FireHoopGate` | Wired |
+| `conductor.ts` | Started by `useArcadeAudio` on first user gesture; re-keys on zone transition |
+| `BarkerCrowd` | Wired |
+| `replayRecorder` | Wired |
+| `RacingLineGhost` | Wired into cockpit |
+| `src/track/trackComposer.ts` | Deleted per PLAN.md A5 |
 
 ---
 
 ## Active work (as of 2026-04-19)
 
-**Recent merges (today):**
+**Recent merges (today's session, 24 PRs):**
+
+Code cleanup + telemetry foundations:
 - #166 `useKeyboardControls` → `useTitleKeyboard` rename + editable-target guard + ref-stable listener
 - #167 typed `@vitest/browser/context` imports — dropped 8 `@ts-expect-error` directives
 - #168 removed stale cockpit-prototype artifacts; Blender re-renders now land in gitignored `.cockpit-prototype/`
@@ -114,11 +117,19 @@ These modules compiled successfully in PR #21 but nothing imports them in the li
 - #171 CI uploads `playthrough-dumps` artifact
 - #172 `scripts/playthrough-governor.ts` now uses the autoplay URL (previously broken since #170)
 - #173 enriched `__mm.diag()` dump — difficulty, seedPhrase, throttle, targetSpeedMps, airborne, trickActive, scaresThisRun, maxComboThisRun, raidsSurvived, ecsBoostRemaining, ecsCleanSeconds
-- #174 fast single-seed playthrough smoke spec (merge-gate candidate)
+- #174/#180/#182/#183/#184/#186/#188/#189 iterations on the playthrough-smoke spec
 - #175 deleted flaky `visual-regression.spec.ts` — root cause of 50+ min CI stalls
 - #176 README "Playthrough telemetry" section
+- #177 STATE.md refresh
+- #178 e2e job `timeout-minutes: 20` cap
+- #179 split smoke vs nightly + scheduled nightly workflow
+- #181 docs/TESTING.md smoke vs nightly section
+- #185 removed `continue-on-error` from three CI jobs — all blocking now except Maestro emulator step
+- #187 disabled `preserveDrawingBuffer` in prod (fixing a per-frame GPU stall revealed by trace download)
 
-**Track C** (next PR): wire the orphan code — RunPlan canonical path, obstacle/pickup systems, raid director, audio conductor.
+**CI reliability arc** — E2E merge gate went from 90-min stalls to 3-minute green runs. See PR chain #175 → #188.
+
+**Track C (orphan code wiring)** is done — see table above.
 
 ---
 
@@ -126,8 +137,9 @@ These modules compiled successfully in PR #21 but nothing imports them in the li
 
 - iPhone 14 Pro + mid-tier Android FPS: unverified (no real-device baseline)
 - release-please GitHub Actions PR permission not yet enabled in repo settings (requires manual repo settings change — see DEPLOYMENT.md)
-- CI E2E job was stalling 50+ min because `visual-regression.spec.ts` pinned baselines were hand-drawn landing art (100% pixel mismatch → 30s timeout → retries → browser crash cascade). Spec deleted in #175; watching the next few runs to confirm the fix.
-- Android Maestro CI job is flaky on every PR (ADB daemon connect failures before the flow can start). Treat as known non-blocking infra flake; merges on other green checks.
+- CI E2E job was stalling 50+ min because `visual-regression.spec.ts` pinned baselines were hand-drawn landing art (100% pixel mismatch → 30s timeout → retries → browser crash cascade). Fixed across PRs #175 → #188; E2E now completes in ~3 min.
+- Android Maestro CI emulator step is flaky (ADB daemon connect failures). Scoped `continue-on-error: true` on that step only (APK build itself blocks). Non-blocking by design.
+- CI swiftshader still emits `GL Driver Message: GPU stall due to ReadPixels` even after #187's `preserveDrawingBuffer: false` fix. Candidate remaining sources: `@react-three/drei`'s `MeshReflectorMaterial` (rear-view mirror, resolution=512), `EffectComposer`'s bloom `mipmapBlur`. Effect: 3-5× game-time dilation on CI (distance takes ~60s wall to reach 3m). Doesn't affect real devices or the merge gate; deep nightly `seed-playthroughs` hits the 45-min cap as a result and gets cancelled.
 
 ---
 
