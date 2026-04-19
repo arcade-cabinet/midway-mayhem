@@ -50,6 +50,7 @@ describe('persistence barrel exports', () => {
       'setLoadout',
       'spendTickets',
     ] as const) {
+      // biome-ignore lint/performance/noDynamicNamespaceImportAccess: test-only re-export coverage; tree-shaking doesn't apply to vitest runs
       expect(typeof persistence[fn]).toBe('function');
     }
   });
