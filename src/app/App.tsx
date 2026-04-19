@@ -47,6 +47,7 @@ import { Track } from '@/render/Track';
 import { TrackContent } from '@/render/TrackContent';
 import { FinishBanner } from '@/render/track/FinishBanner';
 import { StartPlatform } from '@/render/track/StartPlatform';
+import { TrackScroller } from '@/render/track/TrackScroller';
 import { ZoneBanners } from '@/render/ZoneBanners';
 import { saveScore } from '@/storage/scores';
 import { initDailyRouteFromUrl } from '@/track/dailyRoute';
@@ -139,19 +140,21 @@ export function App() {
             <BigTopEnvironment night={night} />
             <ZoneProps />
           </Suspense>
-          <Track />
-          <TrackContent />
-          <ObstacleSystem />
-          <StartPlatform />
-          <FinishBanner />
-          <BalloonLayer />
-          <MirrorLayer />
-          <FireHoopGate />
-          <BarkerCrowd />
+          <TrackScroller>
+            <Track />
+            <TrackContent />
+            <ObstacleSystem />
+            <StartPlatform />
+            <FinishBanner />
+            <BalloonLayer />
+            <MirrorLayer />
+            <FireHoopGate />
+            <BarkerCrowd />
+            <ZoneBanners />
+            <GhostCar />
+          </TrackScroller>
           <RaidBridge />
           <RaidLayer />
-          <ZoneBanners />
-          <GhostCar />
           <Cockpit />
           <SpeedLines />
           <BoostRush />

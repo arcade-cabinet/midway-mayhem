@@ -17,14 +17,13 @@
  * Everything coalesces into a handful of draw calls (surface, underside,
  * walls, stripes, curbs-red, curbs-white) regardless of segment count.
  */
-import { useFrame } from '@react-three/fiber';
-import { useQuery, useWorld } from 'koota/react';
+import { useQuery } from 'koota/react';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { trackArchetypes } from '@/config';
 import { integratePose, type Pose } from '@/ecs/systems/track';
-import { type SampledSegment, sampleTrackPose } from '@/ecs/systems/trackSampler';
-import { Player, Position, TrackSegment } from '@/ecs/traits';
+import type { SampledSegment } from '@/ecs/systems/trackSampler';
+import { TrackSegment } from '@/ecs/traits';
 import { getTrackTexture } from './trackTexture';
 
 const SEGMENT_SUBDIVISIONS = 12;
@@ -281,11 +280,10 @@ function buildTrackGeometry(segments: SegmentInput[]): BuiltGeo {
 
 export function Track() {
   const segments = useQuery(TrackSegment);
-  const world = useWorld();
   const groupRef = useRef<THREE.Group>(null);
   const surfaceTex = useMemo(() => getTrackTexture(), []);
 
-  const { built, sampled } = useMemo(() => {
+  const { built } = useMemo(() => {
     const traits = segments
       .map((e) => {
         const seg = e.get(TrackSegment);
@@ -332,40 +330,12 @@ export function Track() {
     };
   }, [segments]);
 
-  // Each frame: offset + counter-rotate the whole track so that the pose
-  // at the player's current distance lines up with the cockpit at origin,
-  // looking forward along -z. The cockpit NEVER moves — the world does.
-  useFrame(() => {
-    const g = groupRef.current;
-    if (!g) return;
-    const players = world.query(Player, Position);
-    if (players.length === 0) return;
-    const first = players[0];
-    if (!first) return;
-    const pos = first.get(Position);
-    if (!pos) return;
-
-    const p = sampleTrackPose(sampled, pos.distance);
-    // Anchor point on the track, with lateral offset perpendicular to
-    // forward (player moving side-to-side on a 4-lane road).
-    const rightX = Math.cos(p.yaw);
-    const rightZ = -Math.sin(p.yaw);
-    const ax = p.x + rightX * pos.lateral;
-    const ay = p.y;
-    const az = p.z + rightZ * pos.lateral;
-
-    // Counter-rotate by the pose's yaw + pitch so "forward" along the
-    // track becomes -z in world space.
-    g.rotation.set(-p.pitch, -p.yaw, 0, 'YXZ');
-    // Then translate: we want the anchor (after rotation) to sit at origin.
-    // Three applies T then R? Actually Group's matrix = T * R * S, meaning
-    // local → world is: world = T * R * local. So world(anchor) = 0 means
-    // T = -R * anchor.
-    const negAnchor = new THREE.Vector3(-ax, -ay, -az);
-    negAnchor.applyEuler(g.rotation);
-    g.position.copy(negAnchor);
-    g.updateMatrixWorld();
-  });
+  // NOTE: Track used to counter-rotate its own group each frame. That
+  // transform is now owned by <TrackScroller> in App.tsx, which wraps
+  // Track + all other track-anchored props so they share the same
+  // scrolling world. See issue #119. Track itself is now just the static
+  // geometry; its ancestor TrackScroller group does the follow-camera
+  // transform for the whole world.
 
   return (
     <group ref={groupRef}>
