@@ -24,16 +24,30 @@ export function FinishBanner() {
   const sampled = useSampledTrack();
   const checkerTex = useMemo(() => makeCheckerTexture(), []);
 
+  // Total length of the ECS-sampled track. If the run plan's finish distance
+  // is beyond this, sampleTrackPose would clamp the banner to the last-
+  // segment pose — which lands it right on top of the player's world-space
+  // camera position (see issue #119). Defer rendering the banner until the
+  // player is within the sampled track extent of the finish line.
+  const sampledTotal = useMemo(() => {
+    if (sampled.length === 0) return 0;
+    const last = sampled[sampled.length - 1];
+    return last ? last.distanceStart + last.length : 0;
+  }, [sampled]);
+
   const bannerPose = useMemo(
-    () => (finishBanner && sampled.length > 0 ? sampleTrackPose(sampled, finishBanner.d) : null),
-    [sampled, finishBanner],
+    () =>
+      finishBanner && sampled.length > 0 && finishBanner.d <= sampledTotal
+        ? sampleTrackPose(sampled, finishBanner.d)
+        : null,
+    [sampled, sampledTotal, finishBanner],
   );
   const goalPose = useMemo(
     () =>
-      finishBanner && sampled.length > 0
+      finishBanner && sampled.length > 0 && finishBanner.d <= sampledTotal
         ? sampleTrackPose(sampled, finishBanner.d + finishBanner.goalPlatformDepthM / 2)
         : null,
-    [sampled, finishBanner],
+    [sampled, sampledTotal, finishBanner],
   );
 
   if (!finishBanner || !bannerPose || !goalPose) return null;
