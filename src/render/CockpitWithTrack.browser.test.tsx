@@ -9,13 +9,12 @@
  */
 import { Canvas, useThree } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
+import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { useEffect } from 'react';
 import type * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
-import { commands } from 'vitest/browser';
 import { seedTrack } from '@/ecs/systems/track';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { BigTopEnvironment } from '@/render/Environment';

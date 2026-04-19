@@ -13,11 +13,10 @@
  * that render full tracks come LATER.
  */
 import { render, waitFor } from '@testing-library/react';
+import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
-import { commands } from 'vitest/browser';
 import { trackArchetypes } from '@/config';
 import { LaneCount, TrackSegment } from '@/ecs/traits';
 import { Track } from '@/render/Track';

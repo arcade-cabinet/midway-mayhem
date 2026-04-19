@@ -15,9 +15,8 @@
  * visual gate.
  */
 import { render, waitFor } from '@testing-library/react';
+import { commands } from '@vitest/browser/context';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
-import { commands } from 'vitest/browser';
 import { diag, driveInto, waitForDistance, waitFrames } from '@/test/integration';
 import { App } from './App';
 
