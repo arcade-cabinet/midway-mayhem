@@ -6,10 +6,23 @@
  */
 
 import trackPiecesJson from './archetypes/track-pieces.json';
-import { TrackArchetypeSetSchema, TunablesSchema } from './schema';
+import cockpitBlueprintJson from './cockpit-blueprint.json';
+import {
+  CockpitBlueprintSchema,
+  TrackArchetypeSetSchema,
+  TunablesSchema,
+} from './schema';
 import tunablesJson from './tunables.json';
 
 export const trackArchetypes = TrackArchetypeSetSchema.parse(trackPiecesJson);
 export const tunables = TunablesSchema.parse(tunablesJson);
+export const cockpitBlueprint = CockpitBlueprintSchema.parse(cockpitBlueprintJson);
 
-export type { TrackArchetype, TrackArchetypeSet, Tunables } from './schema';
+export type {
+  CockpitBlueprint,
+  CockpitMaterial,
+  CockpitMesh,
+  TrackArchetype,
+  TrackArchetypeSet,
+  Tunables,
+} from './schema';
