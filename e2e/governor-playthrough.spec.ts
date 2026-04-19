@@ -12,6 +12,10 @@ test.describe('governor playthrough', () => {
   test('autoplay=1 starts the game and the governor keeps it running @nightly', async ({
     page,
   }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'desktop-chromium',
+      'governor playthrough runs on desktop-chromium only (telemetry nightly)',
+    );
     const consoleErrors: string[] = [];
     page.on('pageerror', (err) => consoleErrors.push(String(err)));
     page.on('console', (msg) => {
@@ -65,7 +69,13 @@ test.describe('governor playthrough', () => {
     await expect(page.getByTestId('start-button')).toBeVisible();
   });
 
-  test('NEW RUN → NewRunModal → PLAY transitions into the game @nightly', async ({ page }) => {
+  test('NEW RUN → NewRunModal → PLAY transitions into the game @nightly', async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'desktop-chromium',
+      'modal flow runs on desktop-chromium only (telemetry nightly)',
+    );
     await page.goto('/midway-mayhem/');
     await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 20_000 });
 
