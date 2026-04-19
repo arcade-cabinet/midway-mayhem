@@ -263,6 +263,15 @@ export const TunablesSchema = z.object({
       laneWidth: z.number().positive(),
     })
     .strict(),
+  /** Per-zone musical key + tempo for the CircusConductor. */
+  zones: z
+    .object({
+      'midway-strip': z.object({ root: z.string(), tempo: z.number().positive() }).strict(),
+      'balloon-alley': z.object({ root: z.string(), tempo: z.number().positive() }).strict(),
+      'ring-of-fire': z.object({ root: z.string(), tempo: z.number().positive() }).strict(),
+      'funhouse-frenzy': z.object({ root: z.string(), tempo: z.number().positive() }).strict(),
+    })
+    .strict(),
   /** Honk / critter-scare tuning. */
   honk: z
     .object({

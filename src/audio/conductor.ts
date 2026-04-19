@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import { tunables } from '@/config';
 import type { ZoneId } from '@/utils/constants';
 import { getBuses } from './buses';
 
@@ -13,9 +14,8 @@ import { getBuses } from './buses';
  * Phrase templates drive the melody; transforms (octave shift, chromatic
  * neighbor, rhythmic augmentation) add variation.
  *
- * NOTE: Zone key config (root/tempo) uses inline defaults here because the
- * v2 tunables schema does not yet include a `zones` sub-object.
- * TODO: extend TunablesSchema with zones block and read from tunables.
+ * Zone key config (root/tempo) is sourced from `tunables.zones` so tuning
+ * the calliope's per-zone mood is a config edit, not a code change.
  */
 
 type PhraseDegree = number;
@@ -49,16 +49,8 @@ const PHRASES: Phrase[] = [
   },
 ];
 
-/** Zone key config — inline until tunables.json gains a zones block. */
-const ZONE_CONFIG: Record<ZoneId, { root: string; tempo: number }> = {
-  'midway-strip': { root: 'C4', tempo: 132 },
-  'balloon-alley': { root: 'D4', tempo: 128 },
-  'ring-of-fire': { root: 'A3', tempo: 140 },
-  'funhouse-frenzy': { root: 'F4', tempo: 148 },
-};
-
 function getZoneKey(zone: ZoneId): { root: string; tempo: number } {
-  return ZONE_CONFIG[zone];
+  return tunables.zones[zone];
 }
 
 const MAJOR_SCALE_STEPS = [0, 2, 4, 5, 7, 9, 11, 12, 14];

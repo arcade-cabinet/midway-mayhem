@@ -198,6 +198,12 @@
     "laneCount": 4,
     "laneWidth": 3.3
   },
+  "zones": {
+    "midway-strip": { "root": "C4", "tempo": 132 },
+    "balloon-alley": { "root": "D4", "tempo": 128 },
+    "ring-of-fire": { "root": "A3", "tempo": 140 },
+    "funhouse-frenzy": { "root": "F4", "tempo": 148 }
+  },
   "honk": {
     "scareRadiusM": 30,
     "fleeLateralM": 6,
