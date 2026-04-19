@@ -1,12 +1,12 @@
 /**
  * ecs/systems/collisions unit tests — covers the obstacle + pickup
- * consumption flags and onObstacle / onPickup callbacks, plus the
- * broadphase culling. Note: Score + Speed mutations inside stepCollisions
- * write to a snapshot (not a live SoA ref) so we don't assert those here;
- * the consume + callback surface is the verifiable contract.
+ * consumption flags, onObstacle / onPickup callbacks, broadphase culling,
+ * and the Score + Speed mutations applied to the player each tick.
  */
+
 import { createWorld } from 'koota';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { tunables } from '@/config';
 import { stepCollisions } from '@/ecs/systems/collisions';
 import {
   Obstacle,
@@ -177,5 +177,135 @@ describe('stepCollisions', () => {
     spawnPlayer(w);
     spawnObstacle(w, 'cone', 1, 0);
     expect(() => stepCollisions(w, 1 / 60)).not.toThrow();
+  });
+
+  // ─── Score + Speed mutations ──────────────────────────────────────────────
+
+  function getScore(w: ReturnType<typeof createWorld>) {
+    return w.query(Player, Score)[0]?.get(Score);
+  }
+  function getSpeed(w: ReturnType<typeof createWorld>) {
+    return w.query(Player, Speed)[0]?.get(Speed);
+  }
+
+  it('barrier hit applies +2 damage and 0.3× speed', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 30 });
+    spawnObstacle(w, 'barrier', 1.5, 0);
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(2);
+    expect(getSpeed(w)?.value).toBeCloseTo(30 * 0.3, 5);
+  });
+
+  it('cone hit: +1 damage, 0.6× speed', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 30 });
+    spawnObstacle(w, 'cone', 1, 0);
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(1);
+    expect(getSpeed(w)?.value).toBeCloseTo(30 * 0.6, 5);
+  });
+
+  it('gate hit: +1 damage, 0.75× speed', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 30 });
+    spawnObstacle(w, 'gate', 1, 0);
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(1);
+    expect(getSpeed(w)?.value).toBeCloseTo(30 * 0.75, 5);
+  });
+
+  it('oil hit: no damage, 0.5× speed', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 30 });
+    spawnObstacle(w, 'oil', 1, 0);
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(0);
+    expect(getSpeed(w)?.value).toBeCloseTo(30 * 0.5, 5);
+  });
+
+  it('hammer hit: +2 damage, 0.4× speed', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 30 });
+    spawnObstacle(w, 'hammer', 1, 0);
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(2);
+    expect(getSpeed(w)?.value).toBeCloseTo(30 * 0.4, 5);
+  });
+
+  it('near-miss adds +5 to score.value', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { lateral: 0, speed: 0 });
+    spawnObstacle(w, 'cone', 1, 2.0);
+    stepCollisions(w, 1 / 60);
+    const s = getScore(w);
+    // Near-miss bonus 5 plus speed*dt*(1+clean*0.02); speed=0 → only 5.
+    expect(s?.value).toBeCloseTo(5, 5);
+    expect(s?.damage).toBe(0);
+  });
+
+  it('balloon pickup: +100 to value, +1 balloon', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 0 });
+    spawnPickup(w, 'balloon', 1, 0);
+    stepCollisions(w, 1 / 60);
+    const s = getScore(w);
+    expect(s?.balloons).toBe(1);
+    expect(s?.value).toBeCloseTo(100, 5);
+  });
+
+  it('boost pickup sets boostRemaining to ~2.5s (minus this tick)', () => {
+    const w = freshWorld();
+    spawnPlayer(w);
+    spawnPickup(w, 'boost', 1, 0);
+    stepCollisions(w, 1 / 60);
+    const rem = getScore(w)?.boostRemaining ?? 0;
+    expect(rem).toBeGreaterThan(2.4);
+    expect(rem).toBeLessThan(2.5);
+  });
+
+  it('mega pickup raises boostRemaining to ~3.5 and adds +250', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 0 });
+    spawnPickup(w, 'mega', 1, 0);
+    stepCollisions(w, 1 / 60);
+    const s = getScore(w);
+    expect(s?.boostRemaining).toBeGreaterThan(3.4);
+    expect(s?.value).toBeGreaterThanOrEqual(250);
+  });
+
+  it('boost countdown ticks and overrides speed.target', () => {
+    const w = freshWorld();
+    spawnPlayer(w);
+    spawnPickup(w, 'boost', 1, 0);
+    stepCollisions(w, 1 / 60);
+    const t0 = getScore(w)?.boostRemaining ?? 0;
+    stepCollisions(w, 0.5);
+    const t1 = getScore(w)?.boostRemaining ?? 0;
+    expect(t1).toBeLessThan(t0);
+    expect(getSpeed(w)?.target).toBeCloseTo(tunables.cruiseMps * 1.6, 3);
+  });
+
+  it('cleanSeconds accumulates each frame when no hits', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 30 });
+    stepCollisions(w, 1);
+    const s1 = getScore(w)?.cleanSeconds ?? 0;
+    stepCollisions(w, 1);
+    const s2 = getScore(w)?.cleanSeconds ?? 0;
+    expect(s2).toBeGreaterThan(s1);
+  });
+
+  it('a hit resets cleanSeconds (then +dt applied in the same tick)', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { speed: 30 });
+    // Ramp cleanSeconds first
+    stepCollisions(w, 2);
+    expect(getScore(w)?.cleanSeconds ?? 0).toBeGreaterThan(1);
+    // Place barrier within broadphase band (< 12m ahead of player at 0)
+    spawnObstacle(w, 'barrier', 1.5, 0);
+    stepCollisions(w, 1 / 60);
+    // cleanSeconds reset happens, then += dt → close to dt
+    expect(getScore(w)?.cleanSeconds ?? 99).toBeLessThan(0.1);
   });
 });
