@@ -18,6 +18,28 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
     chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        // Code-split the large third-party libs into their own chunks so
+        // an app-code change doesn't invalidate the whole bundle cache on
+        // deploy. Tone + three + drei weigh hundreds of KB and change
+        // infrequently; separating them lets browsers keep them cached
+        // across releases.
+        manualChunks(id: string): string | undefined {
+          if (id.includes('node_modules/three/')) return 'three';
+          if (id.includes('node_modules/@react-three/')) return 'r3f';
+          if (id.includes('node_modules/tone/')) return 'tone';
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/scheduler/')
+          )
+            return 'react';
+          if (id.includes('node_modules/koota/')) return 'koota';
+          return undefined;
+        },
+      },
+    },
   },
   server: { port: 5173, strictPort: false },
   preview: { port: 4175 },
