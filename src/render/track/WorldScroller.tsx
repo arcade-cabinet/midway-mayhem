@@ -9,8 +9,8 @@
  * as point' = R * p + T, so to achieve the desired inverse-of-player-pose
  * transform we pre-rotate the negated player position.
  */
-import { useFrame } from '@react-three/fiber';
-import { type ReactNode, useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { type ReactNode, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { reportScene } from '@/game/diagnosticsBus';
 import { useGameStore } from '@/game/gameState';
@@ -21,6 +21,41 @@ import { TRACK } from '@/utils/constants';
 export function WorldScroller({ children }: { children: ReactNode }) {
   const groupRef = useRef<THREE.Group>(null);
   const composition = useMemo(() => composeTrack(DEFAULT_TRACK, 10), []);
+  const scene = useThree((s) => s.scene);
+
+  // Install __mm.enumerateMeshes() on mount — captures the scene reference
+  // once so the helper works even when the game is paused (useFrame stalls
+  // when the Canvas isn't actively animating). Essential for debugging
+  // mystery geometry like the red slab in #119.
+  useEffect(() => {
+    // biome-ignore lint/suspicious/noExplicitAny: dev handle on window
+    const w = window as any;
+    if (!w.__mm) return;
+    w.__mm.enumerateMeshes = () => {
+      const out: Array<Record<string, unknown>> = [];
+      const bbox = new THREE.Box3();
+      const center = new THREE.Vector3();
+      scene.traverse((o) => {
+        // biome-ignore lint/suspicious/noExplicitAny: duck-typed
+        const mesh = o as any;
+        if (!mesh.isMesh) return;
+        bbox.setFromObject(mesh);
+        bbox.getCenter(center);
+        const color = mesh.material?.color?.getHexString?.() ?? null;
+        out.push({
+          name: mesh.name || '(unnamed)',
+          center: [center.x, center.y, center.z],
+          size: [bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z],
+          color,
+          visible: mesh.visible,
+        });
+      });
+      return out;
+    };
+    return () => {
+      w.__mm.enumerateMeshes = undefined;
+    };
+  }, [scene]);
 
   useFrame((state) => {
     const s = useGameStore.getState();
@@ -59,34 +94,6 @@ export function WorldScroller({ children }: { children: ReactNode }) {
         worldPos: c.getWorldPosition(_tmp.clone()).toArray(),
         visible: c.visible,
       }));
-    }
-    // Expose a scene-enumeration helper on __mm for ad-hoc debugging.
-    // Usage from devtools: __mm.enumerateMeshes() → array of {name, center,
-    // size, color} per mesh. Lets us track down mystery geometry like the
-    // red slab in #119 without holding a scene handle at build time.
-    if (w.__mm && !w.__mm.enumerateMeshes) {
-      w.__mm.enumerateMeshes = () => {
-        const scene = state.scene;
-        const out: Array<Record<string, unknown>> = [];
-        const bbox = new THREE.Box3();
-        const center = new THREE.Vector3();
-        scene.traverse((o) => {
-          // biome-ignore lint/suspicious/noExplicitAny: duck-typed THREE.Mesh
-          const mesh = o as any;
-          if (!mesh.isMesh) return;
-          bbox.setFromObject(mesh);
-          bbox.getCenter(center);
-          const color = mesh.material?.color?.getHexString?.() ?? null;
-          out.push({
-            name: mesh.name || '(unnamed)',
-            center: [center.x, center.y, center.z],
-            size: [bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z],
-            color,
-            visible: mesh.visible,
-          });
-        });
-        return out;
-      };
     }
     const camPos = state.camera.getWorldPosition(new THREE.Vector3());
     reportScene({
