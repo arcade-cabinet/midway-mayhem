@@ -168,7 +168,6 @@ Requires:
 
 ---
 
-## Known gaps (as of 2026-04-18)
+## Known gaps (as of 2026-04-19)
 
 - iPhone 14 Pro + mid-tier Android FPS unverified (no real-device baseline yet)
-- E2E smoke suite is `continue-on-error: true` for now. Flip to false once it runs green for several consecutive PRs.

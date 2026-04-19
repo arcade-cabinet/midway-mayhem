@@ -67,7 +67,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Run browser smoke tests
         run: pnpm test:browser smoke --passWithNoTests
-        continue-on-error: false
 
   browser-snapshots:
     name: Browser Snapshot Tests
@@ -85,7 +84,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Run browser snapshot tests
         run: pnpm test:browser
-        continue-on-error: true
 
   build:
     name: Production Build + Bundle Budget
@@ -121,9 +119,10 @@ jobs:
     # reactivecircus/android-emulator-runner uses for x86_64 api-33 emulators.
     runs-on: ubuntu-latest
     needs: [build]
-    # Non-blocking — emulator boots are flaky on CI and nice-to-have smoke,
-    # not a user-visible ship gate. The web build is the primary deliverable.
-    continue-on-error: true
+    # APK build is blocking — it's the shipped Android artifact. Only the
+    # Maestro emulator run is non-blocking (scoped via continue-on-error
+    # on that specific step) because KVM emulator boot is a known CI
+    # flake unrelated to app health.
     permissions:
       contents: read
     steps:
@@ -183,6 +182,10 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Run all Maestro flows on emulator (api-33 / google_apis / x86_64)
+        # KVM emulator boot on GitHub Actions runners flakes periodically
+        # (ADB daemon connect failures). Scope the non-blocking to just
+        # the emulator step so APK build failures still block.
+        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
@@ -216,20 +219,13 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: [build]
-    # Runs the SMOKE subset only — see the e2e step's script below.
-    # Non-blocking while we stabilise: CI-runner flakiness (HDRI asset
-    # timing, swiftshader perf, preview-server port binding) still
-    # produces noise. Flip `continue-on-error` to false once the smoke
-    # suite has run green consistently.
-    # The deep telemetry suite (@nightly) runs only via `pnpm e2e:nightly`
-    # locally or on a scheduled workflow.
-    continue-on-error: true
-    # Cap the whole E2E job so a stalled playwright run can't tie up a
-    # GitHub Actions runner for hours. Individual Playwright test
-    # timeouts (120s–300s per test set in playwright.config.ts) still
-    # produce useful failure reports inside this window. Past 20 min
-    # we're almost certainly in a preview-server / browser-crash
-    # cascade and the run needs to be killed so the next one can start.
+    # Runs the SMOKE subset only (see the test step below). The deep
+    # telemetry suite (@nightly) runs via `pnpm e2e:nightly` locally or
+    # on the scheduled e2e-nightly workflow.
+    #
+    # Smoke is a real merge gate — use DOM locators, no page.evaluate
+    # against WebGL pages. See #184 for why.
+    # Cap the whole job at 20 min so a stalled run can't tie up a runner.
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
