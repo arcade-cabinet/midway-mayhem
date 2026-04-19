@@ -88,6 +88,38 @@ describe('reportFrame', () => {
   });
 });
 
+describe('reportEcsStats', () => {
+  it('exposes damage/boost/cleanSeconds via __mm.diag()', async () => {
+    const mod = await freshModule();
+    mod.installDiagnosticsBus();
+    mod.reportEcsStats({
+      ecsDamage: 2,
+      ecsDistance: 150.5,
+      ecsLateral: -0.8,
+      ecsBoostRemaining: 1.3,
+      ecsCleanSeconds: 4.2,
+    });
+    const diag = (
+      GLOBAL.window as {
+        __mm: {
+          diag(): {
+            ecsDamage: number;
+            ecsDistance: number;
+            ecsLateral: number;
+            ecsBoostRemaining: number;
+            ecsCleanSeconds: number;
+          };
+        };
+      }
+    ).__mm.diag();
+    expect(diag.ecsDamage).toBe(2);
+    expect(diag.ecsDistance).toBeCloseTo(150.5, 5);
+    expect(diag.ecsLateral).toBeCloseTo(-0.8, 5);
+    expect(diag.ecsBoostRemaining).toBeCloseTo(1.3, 5);
+    expect(diag.ecsCleanSeconds).toBeCloseTo(4.2, 5);
+  });
+});
+
 describe('reportCounts + reportScene', () => {
   it('exposes obstacle/pickup/drawCall counts via __mm.diag()', async () => {
     const mod = await freshModule();
@@ -163,6 +195,63 @@ describe('installDiagnosticsBus gating', () => {
     mod.installDiagnosticsBus();
     const win = GLOBAL.window as { __mm?: unknown };
     expect(win.__mm).toBeDefined();
+  });
+});
+
+describe('__mm.diag() exposes run metadata', () => {
+  it('includes difficulty, seedPhrase, throttle, airborne, trick state, run counters', async () => {
+    const mod = await freshModule();
+    mod.installDiagnosticsBus();
+    type GetStateFn = Parameters<typeof mod.wireDiagnosticsHooks>[0]['getState'];
+    const stubState = {
+      running: true,
+      paused: false,
+      gameOver: false,
+      distance: 80,
+      speedMps: 25,
+      targetSpeedMps: 30,
+      throttle: 1,
+      hype: 0,
+      sanity: 90,
+      crowdReaction: 0,
+      crashes: 0,
+      currentZone: 'candy-stripe',
+      difficulty: 'nightmare',
+      seedPhrase: 'cosmic-harlequin-bozo',
+      currentPieceKind: 'ramp-up',
+      airborne: true,
+      trickActive: true,
+      steer: -0.2,
+      lateral: 0.5,
+      dropProgress: 1,
+      plunging: false,
+      ticketsThisRun: 2,
+      cleanliness: 0.85,
+      scaresThisRun: 3,
+      maxComboThisRun: 5,
+      raidsSurvived: 1,
+    };
+    mod.wireDiagnosticsHooks({
+      getState: (() => stubState) as unknown as GetStateFn,
+      setSteer: vi.fn(),
+      startRun: vi.fn(),
+      endRun: vi.fn(),
+    });
+    const diag = (
+      GLOBAL.window as {
+        __mm: { diag(): Record<string, unknown> };
+      }
+    ).__mm.diag();
+    expect(diag.difficulty).toBe('nightmare');
+    expect(diag.seedPhrase).toBe('cosmic-harlequin-bozo');
+    expect(diag.throttle).toBe(1);
+    expect(diag.targetSpeedMps).toBe(30);
+    expect(diag.currentPieceKind).toBe('ramp-up');
+    expect(diag.airborne).toBe(true);
+    expect(diag.trickActive).toBe(true);
+    expect(diag.scaresThisRun).toBe(3);
+    expect(diag.maxComboThisRun).toBe(5);
+    expect(diag.raidsSurvived).toBe(1);
   });
 });
 
