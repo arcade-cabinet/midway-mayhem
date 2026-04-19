@@ -153,5 +153,21 @@
       "zRotScale": 0.6,
       "xRotMax": 0.4
     }
+  },
+  "track": {
+    "laneCount": 4,
+    "laneWidth": 3.3
+  },
+  "honk": {
+    "scareRadiusM": 30,
+    "fleeLateralM": 6,
+    "fleeDurationS": 0.9,
+    "cooldownS": 2
+  },
+  "steer": {
+    "maxLateralMps": 12,
+    "returnTauS": 0.12,
+    "wheelMaxDeg": 35,
+    "sensitivity": 1.0
   }
 }

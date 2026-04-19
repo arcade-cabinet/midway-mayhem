@@ -50,12 +50,17 @@ export type CritterKind = (typeof CRITTER_KINDS)[number];
 export const PICKUP_TYPES = ['boost', 'ticket', 'mega'] as const;
 export type PickupType = (typeof PICKUP_TYPES)[number];
 
-// ─── Track geometry constants ────────────────────────────────────────────────
-// TODO(Task #124): replace literals with tunables() once config system is ported.
+// ─── Track / honk / steer — now sourced from tunables.json ──────────────────
+// These used to be literals here; the source of truth moved to
+// src/config/tunables.json so they're tunable without a code change.
+// The TRACK / HONK / STEER uppercase-keyed objects are preserved for
+// backwards compatibility with existing import sites — but the runtime
+// values come from the typed config.
+import { tunables } from '@/config';
 
 export const TRACK = {
-  LANE_COUNT: 4,
-  LANE_WIDTH: 3.3,
+  LANE_COUNT: tunables.track.laneCount,
+  LANE_WIDTH: tunables.track.laneWidth,
   get WIDTH() {
     return this.LANE_COUNT * this.LANE_WIDTH;
   },
@@ -73,26 +78,20 @@ export function laneCenterX(laneIndex: number): number {
   return (laneIndex - half) * TRACK.LANE_WIDTH;
 }
 
-// ─── Honk / critter-scare constants ─────────────────────────────────────────
-// TODO(Task #124): replace literals with tunables() once config system is ported.
-
 export const HONK = {
-  SCARE_RADIUS_M: 30,
-  FLEE_LATERAL_M: 6,
-  FLEE_DURATION_S: 0.9,
-  COOLDOWN_S: 2,
+  SCARE_RADIUS_M: tunables.honk.scareRadiusM,
+  FLEE_LATERAL_M: tunables.honk.fleeLateralM,
+  FLEE_DURATION_S: tunables.honk.fleeDurationS,
+  COOLDOWN_S: tunables.honk.cooldownS,
 } as const;
-
-// ─── Steering constants ──────────────────────────────────────────────────────
-// TODO(Task #124): replace literals with tunables() once config system is ported.
 
 export const STEER = {
   /** Maximum lateral velocity in m/s at full steer input. */
-  MAX_LATERAL_MPS: 12,
+  MAX_LATERAL_MPS: tunables.steer.maxLateralMps,
   /** Steering return time constant (seconds). */
-  RETURN_TAU_S: 0.12,
+  RETURN_TAU_S: tunables.steer.returnTauS,
   /** Visual steering wheel rotation limit in degrees. */
-  WHEEL_MAX_DEG: 35,
+  WHEEL_MAX_DEG: tunables.steer.wheelMaxDeg,
   /** Steer sensitivity multiplier. */
-  SENSITIVITY: 1.0,
+  SENSITIVITY: tunables.steer.sensitivity,
 } as const;
