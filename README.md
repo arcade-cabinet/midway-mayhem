@@ -1,6 +1,6 @@
 ---
 title: Midway Mayhem — Clown Car Chaos
-updated: 2026-04-17
+updated: 2026-04-19
 status: current
 domain: product
 ---
@@ -81,8 +81,39 @@ pnpm typecheck          # tsc --noEmit
 pnpm test               # node + jsdom (fast)
 pnpm test:browser       # real Chromium WebGL tests
 pnpm test:e2e           # full Playwright matrix (desktop + mobile)
+pnpm playthrough        # autonomous interval-capture playthrough (see below)
+pnpm playthrough:self   # same, but self-hosts a preview server (no `pnpm dev` needed)
 pnpm capture:marketing  # 12-pose marketing screenshot capture
 ```
+
+---
+
+## Playthrough telemetry
+
+The playthrough governor launches the real app via `?autoplay=1`, samples
+`window.__mm.diag()` + a PNG screenshot at a fixed cadence, and dumps
+everything to `.test-screenshots/playthrough/<phrase>/frame-NN.{png,json}`
+with a `summary.json` listing first/last diag and any console errors.
+
+```bash
+# In one terminal:
+pnpm dev
+
+# In another:
+pnpm playthrough                               # defaults: neon-polkadot-jalopy, plenty, 2s × 10 frames
+pnpm playthrough -- --phrase molten-checkered-parade --max-frames 20
+pnpm playthrough:self                          # skip `pnpm dev` — governor builds + hosts preview
+```
+
+Each `frame-NN.json` carries the full diag dump for that moment: fps,
+distance, speed, zone, steer, lateral, boost remaining, trick state,
+difficulty, seed phrase, obstacle/pickup counts, camera + worldScroller
+positions, and more. Diff two runs of the same seed to see exactly
+where behaviour changed.
+
+The same interval-capture runs in CI under `e2e/seed-playthroughs.spec.ts`,
+and its dumps are uploaded as the `playthrough-dumps` artifact on every
+run — downloadable from the Actions tab for any PR.
 
 ---
 
