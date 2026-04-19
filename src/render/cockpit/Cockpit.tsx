@@ -24,6 +24,7 @@ import { useMemo } from 'react';
 import { cockpitBlueprint } from '@/config';
 import { CockpitMeshNode } from './blueprintMesh';
 import { DiegeticHUD } from './DiegeticHUD';
+import { useCockpitFeel } from './useCockpitFeel';
 import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
 
 const FIXED_HFOV_DEG = cockpitBlueprint.cameraFov.horizontalDeg;
@@ -54,37 +55,49 @@ export function Cockpit({ tier }: CockpitProps) {
     [],
   );
 
+  // The feel group is the one that rolls/yaws/bobs with driving state.
+  // Camera lives inside it, so the camera rides the body's motion — the
+  // driver's head tracks the clown car's sway.
+  const feelRef = useCockpitFeel();
+
   return (
     <group scale={scale} name="cockpit">
-      <PerspectiveCamera
-        makeDefault
-        position={cockpitBlueprint.cameraPosition}
-        rotation={[0, 0, 0]}
-        fov={vFov}
-        near={cockpitBlueprint.cameraFov.near}
-        far={cockpitBlueprint.cameraFov.far}
-      />
+      <group ref={feelRef} name="cockpit-body">
+        <PerspectiveCamera
+          makeDefault
+          position={cockpitBlueprint.cameraPosition}
+          rotation={[0, 0, 0]}
+          fov={vFov}
+          near={cockpitBlueprint.cameraFov.near}
+          far={cockpitBlueprint.cameraFov.far}
+        />
 
-      {meshEntries.map(([name, mesh]) => {
-        const material = cockpitBlueprint.materials[mesh.materialRef];
-        if (!material) {
-          throw new Error(
-            `cockpit blueprint: mesh "${name}" references unknown material "${mesh.materialRef}"`,
-          );
-        }
-        // The hood's Z is the one mesh that form-factor scaling nudges —
-        // narrow viewports push it forward so the track stays visible.
-        // Other meshes honor the blueprint position verbatim.
-        if (name === 'hood' && mesh.position) {
-          const [x, y, z] = mesh.position;
-          const nudged = { ...mesh, position: [x, y, z + hoodZOffset] as [number, number, number] };
-          return <CockpitMeshNode key={name} name={name} mesh={nudged} material={material} />;
-        }
-        return <CockpitMeshNode key={name} name={name} mesh={mesh} material={material} />;
-      })}
+        {meshEntries.map(([name, mesh]) => {
+          const material = cockpitBlueprint.materials[mesh.materialRef];
+          if (!material) {
+            throw new Error(
+              `cockpit blueprint: mesh "${name}" references unknown material "${mesh.materialRef}"`,
+            );
+          }
+          // The hood's Z is the one mesh that form-factor scaling nudges —
+          // narrow viewports push it forward so the track stays visible.
+          // Other meshes honor the blueprint position verbatim.
+          if (name === 'hood' && mesh.position) {
+            const [x, y, z] = mesh.position;
+            const nudged = {
+              ...mesh,
+              position: [x, y, z + hoodZOffset] as [number, number, number],
+            };
+            return <CockpitMeshNode key={name} name={name} mesh={nudged} material={material} />;
+          }
+          return <CockpitMeshNode key={name} name={name} mesh={mesh} material={material} />;
+        })}
+      </group>
 
       {/* Diegetic HUD — speedometer + lane indicator as 3D meshes. Stays
-          outside the blueprint because its numbers are live game state. */}
+          OUTSIDE the body-feel group so hype/damage readouts don't bob
+          with engine idle; the HUD reads like it's projected on the
+          windshield, not mounted on the dashboard. */}
       <DiegeticHUD />
     </group>
   );
