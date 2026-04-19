@@ -132,9 +132,23 @@ describe('TireSquealSystem — state machine', () => {
     expect(sys.isActive).toBe(true);
   });
 
-  it('subscribe() returns a no-op unsubscribe', () => {
-    const unsub = sys.subscribe();
-    expect(typeof unsub).toBe('function');
-    expect(() => unsub()).not.toThrow();
+  it('subscribe() returns a working unsubscribe function', () => {
+    // Stub rAF so the gameState store subscription can poll without DOM.
+    const originalRaf = globalThis.requestAnimationFrame;
+    const originalCancelRaf = globalThis.cancelAnimationFrame;
+    globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
+      return setTimeout(() => cb(performance.now()), 16) as unknown as number;
+    };
+    globalThis.cancelAnimationFrame = (id: number) => {
+      clearTimeout(id as unknown as NodeJS.Timeout);
+    };
+    try {
+      const unsub = sys.subscribe();
+      expect(typeof unsub).toBe('function');
+      expect(() => unsub()).not.toThrow();
+    } finally {
+      globalThis.requestAnimationFrame = originalRaf;
+      globalThis.cancelAnimationFrame = originalCancelRaf;
+    }
   });
 });

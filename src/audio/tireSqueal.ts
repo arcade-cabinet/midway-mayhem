@@ -6,14 +6,16 @@
  *
  * Also increases crash-channel shake amplitude by +30% while squealing.
  *
- * NOTE: The `subscribe()` method that wires into gameState (useGameStore) is
- * deferred — gameState is not yet ported to v2. Drive the system manually via
- * `update(steer, dt)` from the ECS frame loop.
- * TODO: wire subscribe() once @/game/gameState is ported (Task #125).
+ * Two drive modes:
+ *   • `update(steer, dt)` — call each frame from an R3F useFrame. Gives
+ *     the most accurate debounce because dt is the actual frame delta.
+ *   • `subscribe()` — attach to the live gameState store; fires on every
+ *     steer change between frames. Safety net for fast flicks.
  */
 
 import * as Tone from 'tone';
 import { reportError } from '@/game/errorBus';
+import { useGameStore } from '@/game/gameState';
 import { getBuses } from './buses';
 
 const SQUEAL_START_THRESHOLD = 0.8;
@@ -126,15 +128,22 @@ export class TireSquealSystem {
   }
 
   /**
-   * Subscribe to game steer state and drive the squeal.
-   * Returns an unsubscribe function.
-   *
-   * TODO(Task #125): implement once @/game/gameState is ported to v2 ECS.
-   * For now callers should drive the system via update(steer, dt) directly.
+   * Subscribe to the live gameState store and drive update() whenever
+   * `steer` changes. Returns an unsubscribe function. Callers should
+   * still call `update(steer, dt)` each frame for the dt-sensitive
+   * debounce logic; this subscription only ensures the system transitions
+   * on fast steer flicks that happen between frames.
    */
   subscribe(): () => void {
-    // gameState not yet ported — return a no-op unsubscribe
-    return () => {};
+    let last = this.clock();
+    const unsubscribe = useGameStore.subscribe((state, prev) => {
+      if (state.steer === prev.steer) return;
+      const now = this.clock();
+      const dt = Math.max(0, now - last);
+      last = now;
+      this.update(state.steer, dt);
+    });
+    return unsubscribe;
   }
 
   /** For testing: expose threshold constants. */
