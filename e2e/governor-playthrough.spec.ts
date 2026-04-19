@@ -9,7 +9,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('governor playthrough', () => {
-  test('autoplay=1 starts the game and the governor keeps it running', async ({
+  test('autoplay=1 starts the game and the governor keeps it running @nightly', async ({
     page,
   }, testInfo) => {
     const consoleErrors: string[] = [];
@@ -65,7 +65,7 @@ test.describe('governor playthrough', () => {
     await expect(page.getByTestId('start-button')).toBeVisible();
   });
 
-  test('NEW RUN → NewRunModal → PLAY transitions into the game', async ({ page }) => {
+  test('NEW RUN → NewRunModal → PLAY transitions into the game @nightly', async ({ page }) => {
     await page.goto('/midway-mayhem/');
     await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 20_000 });
 

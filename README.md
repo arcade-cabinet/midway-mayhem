@@ -80,7 +80,9 @@ pnpm lint               # Biome check
 pnpm typecheck          # tsc --noEmit
 pnpm test               # node + jsdom (fast)
 pnpm test:browser       # real Chromium WebGL tests
-pnpm test:e2e           # full Playwright matrix (desktop + mobile)
+pnpm e2e                # full Playwright matrix — smoke + nightly combined
+pnpm e2e:smoke          # fast merge-gate subset (what CI runs on every PR)
+pnpm e2e:nightly        # deep telemetry suite (scheduled nightly on main)
 pnpm playthrough        # autonomous interval-capture playthrough (see below)
 pnpm playthrough:self   # same, but self-hosts a preview server (no `pnpm dev` needed)
 pnpm capture:marketing  # 12-pose marketing screenshot capture
@@ -111,9 +113,13 @@ difficulty, seed phrase, obstacle/pickup counts, camera + worldScroller
 positions, and more. Diff two runs of the same seed to see exactly
 where behaviour changed.
 
-The same interval-capture runs in CI under `e2e/seed-playthroughs.spec.ts`,
-and its dumps are uploaded as the `playthrough-dumps` artifact on every
-run — downloadable from the Actions tab for any PR.
+The same interval-capture runs under `e2e/seed-playthroughs.spec.ts`,
+tagged `@nightly` — it executes on the scheduled nightly workflow
+(`.github/workflows/e2e-nightly.yml`) and publishes the
+`playthrough-dumps-nightly` artifact. PR CI runs only the fast smoke
+subset (`e2e/playthrough-smoke.spec.ts` — single seed, 5 frames, ~20s)
+so the merge gate stays quick and reliable; run `pnpm e2e:nightly`
+locally if you want the deep coverage on demand.
 
 ---
 

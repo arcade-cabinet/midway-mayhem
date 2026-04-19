@@ -1,0 +1,53 @@
+name: E2E Nightly
+
+# Runs the deep telemetry suite (@nightly tag) — seed-playthroughs,
+# determinism, 5s governor runs, mobile autoplay drive. These produce
+# the per-interval diag JSON + PNG dumps that let us reason about
+# behavioural regressions between seeds across time.
+#
+# NOT run on every push — the suite takes 10+ minutes and mostly
+# generates telemetry that is useful over days, not per-PR. The fast
+# merge gate lives in ci.yml's e2e-tests job (untagged specs only).
+
+on:
+  schedule:
+    # 06:00 UTC nightly — quiet time for CI runners, before morning work.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  e2e-nightly:
+    name: E2E Nightly (@nightly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Install xvfb for headed browser
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: pnpm build
+      - name: Run @nightly E2E suite
+        run: |
+          pnpm copywasm
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm e2e:nightly
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-nightly
+          path: playwright-report/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playthrough-dumps-nightly
+          path: |
+            test-results/**/playthrough/**/frame-*.png
+            test-results/**/playthrough/**/frame-*.json
+            test-results/**/playthrough/**/summary.json
+          if-no-files-found: ignore
+          retention-days: 30

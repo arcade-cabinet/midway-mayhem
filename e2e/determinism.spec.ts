@@ -10,8 +10,10 @@
 import { expect, test } from '@playwright/test';
 import { runPlaythrough } from './_factory';
 
-test.describe('seed determinism', () => {
-  test('same phrase twice produces the same final distance', async ({ page }, testInfo) => {
+test.describe('seed determinism @nightly', () => {
+  test('same phrase twice produces the same final distance @nightly', async ({
+    page,
+  }, testInfo) => {
     // Mobile is too jittery frame-to-frame for hard determinism — skip.
     test.skip(testInfo.project.name === 'mobile-portrait', 'timing too jittery on mobile emulator');
     test.setTimeout(300_000);
