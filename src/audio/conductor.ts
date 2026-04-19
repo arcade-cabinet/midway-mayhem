@@ -94,7 +94,7 @@ class CircusConductor {
   start(zone: ZoneId = 'midway-strip'): void {
     this.init();
     this.setZone(zone);
-    Tone.Transport.start();
+    Tone.getTransport().start();
   }
 
   stop(): void {
@@ -108,14 +108,14 @@ class CircusConductor {
     }
     // Clear currentZone so start(zone) with the same zone rebuilds the sequence
     this.currentZone = null;
-    Tone.Transport.stop();
+    Tone.getTransport().stop();
   }
 
   setZone(zone: ZoneId): void {
     if (this.currentZone === zone) return;
     this.currentZone = zone;
     const cfg = getZoneKey(zone);
-    Tone.Transport.bpm.value = cfg.tempo;
+    Tone.getTransport().bpm.value = cfg.tempo;
     this.buildSequence(cfg.root);
   }
 

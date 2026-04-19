@@ -28,16 +28,16 @@ interface PlanFleeState {
 }
 
 interface FrameRefs {
-  barrierSlots: React.MutableRefObject<THREE.Object3D[]>;
-  conesSlots: React.MutableRefObject<THREE.Object3D[]>;
-  gateSlots: React.MutableRefObject<THREE.Object3D[]>;
-  hammerSlots: React.MutableRefObject<THREE.Object3D[]>;
-  oilSlots: React.MutableRefObject<THREE.Mesh[]>;
-  critterPools: React.MutableRefObject<CritterPools>;
+  barrierSlots: React.RefObject<THREE.Object3D[]>;
+  conesSlots: React.RefObject<THREE.Object3D[]>;
+  gateSlots: React.RefObject<THREE.Object3D[]>;
+  hammerSlots: React.RefObject<THREE.Object3D[]>;
+  oilSlots: React.RefObject<THREE.Mesh[]>;
+  critterPools: React.RefObject<CritterPools>;
   critterAnimations: Record<CritterKind, THREE.AnimationClip[]>;
-  nearMissFiredIds: React.MutableRefObject<Set<number>>;
-  planFleeState: React.MutableRefObject<Map<number, PlanFleeState>>;
-  planCrashedIdx: React.MutableRefObject<Set<number>>;
+  nearMissFiredIds: React.RefObject<Set<number>>;
+  planFleeState: React.RefObject<Map<number, PlanFleeState>>;
+  planCrashedIdx: React.RefObject<Set<number>>;
   spawner: ObstacleSpawner;
   composition: ComposedTrack;
 }
