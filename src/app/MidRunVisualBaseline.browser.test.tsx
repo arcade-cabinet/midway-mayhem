@@ -22,6 +22,12 @@ import { App } from './App';
 
 describe('Mid-run visual baseline', () => {
   it('captures a live-game frame at distance ≥ 120m for pixel-diff regression', async () => {
+    // Opt into preserveDrawingBuffer for the duration of this test so
+    // canvas.toDataURL() below returns the last rendered frame instead
+    // of a cleared buffer. Prod / CI E2E leaves the flag off to avoid
+    // swiftshader ReadPixels stalls.
+    window.history.replaceState({}, '', '/?preserve=1');
+
     const { container } = render(<App />);
 
     // Canvas mounts.
