@@ -21,7 +21,7 @@ import { expect, test } from '@playwright/test';
 test.describe('boot smoke — fast merge gate', () => {
   test('autoplay=1 boots into a running game on desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'smoke runs on desktop-chromium only');
-    test.setTimeout(45_000);
+    test.setTimeout(60_000);
 
     await page.goto('/midway-mayhem/?autoplay=1');
 
@@ -33,11 +33,15 @@ test.describe('boot smoke — fast merge gate', () => {
     await expect(page.getByTestId('hud-stats')).toBeVisible({ timeout: 15_000 });
 
     // Distance readout shows a positive number with the "m" suffix.
-    // The HUD formats as `distance.toFixed(0)` + " m", so once the car
-    // has moved 1m the text becomes "1 m", "2 m", etc. We match any
+    // The HUD formats as `distance.toFixed(0)` + " m". We match any
     // non-zero whole-number followed by " m".
+    //
+    // 30s upper bound: the 1.8s drop-in intro freezes distance. The
+    // governor then has to tick a few frames for distance to round up
+    // to ≥ 1m. On CI swiftshader a frame can take 200ms+, so give the
+    // game 30s to reach the first non-zero rendered distance.
     await expect(page.getByTestId('hud-stats')).toContainText(/[1-9]\d*\s*m/, {
-      timeout: 15_000,
+      timeout: 30_000,
     });
   });
 });
