@@ -22,15 +22,20 @@ const CANON_PHRASES = [
 test.describe('seed-deterministic playthroughs @nightly', () => {
   for (const phrase of CANON_PHRASES) {
     test(`phrase "${phrase}" advances deterministically @nightly`, async ({ page }, testInfo) => {
-      // Mobile emulator is ~4x slower. Cap the mobile run short enough
-      // to stay within the test budget but still prove movement.
-      const isMobile = testInfo.project.name === 'mobile-portrait';
-      test.setTimeout(isMobile ? 120_000 : 240_000);
+      // Telemetry suite is desktop-only. Viewport regressions are caught
+      // by the merge-gate smoke (runs all 3 viewports); the value of
+      // running the deep sampler across mobile/tablet emulators was low
+      // and pushed the nightly past its 45-min cap on the shared runner.
+      test.skip(
+        testInfo.project.name !== 'desktop-chromium',
+        'telemetry nightly runs on desktop-chromium only',
+      );
+      test.setTimeout(240_000);
       const frames = await runPlaythrough(page, testInfo, {
         phrase,
         difficulty: 'plenty',
         intervalMs: 2000,
-        maxFrames: isMobile ? 6 : 15,
+        maxFrames: 15,
         stopWhen: /run complete|game over/i,
       });
 
@@ -53,11 +58,10 @@ test.describe('seed-deterministic playthroughs @nightly', () => {
       // Final sample should be meaningfully far from origin unless run ended.
       const last = frames[frames.length - 1];
       const lastDistance = (last?.diag?.distance as number) ?? 0;
-      const minDistance = isMobile ? 20 : 50;
       expect(
         lastDistance,
-        `expected final distance > ${minDistance}m (proves the car actually moved)`,
-      ).toBeGreaterThan(minDistance);
+        `expected final distance > 50m (proves the car actually moved)`,
+      ).toBeGreaterThan(50);
     });
   }
 });

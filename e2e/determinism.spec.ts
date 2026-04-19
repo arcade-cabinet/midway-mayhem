@@ -15,7 +15,11 @@ test.describe('seed determinism @nightly', () => {
     page,
   }, testInfo) => {
     // Mobile is too jittery frame-to-frame for hard determinism — skip.
-    test.skip(testInfo.project.name === 'mobile-portrait', 'timing too jittery on mobile emulator');
+    // Telemetry nightly is desktop-only (see seed-playthroughs for reasoning).
+    test.skip(
+      testInfo.project.name !== 'desktop-chromium',
+      'determinism check runs on desktop-chromium only',
+    );
     test.setTimeout(300_000);
 
     const phrase = 'neon-polkadot-jalopy';
