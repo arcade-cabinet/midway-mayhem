@@ -24,7 +24,14 @@ interface Callbacks {
 
 /** Half-widths defining what counts as a hit. */
 const HIT_DISTANCE = 2.4;
-const HIT_LATERAL = 1.6;
+/**
+ * Car half-width for collision. MUST be strictly smaller than the
+ * half-lane-width (laneWidth/2 = 1.6) — otherwise a centered player at
+ * lateral=0 picks up adjacent-lane obstacles whose centres sit at ±1.6
+ * via floating-point drift (1.5999...9 < 1.6), ending every run around
+ * the first obstacle. See #130.
+ */
+const HIT_LATERAL = 1.2;
 /** Lateral band where a narrowly-missed obstacle counts as a near-miss. */
 const NEAR_MISS_LATERAL = 2.8;
 const NEAR_MISS_CROWD_BONUS = 5;

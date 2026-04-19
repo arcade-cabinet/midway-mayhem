@@ -308,4 +308,58 @@ describe('stepCollisions', () => {
     // cleanSeconds reset happens, then += dt → close to dt
     expect(getScore(w)?.cleanSeconds ?? 99).toBeLessThan(0.1);
   });
+
+  // ─── Regression: #130 centered-player-hits-adjacent-lane-obstacles ───
+  // Prior to the fix, HIT_LATERAL was exactly halfLaneWidth (1.6). An
+  // obstacle at a computed lane centre via the spawner formula
+  // `-halfWidth + laneWidth*(lane+0.5)` yields ±1.5999999999999996 due
+  // to IEEE754 drift — which is < 1.6 and registered as a hit for a
+  // centered player. Every run ended at d≈223 with sanity=100, zero
+  // input. These tests pin the fix.
+  it('#130 — obstacle at spawner-formula lane-1 centre does NOT hit centered player', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { lateral: 0, speed: 30 });
+    // Re-create the exact spawnContent lane-centre value. laneWidth=3.2,
+    // lanes=4, halfWidth=6.4. lane=1 centre = -6.4 + 3.2*1.5 which in
+    // IEEE754 is -1.5999999999999996, NOT -1.6.
+    const laneWidth = 3.2;
+    const lanes = 4;
+    const halfWidth = (laneWidth * lanes) / 2;
+    const lane1Center = -halfWidth + laneWidth * (1 + 0.5);
+    // Sanity — proves the FP drift the fix is immune to. The exact value
+    // is -1.5999999999999996, whose |·| IS < 1.6, which is why the old
+    // strict `< HIT_LATERAL=1.6` check hit a centered player.
+    expect(lane1Center).toBeGreaterThan(-1.6);
+    expect(Math.abs(lane1Center)).toBeLessThan(1.6);
+    spawnObstacle(w, 'barrier', 1.5, lane1Center);
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(0);
+  });
+
+  it('#130 — obstacle at spawner-formula lane-2 centre does NOT hit centered player', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { lateral: 0, speed: 30 });
+    const laneWidth = 3.2;
+    const lanes = 4;
+    const halfWidth = (laneWidth * lanes) / 2;
+    const lane2Center = -halfWidth + laneWidth * (2 + 0.5); // ≈ +1.6
+    spawnObstacle(w, 'cone', 1.5, lane2Center);
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(0);
+  });
+
+  it('#130 — 4-lane track with an obstacle in every adjacent-lane does not end a zero-input run', () => {
+    const w = freshWorld();
+    spawnPlayer(w, { lateral: 0, speed: 30 });
+    const laneWidth = 3.2;
+    const lanes = 4;
+    const halfWidth = (laneWidth * lanes) / 2;
+    // Seed one obstacle in every inner lane (where the adjacency-collision bug hit).
+    for (const lane of [1, 2] as const) {
+      const laneCenter = -halfWidth + laneWidth * (lane + 0.5);
+      spawnObstacle(w, 'barrier', 1.5, laneCenter);
+    }
+    stepCollisions(w, 1 / 60);
+    expect(getScore(w)?.damage).toBe(0);
+  });
 });
