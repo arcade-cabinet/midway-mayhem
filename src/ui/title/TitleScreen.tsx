@@ -11,7 +11,7 @@ import type { Difficulty } from '@/game/difficulty';
 import { DEFAULT_DIFFICULTY, DIFFICULTY_PROFILES } from '@/game/difficulty';
 import { reportError } from '@/game/errorBus';
 import { useFormFactor } from '@/hooks/useFormFactor';
-import { useTitleKeyboard } from '@/hooks/useKeyboardControls';
+import { useTitleKeyboard } from '@/hooks/useTitleKeyboard';
 import { initDb } from '@/persistence/db';
 import { getProfile } from '@/persistence/profile';
 import { AchievementsPanel } from '@/ui/panels/AchievementsPanel';

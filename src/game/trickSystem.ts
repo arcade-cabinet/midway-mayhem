@@ -11,10 +11,10 @@
  *   down   → swipe down on screen while airborne
  *
  * This module is input-agnostic: it receives abstract TrickInput values.
- * The caller (useTouchGestures / useKeyboardControls) is responsible for
+ * The caller (useTouchGestures / useKeyboard) is responsible for
  * translating device input → TrickInput and calling pushInput().
- * Keyboard ArrowLeft/Right/Up/Down may be used on desktop as an alias but
- * must NEVER be the only way to trigger tricks.
+ * Desktop Q/E/R (via `useKeyboard`) may be used as an alias but must
+ * NEVER be the only way to trigger tricks.
  *
  * Tricks:
  *   BARREL_ROLL  right-right | left-left  → full 360° Z rotation
@@ -215,8 +215,8 @@ export class TrickSystem {
    * Register a directional input during airborne window.
    *
    * On mobile: called by useTouchGestures when a swipe is detected while
-   * airborne. On desktop: called by useKeyboardControls via Arrow keys.
-   * Touch is the primary path; keyboard is an alias only.
+   * airborne. On desktop: called by useKeyboard via Q/E/R. Touch is the
+   * primary path; keyboard is an alias only.
    */
   pushInput(input: TrickInput, nowMs: number) {
     if (!this.state.airborne) return;
