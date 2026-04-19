@@ -50,6 +50,10 @@ ChatGPT-*.md
 .vitest-attachments/
 **/__screenshots__/
 .test-screenshots/
+# …but DO commit pinned baselines so visual-regression tests can compare
+# against them in CI. Phase 4 of the cockpit hero pass lives here.
+!**/__baselines__/
+!**/__baselines__/**
 
 # Debug pause-and-capture output
 .capture/
