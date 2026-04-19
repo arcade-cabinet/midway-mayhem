@@ -12,7 +12,7 @@ import { render, waitFor } from '@testing-library/react';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { useEffect } from 'react';
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error — vitest v4 re-export chain loses static types; runtime is fine
 import { commands } from 'vitest/browser';
@@ -91,6 +91,127 @@ describe('Cockpit — responsive visual gate', () => {
         `.test-screenshots/cockpit/${tier}.png`,
       );
       expect(result.bytes).toBeGreaterThan(5_000);
+
+      // ── Scene-graph invariants (catch the POC-era hood-swallow bug) ──
+      // Rule #2 from project memory: hood must sit strictly forward of
+      // the camera near-plane + clearance. The camera is a child of the
+      // cockpit group; hood too. We assert world-space invariants so a
+      // future refactor that repositions either mesh still passes only
+      // if the outcome is still correct.
+      const cam = h.camera;
+      const hood = findByName(h.scene, 'hood');
+      expect(hood, 'hood mesh exists').toBeDefined();
+      const hoodBounds = worldBounds(hood!);
+      const camWorld = new THREE.Vector3();
+      cam.getWorldPosition(camWorld);
+      const forwardGap = camWorld.z - hoodBounds.maxZ; // camera at +z, hood at -z; gap must be ≥ 0.3m
+      expect(
+        forwardGap,
+        `hood must be ≥0.3m forward of camera (got ${forwardGap.toFixed(3)}m on ${tier})`,
+      ).toBeGreaterThanOrEqual(0.3);
+      // Hood must not span the cabin horizontally — max lateral half-extent ≤ 1.1m
+      // (pillar inner face is at x=±1.1; hood wider than that clips).
+      const hoodHalfWidth = Math.max(Math.abs(hoodBounds.minX), Math.abs(hoodBounds.maxX));
+      expect(
+        hoodHalfWidth,
+        `hood half-width must stay ≤1.1m to clear A-pillars (got ${hoodHalfWidth.toFixed(3)}m on ${tier})`,
+      ).toBeLessThanOrEqual(1.1);
+
+      // NDC ray-grid invariant: the hood must not block the upper half of
+      // the viewport. The bottom half is allowed (cockpit look), upper is
+      // where the track sits.
+      const cockpitGroup = findByName(h.scene, 'cockpit');
+      expect(cockpitGroup, 'cockpit group exists').toBeDefined();
+      const isHoodHit = (hit: THREE.Intersection) => {
+        let p: THREE.Object3D | null = hit.object;
+        while (p) {
+          if (p.name === 'hood') return true;
+          p = p.parent;
+        }
+        return false;
+      };
+      const upperHits: Array<[number, number]> = [];
+      for (const x of [-0.6, -0.3, 0, 0.3, 0.6]) {
+        for (const y of [0.2, 0.5, 0.8]) {
+          const rc = new THREE.Raycaster();
+          rc.setFromCamera({ x, y } as THREE.Vector2, cam);
+          rc.near = 0.1;
+          rc.far = 100;
+          if (rc.intersectObject(cockpitGroup!, true).some(isHoodHit)) {
+            upperHits.push([x, y]);
+          }
+        }
+      }
+      expect(
+        upperHits,
+        `hood must not occupy upper-half viewport on ${tier}, hit NDC ${JSON.stringify(upperHits)}`,
+      ).toHaveLength(0);
     });
   }
 });
+
+interface Bounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  minZ: number;
+  maxZ: number;
+}
+
+function findByName(root: THREE.Object3D, name: string): THREE.Object3D | undefined {
+  let found: THREE.Object3D | undefined;
+  root.traverse((o) => {
+    if (!found && o.name === name) found = o;
+  });
+  return found;
+}
+
+function worldBounds(o: THREE.Object3D): Bounds {
+  // Walk leaf meshes, project their local AABB corners to world-space, and
+  // union everything. Avoids relying on Box3.setFromObject which doesn't
+  // always honor grand-parent transforms on still-loading scenes.
+  const bounds: Bounds = {
+    minX: Number.POSITIVE_INFINITY,
+    maxX: Number.NEGATIVE_INFINITY,
+    minY: Number.POSITIVE_INFINITY,
+    maxY: Number.NEGATIVE_INFINITY,
+    minZ: Number.POSITIVE_INFINITY,
+    maxZ: Number.NEGATIVE_INFINITY,
+  };
+  o.updateMatrixWorld(true);
+  o.traverse((child) => {
+    // biome-ignore lint/suspicious/noExplicitAny: duck-typed three mesh
+    const mesh = child as any;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    mesh.geometry.computeBoundingBox?.();
+    const bb = mesh.geometry.boundingBox;
+    if (!bb) return;
+    // Sample the 8 corners in local space and transform to world.
+    const corners = [
+      [bb.min.x, bb.min.y, bb.min.z],
+      [bb.min.x, bb.min.y, bb.max.z],
+      [bb.min.x, bb.max.y, bb.min.z],
+      [bb.min.x, bb.max.y, bb.max.z],
+      [bb.max.x, bb.min.y, bb.min.z],
+      [bb.max.x, bb.min.y, bb.max.z],
+      [bb.max.x, bb.max.y, bb.min.z],
+      [bb.max.x, bb.max.y, bb.max.z],
+    ];
+    for (const [lx, ly, lz] of corners) {
+      // biome-ignore lint/suspicious/noExplicitAny: minimal test-local vec
+      const v = { x: lx, y: ly, z: lz } as any;
+      const m = mesh.matrixWorld.elements;
+      const wx = m[0] * v.x + m[4] * v.y + m[8] * v.z + m[12];
+      const wy = m[1] * v.x + m[5] * v.y + m[9] * v.z + m[13];
+      const wz = m[2] * v.x + m[6] * v.y + m[10] * v.z + m[14];
+      if (wx < bounds.minX) bounds.minX = wx;
+      if (wx > bounds.maxX) bounds.maxX = wx;
+      if (wy < bounds.minY) bounds.minY = wy;
+      if (wy > bounds.maxY) bounds.maxY = wy;
+      if (wz < bounds.minZ) bounds.minZ = wz;
+      if (wz > bounds.maxZ) bounds.maxZ = wz;
+    }
+  });
+  return bounds;
+}
