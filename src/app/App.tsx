@@ -32,6 +32,7 @@ import { useMouseSteer } from '@/input/useMouseSteer';
 import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
 import { HonkContext } from '@/render/cockpit/HonkContext';
+import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
@@ -165,6 +166,7 @@ export function App() {
             <BarkerCrowd />
             <ZoneBanners />
             <GhostCar />
+            <RacingLineGhost />
           </TrackScroller>
           <RaidBridge />
           <RaidLayer />
