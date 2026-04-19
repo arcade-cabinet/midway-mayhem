@@ -26,6 +26,7 @@ import { CockpitMeshNode } from './blueprintMesh';
 import { DiegeticHUD } from './DiegeticHUD';
 import { FlowerOrnament, isFlowerMesh } from './FlowerOrnament';
 import { GaugeNeedles, isGaugeNeedleMesh } from './GaugeNeedles';
+import { Headlights } from './Headlights';
 import { isMirrorGlassMesh, RearViewMirror } from './RearViewMirror';
 import { useCockpitFeel } from './useCockpitFeel';
 import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
@@ -116,6 +117,11 @@ export function Cockpit({ tier }: CockpitProps) {
             + stem + dice are still plain blueprint meshes; only the glass
             plane gets the reflective material. */}
         <RearViewMirror />
+
+        {/* Two warm-white SpotLights mounted at the hood corners — paint
+            cones of light on the track ahead. Inside the body group so
+            the lights bank into turns with the cockpit. */}
+        <Headlights />
       </group>
 
       {/* Diegetic HUD — speedometer + lane indicator as 3D meshes. Stays
