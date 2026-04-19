@@ -1,6 +1,6 @@
 ---
 title: Testing
-updated: 2026-04-18
+updated: 2026-04-19
 status: current
 domain: quality
 ---
@@ -74,41 +74,68 @@ pnpm e2e:update
 
 ## Tier 3 — Playwright e2e
 
-**Purpose:** Full game loop, multi-viewport matrix, governor autonomous run.
+**Purpose:** Full game loop, multi-viewport matrix, playthrough telemetry.
 
-**Where files live:** `e2e/*.spec.ts`
+**Where files live:** `e2e/*.spec.ts` + shared factory in `e2e/_factory.ts`.
 
-**Test matrix:**
-- Desktop Chromium (1280×720)
-- Desktop WebKit
-- Mobile Chrome (Pixel 5 viewport)
-- Mobile Safari (iPhone 12 viewport)
+### Smoke vs nightly
 
-Note: `webkit` may require manual install (`pnpm exec playwright install webkit`). CI runs Chromium only; WebKit is a local dev check.
+The e2e suite is split by tag into two subsets with different owners:
 
-**Required assertions in every spec:**
-```ts
-await expectNoErrorModal(page);   // at entry
-// ... test body ...
-await expectNoErrorModal(page);   // at exit
-```
+| Subset | Tag | Runs on | Budget | Purpose |
+|--------|-----|---------|--------|---------|
+| **Smoke** | (untagged) | PR CI (`ci.yml`) | ≤ 20 min | Merge gate — does autoplay still boot, does the car move, does the HUD render |
+| **Nightly** | `@nightly` | Scheduled + manual (`e2e-nightly.yml`), local dev | ≤ 45 min | Deep telemetry — per-interval dumps across 3 phrases + 3 viewports, determinism proofs |
 
-**Governor playthrough contract:**
-- `?governor=1` activates `playthrough-governor.ts` (Yuka.js autonomous driver)
-- Spec must complete ≥ 300 metres without dying
-- Zone smoke: governor must enter at least Zones 1 + 2
-- `readDiag()` helper reads `window.__mm.diag()` — always installed; no flag required
+Tests are tagged by adding `@nightly` to the describe or test name. Playwright `--grep @nightly` / `--grep-invert @nightly` filters at runtime.
 
-**How to run:**
+**Smoke contents** (what runs on every PR):
+- `playthrough-smoke.spec.ts` — 1 phrase × desktop × 5 × 1s frames ≈ 20s
+- `governor-playthrough.spec.ts` test 2 (title screen load) — 9s
+- `mobile-gameplay.spec.ts` tests 1–3 (compact layout, NEW RUN flow, touch controls) — mobile-gated, <20s each
+
+**Nightly contents** (scheduled + on-demand, never gates merge):
+- `seed-playthroughs.spec.ts` — 3 phrases × 15 frames × 2s intervals
+- `determinism.spec.ts` — two 8-frame runs of the same seed
+- `governor-playthrough.spec.ts` test 1 (5s autoplay drive) + test 3 (full NEW RUN modal flow)
+- `mobile-gameplay.spec.ts` test 4 (9s autoplay drive on mobile)
+
+### Project matrix
+
+- `desktop-chromium` (1440×900)
+- `mobile-portrait` (Pixel 7 device preset)
+- `tablet-landscape` (1366×1024 + touch)
+
+CI installs Chromium only. All three projects use the same Chromium binary under different device profiles.
+
+### Artifacts
+
+Every e2e run (smoke or nightly) uploads two CI artifacts:
+
+| Artifact | Contents | Retention |
+|----------|----------|-----------|
+| `playwright-report` | HTML report with trace viewer | 14 days |
+| `playthrough-dumps` (smoke) / `playthrough-dumps-nightly` | `frame-NN.png` + `frame-NN.json` + `summary.json` per (phrase × viewport) | 14 days (smoke), 30 days (nightly) |
+
+The per-frame JSON is driven by `window.__mm.diag()` — the full diag dump shape lives in `src/game/diagnosticsBus.ts`. Diff two runs of the same seed to see exactly where behaviour changed.
+
+### Contract for any new e2e spec
+
+1. Use the `runPlaythrough` factory — hand-rolled click chains always rot when the UI changes.
+2. Tag `@nightly` if the test takes more than ~30s, samples more than 6 frames, or does any kind of deep regression comparison. Leave untagged for smoke-gate material.
+3. Set an explicit `test.setTimeout(...)` sized for the worst realistic CI run (not local dev). CI's xvfb-backed Chromium takes 2-3s per `page.screenshot()`.
+4. Any assertion on pixel output belongs in `src/**/__baselines__/` via the real-GPU vitest-browser suite, NOT here — e2e snapshots break on font rendering + swiftshader differences across OS.
+
+### How to run
+
 ```bash
-pnpm test:e2e
-# With UI for debugging:
-pnpm exec playwright test --ui
+pnpm e2e              # full matrix — both subsets
+pnpm e2e:smoke        # merge-gate subset (what CI runs)
+pnpm e2e:nightly      # deep telemetry (scheduled / on-demand)
+pnpm exec playwright test --ui    # debug mode with step-through
 ```
 
-Playwright requires a running preview server. `test:e2e` starts it automatically via `webServer` config in `playwright.config.ts`.
-
-Parallel workers: use `--workers=2` maximum. More than 2 workers causes GPU context contention on a single machine.
+Playwright auto-starts a `pnpm build && pnpm preview` server via the `webServer` config. Parallel workers are capped at 2 — more than 2 causes GPU context contention on a single machine.
 
 ---
 
@@ -144,6 +171,4 @@ Requires:
 ## Known gaps (as of 2026-04-18)
 
 - iPhone 14 Pro + mid-tier Android FPS unverified (no real-device baseline yet)
-- Visual regression baselines not yet captured (pending first stable cockpit pass)
-- `@vitest/browser/context` import path used in some test files should be `vitest/browser` — tracked as E3 in PLAN.md
-- `seed-playthroughs.spec.ts` runs too many seeds; trim to 3 + nightly-full variant — tracked as E4 in PLAN.md
+- E2E smoke suite is `continue-on-error: true` for now. Flip to false once it runs green for several consecutive PRs.
