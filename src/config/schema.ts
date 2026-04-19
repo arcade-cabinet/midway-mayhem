@@ -229,6 +229,31 @@ export const TunablesSchema = z.object({
   plungeDurationS: z.number().positive(),
   /** Drop-in intro duration in milliseconds. */
   dropDurationMs: z.number().positive(),
+  /** Track geometry (lanes + lane width). */
+  track: z
+    .object({
+      laneCount: z.number().int().positive(),
+      laneWidth: z.number().positive(),
+    })
+    .strict(),
+  /** Honk / critter-scare tuning. */
+  honk: z
+    .object({
+      scareRadiusM: z.number().positive(),
+      fleeLateralM: z.number().positive(),
+      fleeDurationS: z.number().positive(),
+      cooldownS: z.number().positive(),
+    })
+    .strict(),
+  /** Steering tuning. */
+  steer: z
+    .object({
+      maxLateralMps: z.number().positive(),
+      returnTauS: z.number().positive(),
+      wheelMaxDeg: z.number().positive(),
+      sensitivity: z.number().positive(),
+    })
+    .strict(),
 });
 
 export type Tunables = z.infer<typeof TunablesSchema>;
