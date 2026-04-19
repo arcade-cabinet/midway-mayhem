@@ -254,3 +254,19 @@ jobs:
           name: playwright-report
           path: playwright-report/
 
+      # Preserve the per-interval playthrough dumps (PNG frames + diag
+      # JSON) emitted by e2e/_factory.ts. These are the telemetry the
+      # project relies on to reason about "what did seed X look like at
+      # t=Ns"; the HTML report only surfaces screenshots inside the
+      # trace viewer, and the JSON diagnostics aren't captured at all.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playthrough-dumps
+          path: |
+            test-results/**/playthrough/**/frame-*.png
+            test-results/**/playthrough/**/frame-*.json
+            test-results/**/playthrough/**/summary.json
+          if-no-files-found: ignore
+          retention-days: 14
+
