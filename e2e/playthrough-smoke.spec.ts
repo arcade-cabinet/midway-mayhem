@@ -24,7 +24,11 @@ test.describe('playthrough smoke — fast merge gate', () => {
   test('canonical phrase boots + advances on desktop', async ({ page }, testInfo) => {
     // Skip on non-desktop projects; smoke is desktop-only by design.
     test.skip(testInfo.project.name !== 'desktop-chromium', 'smoke runs on desktop-chromium only');
-    test.setTimeout(60_000);
+    // 90s: boot (~15s) + 5 × 1s intervals + per-frame screenshot
+    // (~2-3s on swiftshader including font-loading wait) + slack.
+    // First CI run timed out at 60s inside page.screenshot's
+    // "waiting for fonts" phase.
+    test.setTimeout(90_000);
 
     const frames = await runPlaythrough(page, testInfo, {
       phrase: SMOKE_PHRASE,
