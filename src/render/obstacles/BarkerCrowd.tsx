@@ -12,7 +12,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { onHonk } from '@/audio/honkBus';
-import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { sampleTrackPoseOrNull } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { useGameStore } from '@/game/gameState';
 import { TRACK } from '@/utils/constants';
@@ -160,7 +160,11 @@ export function BarkerCrowd() {
 
       const lat = b.side * sideOffset;
       if (sampled.length === 0) continue;
-      const p = sampleTrackPose(sampled, b.d);
+      const p = sampleTrackPoseOrNull(sampled, b.d);
+      if (!p) {
+        sl.group.position.set(0, -9999, 0);
+        continue;
+      }
       // Apply lateral offset along the track's perpendicular (right-hand).
       const rightX = Math.cos(p.yaw);
       const rightZ = -Math.sin(p.yaw);

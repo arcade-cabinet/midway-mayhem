@@ -13,7 +13,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import * as THREE from 'three';
-import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { sampleTrackPoseOrNull } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { useGameStore } from '@/game/gameState';
 import type { PlannedBalloonAnchor } from '@/game/runPlan';
@@ -103,7 +103,8 @@ export function BalloonLayer() {
         if (anchor.d < minD || anchor.d > maxD) continue;
         const lat = plannedBalloonLateral(anchor, elapsedS);
         if (sampled.length === 0) continue;
-        const p = sampleTrackPose(sampled, anchor.d);
+        const p = sampleTrackPoseOrNull(sampled, anchor.d);
+        if (!p) continue;
         const rightX = Math.cos(p.yaw);
         const rightZ = -Math.sin(p.yaw);
         const worldX = p.x + rightX * lat;
@@ -138,7 +139,8 @@ export function BalloonLayer() {
         if (count >= MAX_BALLOONS) break;
         const lat = balloonSpawner.balloonLateral(b, now) as number;
         if (sampled.length === 0) continue;
-        const p = sampleTrackPose(sampled, b.d);
+        const p = sampleTrackPoseOrNull(sampled, b.d);
+        if (!p) continue;
         const rightX = Math.cos(p.yaw);
         const rightZ = -Math.sin(p.yaw);
         const worldX = p.x + rightX * lat;

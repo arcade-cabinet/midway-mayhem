@@ -21,6 +21,30 @@ export interface SampledSegment {
   distanceStart: number;
 }
 
+/**
+ * Returns the total distance covered by the sampled track, i.e. the end
+ * of the last segment. Zero if no segments are present.
+ */
+export function sampledTrackLength(segments: SampledSegment[]): number {
+  if (segments.length === 0) return 0;
+  const last = segments[segments.length - 1];
+  return last ? last.distanceStart + last.length : 0;
+}
+
+/**
+ * Like sampleTrackPose but returns null when `distance` is past the end
+ * of the sampled track. Use this for render components that place one-off
+ * props at a specific distance (FinishBanner, FireHoopGate) so they don't
+ * pile up at the end of the track when the plan distance exceeds what the
+ * ECS has sampled. See issue #119.
+ */
+export function sampleTrackPoseOrNull(segments: SampledSegment[], distance: number): Pose | null {
+  const len = sampledTrackLength(segments);
+  if (segments.length === 0) return null;
+  if (distance > len) return null;
+  return sampleTrackPose(segments, distance);
+}
+
 export function sampleTrackPose(segments: SampledSegment[], distance: number): Pose {
   if (segments.length === 0) {
     return { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 };

@@ -14,7 +14,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { sampleTrackPose } from '@/ecs/systems/trackSampler';
+import { sampleTrackPoseOrNull } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { useGameStore } from '@/game/gameState';
 import { laneCenterX } from '@/utils/constants';
@@ -143,7 +143,15 @@ export function FireHoopGate() {
 
       const hoopLat = laneCenterX(hoop.lane);
       if (sampled.length === 0) continue;
-      const p = sampleTrackPose(sampled, hoop.d);
+      const p = sampleTrackPoseOrNull(sampled, hoop.d);
+      if (!p) {
+        // Hoop is past the end of the sampled track — park it off-screen
+        // instead of letting sampleTrackPose clamp it onto the player's
+        // cockpit (see issue #119).
+        torus.position.set(0, -9999, 0);
+        embers.position.set(0, -9999, 0);
+        continue;
+      }
       const rightX = Math.cos(p.yaw);
       const rightZ = -Math.sin(p.yaw);
       const worldX = p.x + rightX * hoopLat;
