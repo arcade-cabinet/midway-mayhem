@@ -29,6 +29,7 @@ import { GaugeNeedles, isGaugeNeedleMesh } from './GaugeNeedles';
 import { Headlights } from './Headlights';
 import { HonkableHorn, isHonkableMesh } from './HonkableHorn';
 import { isMirrorGlassMesh, RearViewMirror } from './RearViewMirror';
+import { isWheelMesh, SteeringWheel } from './SteeringWheel';
 import { useCockpitFeel } from './useCockpitFeel';
 import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
 
@@ -67,7 +68,8 @@ export function Cockpit({ tier }: CockpitProps) {
             !isFlowerMesh(name) &&
             !isGaugeNeedleMesh(name) &&
             !isMirrorGlassMesh(name) &&
-            !isHonkableMesh(name),
+            !isHonkableMesh(name) &&
+            !isWheelMesh(name),
         )
         .sort(([a], [b]) => a.localeCompare(b)),
     [],
@@ -130,6 +132,9 @@ export function Cockpit({ tier }: CockpitProps) {
 
         {/* Clickable red horn cap. Click → honk + squish animation. */}
         <HonkableHorn />
+
+        {/* Steering wheel rim + hub + spokes rotate with steer input. */}
+        <SteeringWheel />
       </group>
 
       {/* Diegetic HUD — speedometer + lane indicator as 3D meshes. Stays
