@@ -19,12 +19,14 @@ import {
   Pickup,
   type PickupKind,
   Player,
+  Position,
+  Score,
   Speed,
   Steer,
 } from '@/ecs/traits';
 import { resetAchievementsRun, stepAchievements } from '@/game/achievementRun';
 import { combo } from '@/game/comboSystem';
-import { reportCounts, reportFrame } from '@/game/diagnosticsBus';
+import { reportCounts, reportEcsStats, reportFrame } from '@/game/diagnosticsBus';
 import {
   applyCrash,
   ensureGameTraits,
@@ -135,6 +137,19 @@ export function GameLoop({ world, active, onPickup, onObstacle, onEnd }: GameLoo
     const obstacleCount = world.query(Obstacle).length;
     const pickupCount = world.query(Pickup).length;
     reportCounts(obstacleCount, pickupCount, state.gl.info.render.calls);
+
+    // Expose ECS Score.damage + Position for live debugging — the store's
+    // `crashes` counter is not wired to Score.damage (see #130), so the
+    // only way to see how close the run is to a damage-end is to read the
+    // ECS trait directly.
+    const pe2 = world.query(Player, Score, Position)[0];
+    if (pe2) {
+      const sc = pe2.get(Score);
+      const po = pe2.get(Position);
+      if (sc && po) {
+        reportEcsStats({ ecsDamage: sc.damage, ecsDistance: po.distance, ecsLateral: po.lateral });
+      }
+    }
   });
   return null;
 }

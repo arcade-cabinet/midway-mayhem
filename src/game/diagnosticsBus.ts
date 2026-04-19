@@ -47,6 +47,12 @@ export interface DiagnosticsDump {
   meshesRendered: number;
   cameraPos: [number, number, number];
   worldScrollerPos: [number, number, number];
+  /** ECS Score.damage — gates the `damage` game-over reason (≥3 ends the run). */
+  ecsDamage: number;
+  /** ECS Position.distance — drives TrackScroller's counter-rotate. */
+  ecsDistance: number;
+  /** ECS Position.lateral — drives collisions. */
+  ecsLateral: number;
 }
 
 const bus = {
@@ -60,6 +66,9 @@ const bus = {
   meshesRendered: 0,
   cameraPos: [0, 0, 0] as [number, number, number],
   worldScrollerPos: [0, 0, 0] as [number, number, number],
+  ecsDamage: 0,
+  ecsDistance: 0,
+  ecsLateral: 0,
 };
 
 export function installDiagnosticsBus() {
@@ -103,6 +112,9 @@ export function installDiagnosticsBus() {
         meshesRendered: bus.meshesRendered,
         cameraPos: [...bus.cameraPos] as [number, number, number],
         worldScrollerPos: [...bus.worldScrollerPos] as [number, number, number],
+        ecsDamage: bus.ecsDamage,
+        ecsDistance: bus.ecsDistance,
+        ecsLateral: bus.ecsLateral,
       };
     },
     setSteer(v: number) {
@@ -193,4 +205,13 @@ export function reportScene(info: {
   bus.meshesRendered = info.meshesRendered;
   bus.cameraPos = info.cameraPos;
   bus.worldScrollerPos = info.worldScrollerPos;
+}
+export function reportEcsStats(info: {
+  ecsDamage: number;
+  ecsDistance: number;
+  ecsLateral: number;
+}) {
+  bus.ecsDamage = info.ecsDamage;
+  bus.ecsDistance = info.ecsDistance;
+  bus.ecsLateral = info.ecsLateral;
 }
