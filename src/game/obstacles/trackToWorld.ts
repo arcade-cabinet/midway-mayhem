@@ -5,7 +5,9 @@
  * (x, y, z, heading). Used by ObstacleSystem, PickupSystem, BalloonLayer,
  * FireHoopGate, and MirrorLayer.
  *
- * Extracted from ObstacleSystem.tsx so that module stays under 300 LOC.
+ * Lives in its own file because it's a pure projection function shared
+ * across five different render layers — it would be over-scoped to
+ * require importing ObstacleSystem to get at it.
  */
 
 import type { composeTrack, PiecePlacement } from '@/track/trackComposer';

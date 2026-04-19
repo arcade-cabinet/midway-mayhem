@@ -6,7 +6,8 @@
  * steering-wheel rotation, ornament spin, dice wobble, fire-light flicker,
  * and smoke-particle lifecycle.
  *
- * Extracted from Cockpit.tsx to keep that file under 300 LOC.
+ * Separated from Cockpit.tsx so static scene composition lives in one
+ * file and per-frame animation logic lives in another.
  */
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';

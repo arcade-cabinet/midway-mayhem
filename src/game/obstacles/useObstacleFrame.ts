@@ -4,7 +4,9 @@
  * Per-frame logic for ObstacleSystem: position obstacles, animate critters,
  * hide unused slots, and run collision/near-miss/pickup detection.
  *
- * Extracted from ObstacleSystem.tsx to keep that file under 300 LOC.
+ * Separated from ObstacleSystem.tsx — ObstacleSystem is a React tree
+ * (meshes, groups, refs) while this file is the per-frame update loop
+ * that reads refs + game state and mutates transforms.
  */
 import { useFrame } from '@react-three/fiber';
 import type * as THREE from 'three';

@@ -4,7 +4,9 @@
  * Critter pool helpers: idle-clip selection, pool pre-population,
  * and per-frame idle-phase seeding.
  *
- * Separated from ObstacleSystem.tsx to keep that file under 300 LOC.
+ * Separated from ObstacleSystem.tsx — critter pooling has its own
+ * lifecycle (clip loading, idle-phase mixing) distinct from per-frame
+ * positioning logic.
  */
 import * as THREE from 'three';
 import { tunables } from '@/config';

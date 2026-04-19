@@ -3,7 +3,9 @@
  *
  * Damage fire point-light + three rising smoke particles.
  * Meshes are exposed via forwarded refs so Cockpit's useFrame can animate them.
- * Extracted from Cockpit.tsx to keep that file under 300 LOC.
+ * Separated from Cockpit.tsx — damage FX is an orthogonal visual system
+ * that only mounts while score.damage > 0, and keeping it in its own
+ * file makes that lifecycle easy to spot.
  */
 import type * as THREE from 'three';
 

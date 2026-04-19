@@ -2,7 +2,8 @@
  * @module persistence/achievementCatalog
  *
  * Static catalog of all achievement definitions. Separated from the
- * grant/query logic in achievements.ts so both files stay under 300 LOC.
+ * grant/query logic in achievements.ts so this file is pure data (a
+ * reviewable table) and the sibling file is pure behavior.
  */
 
 // ─── Predicate type interfaces ───────────────────────────────────────────────

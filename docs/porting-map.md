@@ -28,7 +28,7 @@ src/
   config/           schemas + loader + defaults + shopCatalog (existing tunables.json stays)
   design/           tokens, typography, components/ (Panel, BrandButton, Banner, Dialog, GaugeBar, HUDFrame, Stat)
   ecs/
-    traits.ts       koota traits (one file ok, split if >300 LOC)
+    traits.ts       koota traits (one file ok; split by responsibility only if it starts tangling)
     world.ts        world singleton
     systems/        per-tick ECS update systems
   game/             pure logic: PRNG buses, difficulty, combo, trick, deviation, damage, achievement bus,
