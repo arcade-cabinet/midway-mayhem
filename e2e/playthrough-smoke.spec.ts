@@ -1,6 +1,6 @@
 /**
- * Fast merge-gate boot smoke. Desktop-only. Assert that `?autoplay=1`
- * boots into gameplay — DOM-level signals only.
+ * Fast merge-gate boot smoke. Runs across all 3 viewports. Asserts
+ * that `?autoplay=1` boots into gameplay — DOM-level signals only.
  *
  * The smoke's job is narrowly scoped:
  *   1. canvas mounts
@@ -14,14 +14,13 @@
  * the interesting regressions land on whether the app boots at all.
  *
  * Deep distance / zone progression assertions live in the @nightly
- * suite (\`seed-playthroughs.spec.ts\`) which has the budget for slow
+ * suite (`seed-playthroughs.spec.ts`) which has the budget for slow
  * sampling.
  */
 import { expect, test } from '@playwright/test';
 
 test.describe('boot smoke — fast merge gate', () => {
-  test('autoplay=1 boots into a running game on desktop', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop-chromium', 'smoke runs on desktop-chromium only');
+  test('autoplay=1 boots into a running game', async ({ page }) => {
     test.setTimeout(45_000);
 
     await page.goto('/midway-mayhem/?autoplay=1');
