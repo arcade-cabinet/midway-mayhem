@@ -24,6 +24,8 @@ import { useMemo } from 'react';
 import { cockpitBlueprint } from '@/config';
 import { CockpitMeshNode } from './blueprintMesh';
 import { DiegeticHUD } from './DiegeticHUD';
+import { FlowerOrnament, isFlowerMesh } from './FlowerOrnament';
+import { GaugeNeedles, isGaugeNeedleMesh } from './GaugeNeedles';
 import { useCockpitFeel } from './useCockpitFeel';
 import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
 
@@ -50,8 +52,15 @@ export function Cockpit({ tier }: CockpitProps) {
   // Pull the meshes in deterministic order so the draw-call list is stable
   // across renders and the scene-graph gate in Cockpit.browser.test.tsx
   // sees the same `hood` node every time.
+  // Skip meshes that are rendered by dedicated animated components
+  // (flower ornament spins; gauge needles sweep with game state). The
+  // blueprint is still the source of truth for their geometry; the
+  // dedicated components just own the animation.
   const meshEntries = useMemo(
-    () => Object.entries(cockpitBlueprint.meshes).sort(([a], [b]) => a.localeCompare(b)),
+    () =>
+      Object.entries(cockpitBlueprint.meshes)
+        .filter(([name]) => !isFlowerMesh(name) && !isGaugeNeedleMesh(name))
+        .sort(([a], [b]) => a.localeCompare(b)),
     [],
   );
 
@@ -92,6 +101,13 @@ export function Cockpit({ tier }: CockpitProps) {
           }
           return <CockpitMeshNode key={name} name={name} mesh={mesh} material={material} />;
         })}
+
+        {/* Spinning 8-petal flower ornament on the hood tip. Its component
+            rotates the assembly around Y each frame. */}
+        <FlowerOrnament />
+
+        {/* LAUGHS + FUN gauge needles, sweeping live with sanity / hype. */}
+        <GaugeNeedles />
       </group>
 
       {/* Diegetic HUD — speedometer + lane indicator as 3D meshes. Stays
