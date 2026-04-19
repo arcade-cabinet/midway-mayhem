@@ -28,10 +28,13 @@ export function PhotoModeControls() {
 
 /** R3F sub-component for PNG download — needs access to the renderer. */
 export function PhotoModeDownloadCapture({ onCapture }: { onCapture: (dataUrl: string) => void }) {
-  const { gl } = useThree();
+  const { gl, scene, camera } = useThree();
 
   const capture = () => {
-    // Render one more frame to ensure the canvas is current
+    // Render a fresh frame synchronously before reading pixels. This is
+    // required because App's Canvas has preserveDrawingBuffer=false —
+    // without a synchronous render, toDataURL returns a cleared canvas.
+    gl.render(scene, camera);
     const dataUrl = gl.domElement.toDataURL('image/png');
     onCapture(dataUrl);
   };

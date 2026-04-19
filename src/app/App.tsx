@@ -99,6 +99,16 @@ wireDiagnosticsHooks({
   },
 });
 
+/** URL flag: `?preserve=1` opts into `gl.preserveDrawingBuffer: true`,
+ * which is needed by the vitest-browser tests that call
+ * `canvas.toDataURL()` directly (MidRunVisualBaseline, etc). In prod
+ * and CI E2E it stays off — the preserved buffer forces a ReadPixels
+ * on every frame which tanks performance on swiftshader. */
+function preserveDrawingBufferFromUrl(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('preserve') === '1';
+}
+
 function AudioBridge({
   active,
   onReady,
@@ -144,7 +154,16 @@ export function App() {
         style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
       >
         <Canvas
-          gl={{ antialias: true, preserveDrawingBuffer: true }}
+          // preserveDrawingBuffer forces a ReadPixels on every frame which
+          // stalls the GPU pipeline — catastrophic on swiftshader CI
+          // runners (observed: autoplay frame rate dropping to ~1 FPS and
+          // distance never incrementing past 0). PhotoMode + debugCapture
+          // re-render synchronously before calling toDataURL instead of
+          // relying on a preserved buffer, so we don't need this flag in
+          // prod. It IS still needed by the vitest-browser visual-baseline
+          // tests that call `canvas.toDataURL()` after a wait — those tests
+          // set `?preserve=1` on the URL to opt back in.
+          gl={{ antialias: true, preserveDrawingBuffer: preserveDrawingBufferFromUrl() }}
           frameloop="always"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         >
