@@ -26,9 +26,12 @@ export function TrackScroller({ children }: { children: ReactNode }) {
   const sampled = useSampledTrack();
   const scene = useThree((s) => s.scene);
 
-  // Install __mm.enumerateMeshes() on mount — scene introspection helper
-  // for ad-hoc devtools debugging. Returns name / world-bbox / color per
-  // mesh.
+  // Install __mm.enumerateMeshes() + __mm.dumpScene() on mount. The two
+  // helpers differ in shape: enumerateMeshes is a flat mesh list with
+  // world-space bboxes (great for finding mystery geometry by color); the
+  // dumpScene tree preserves parent-child relationships + LOCAL transforms
+  // (great for diagnosing "which group isn't moving" like the hood-swallow
+  // + TrackScroller-didn't-mount debugging in #119 / #134).
   useEffect(() => {
     // biome-ignore lint/suspicious/noExplicitAny: dev handle on window
     const w = window as any;
@@ -54,8 +57,36 @@ export function TrackScroller({ children }: { children: ReactNode }) {
       });
       return out;
     };
+    w.__mm.dumpScene = (maxDepth = 4) => {
+      // biome-ignore lint/suspicious/noExplicitAny: duck-typed tree
+      const walk = (o: any, depth: number): any => {
+        const node: Record<string, unknown> = {
+          name: o.name || '(unnamed)',
+          type: o.type,
+          visible: o.visible,
+          pos: [round(o.position.x), round(o.position.y), round(o.position.z)],
+          rot: [round(o.rotation.x), round(o.rotation.y), round(o.rotation.z)],
+        };
+        if (o.scale && (o.scale.x !== 1 || o.scale.y !== 1 || o.scale.z !== 1)) {
+          node.scale = [round(o.scale.x), round(o.scale.y), round(o.scale.z)];
+        }
+        if (o.isMesh) {
+          const color = o.material?.color?.getHexString?.() ?? null;
+          if (color) node.color = color;
+        }
+        if (depth >= maxDepth && o.children.length > 0) {
+          node.children = `<${o.children.length} hidden — raise maxDepth>`;
+        } else if (o.children.length > 0) {
+          node.children = o.children.map((c: unknown) => walk(c, depth + 1));
+        }
+        return node;
+      };
+      const round = (n: number) => Math.round(n * 1000) / 1000;
+      return walk(scene, 0);
+    };
     return () => {
       w.__mm.enumerateMeshes = undefined;
+      w.__mm.dumpScene = undefined;
     };
   }, [scene]);
 

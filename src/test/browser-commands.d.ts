@@ -31,5 +31,8 @@ interface Window {
     pause?: () => void;
     resume?: () => void;
     comboEvent?: (kind: 'scare' | 'pickup' | 'near-miss') => void;
+    enumerateMeshes?: () => Array<Record<string, unknown>>;
+    dumpScene?: (maxDepth?: number) => Record<string, unknown>;
+    dumpObstacles?: () => Array<Record<string, number | string | boolean>>;
   };
 }
