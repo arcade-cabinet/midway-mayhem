@@ -23,22 +23,31 @@ audio conductor — but the live game in `src/app/App.tsx` still runs an **older
 render stack** (`Track.tsx` + `TrackContent.tsx`) that uses primitive cones/barriers/
 balloons and ignores the RunPlan baker entirely.
 
-**Top findings:**
+**Top findings (updated 2026-04):**
 
-1. **`ObstacleSystem`, `PickupSystem`, `WorldScroller`, `BalloonLayer`, `MirrorLayer`,
-   `FireHoopGate`, `RaidLayer`, `BarkerCrowd`, `StartPlatform`, `FinishBanner`,
-   `ZoneProps`, `RacingLineGhost`, `useGameSystems`, and the entire
-   `src/game/obstacles/*` pipeline are orphaned** — nothing imports them.
+1. ~~Most of the `obstacles/*` + `cockpit/*` pipeline is orphaned~~ — **most of this has
+   been rewired.** As of PRs #142–#161, the following are all mounted in `App.tsx`:
+   `ObstacleSystem`, `BalloonLayer`, `MirrorLayer`, `FireHoopGate`, `RaidLayer`,
+   `BarkerCrowd`, `StartPlatform`, `FinishBanner`, `ZoneProps`, `RacingLineGhost`,
+   `useGameSystems`, `ExplosionFX`, and all cockpit animation/audio/feel subsystems.
+   Remaining true orphans: `PickupSystem` (intentional null shell), `WorldScroller`
+   (superseded by `TrackScroller`), `TrackSystem` (no longer exists on disk),
+   `trackComposer` (only referenced by the orphaned `WorldScroller`). All are kept in
+   tree per the "orphan code gets rewired, never cut" project directive — they're
+   reference material, not live code.
 2. **Kenney GLB track pieces and obstacle models referenced in code do not exist on
    disk** (`/models/*.glb`, `/textures/*` chrome/hood/track are present but
-   `public/models/` is missing entirely).
+   `public/models/` is missing entirely). — still true; rendering went fully procedural.
 3. **Input is not per the vision.** Vision = mouse-X / continuous touch-drag;
-   implementation = virtual joystick (mobile) + discrete keyboard (desktop).
-4. **Zone progression is decorative only.** Zone entities are seeded and banners render,
-   but spawn weighting, materials, audio, and obstacle mix do not differ by zone in the
-   live path.
+   implementation = virtual joystick (mobile) + discrete keyboard (desktop). — still
+   true.
+4. ~~Zone progression is decorative only.~~ — partially addressed: zone-weighted obstacle
+   spawns now live in `tunables.obstacles.zoneWeights` (PR #153); zone-keyed audio
+   themes in `tunables.zones` (PR #156).
 5. **Several "complete" systems (raids, barker crowd, ghost car playback, tricks
-   pipeline) have no e2e or visual coverage** and aren't mounted in App.
+   pipeline)** are mounted now. Coverage gap: pixel-diff baselines exist for the
+   cockpit (PR #149-cockpit) + one mid-run frame (PR #154); no coverage yet for
+   game-over / pause / raid telegraph / finish banner states.
 
 ---
 
@@ -52,12 +61,13 @@ balloons and ignores the RunPlan baker entirely.
   `SpeedFX.tsx`, `ExplosionFX.tsx`, `CockpitDamageFX.tsx`, `useCockpitAnimation.ts`,
   `plungeMotion.ts`, `useFormFactor.ts` — all wired through `Cockpit`.
 * Fixed horizontal FOV (88°) per vision, vFov derived from aspect → responsive scaling works.
-* `RacingLineGhost.tsx` exists but is not imported by `Cockpit` (orphan).
+* `RacingLineGhost.tsx` is mounted inside `TrackScroller` as of PR #158, gated by
+  `settings.showRacingLine`.
 
 **Gaps vs vision:** none material. Identity signatures (polka-dots, purple pillars, yellow
 arch, red bench, chrome wheel, honkable horn, spinning flower) all present.
 
-**Priority / Effort:** N/A (P2 — wire `RacingLineGhost`, trivial).
+**Priority / Effort:** none remaining for cockpit — section is COMPLETE.
 
 ---
 
