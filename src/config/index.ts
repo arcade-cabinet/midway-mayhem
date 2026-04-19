@@ -7,11 +7,7 @@
 
 import trackPiecesJson from './archetypes/track-pieces.json';
 import cockpitBlueprintJson from './cockpit-blueprint.json';
-import {
-  CockpitBlueprintSchema,
-  TrackArchetypeSetSchema,
-  TunablesSchema,
-} from './schema';
+import { CockpitBlueprintSchema, TrackArchetypeSetSchema, TunablesSchema } from './schema';
 import tunablesJson from './tunables.json';
 
 export const trackArchetypes = TrackArchetypeSetSchema.parse(trackPiecesJson);
