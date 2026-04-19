@@ -15,7 +15,7 @@ import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { seedContent } from '@/ecs/systems/seedContent';
 import { seedZones } from '@/ecs/systems/seedZones';
 import { seedTrack } from '@/ecs/systems/track';
-import { Player, Score } from '@/ecs/traits';
+import { Obstacle, Player, Score } from '@/ecs/traits';
 import { world } from '@/ecs/world';
 import { resetAchievementsRun } from '@/game/achievementRun';
 import { DebugCaptureBridge } from '@/game/debugCapture';
@@ -82,6 +82,18 @@ wireDiagnosticsHooks({
   applyPickup: (kind) => useGameStore.getState().applyPickup(kind),
   pause: () => useGameStore.getState().pause(),
   resume: () => useGameStore.getState().resume(),
+  getObstacles: () => {
+    const out: Array<Record<string, number | string | boolean>> = [];
+    world.query(Obstacle).updateEach(([ob]) => {
+      out.push({
+        kind: ob.kind,
+        distance: ob.distance,
+        lateral: ob.lateral,
+        consumed: ob.consumed,
+      });
+    });
+    return out;
+  },
 });
 
 function AudioBridge({

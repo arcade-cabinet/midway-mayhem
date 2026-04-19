@@ -154,6 +154,13 @@ export function installDiagnosticsBus() {
     comboEvent(kind: 'scare' | 'pickup' | 'near-miss') {
       combo.registerEvent(kind);
     },
+    dumpObstacles(): Array<Record<string, number | string | boolean>> {
+      // Walks whatever the wireDiagnosticsHooks getObstacles hook returns.
+      const fn = (globalThis as Record<string, unknown>).__mmGetObstacles as
+        | (() => Array<Record<string, number | string | boolean>>)
+        | undefined;
+      return fn ? fn() : [];
+    },
   };
 }
 
@@ -171,6 +178,7 @@ export interface DiagHooks {
   applyPickup?: (kind: 'ticket' | 'boost' | 'mega') => void;
   pause?: () => void;
   resume?: () => void;
+  getObstacles?: () => Array<Record<string, number | string | boolean>>;
 }
 
 export function wireDiagnosticsHooks(hooks: DiagHooks): void {
@@ -183,6 +191,7 @@ export function wireDiagnosticsHooks(hooks: DiagHooks): void {
   if (hooks.applyPickup) g.__mmApplyPickup = hooks.applyPickup;
   if (hooks.pause) g.__mmPause = hooks.pause;
   if (hooks.resume) g.__mmResume = hooks.resume;
+  if (hooks.getObstacles) g.__mmGetObstacles = hooks.getObstacles;
 }
 
 export function reportFrame(dt: number) {
