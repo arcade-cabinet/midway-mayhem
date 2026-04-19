@@ -34,6 +34,16 @@ async function readLoadout(): Promise<LoadoutRow> {
   return row;
 }
 
+/**
+ * Synchronous accessor returning the last-cached loadout or null if the
+ * cache is cold. Only use this when you need an immediate snapshot (e.g.
+ * debug capture) — the hook version remains the right choice for live UI
+ * because it tracks cache invalidations across equip calls.
+ */
+export function getCachedLoadoutSync(): LoadoutRow | null {
+  return loadoutCache;
+}
+
 /** Equip a slug for the given kind — persists to SQLite + updates cache. */
 async function equipItem(kind: UnlockKind, slug: string): Promise<void> {
   const partial: Partial<LoadoutRow> = {};

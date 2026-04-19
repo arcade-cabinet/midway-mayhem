@@ -17,6 +17,7 @@ import { useEffect } from 'react';
 import type * as THREE from 'three';
 import { getReportedErrors } from '@/game/errorBus';
 import { useGameStore } from '@/game/gameState';
+import { getCachedLoadoutSync } from '@/hooks/useLoadout';
 import type { DiagnosticsDump } from './diagnosticsBus';
 
 export interface CapturePayload {
@@ -138,7 +139,7 @@ export function buildCapturePayload(
     gameState: serializeGameState(),
     scene: inventoryScene(scene),
     renderer: snapshotRenderer(gl),
-    loadout: null, // useLoadoutStore not yet ported — deferred
+    loadout: getCachedLoadoutSync(),
     errors: getReportedErrors(),
     environment: {
       url: typeof window !== 'undefined' ? window.location.href : '',

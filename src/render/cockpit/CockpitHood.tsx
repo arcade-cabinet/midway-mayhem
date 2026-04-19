@@ -1,12 +1,12 @@
 /**
- * Hood — the pink/cream polka-dot car nose sticking out below the windshield.
- * Scaled sphere deliberately sits below the camera's horizon so it reads as
- * "you're inside a clown car" without swallowing the camera near-plane.
+ * @deprecated — Blueprint-driven rendering (Phase 2, PR #139) owns the
+ * hood now. This hand-authored variant is preserved as a reference /
+ * fallback only. The live app imports nothing from this file.
  *
- * Spinning 8-petal flower ornament + gold accent + chrome ridge are the
- * "midway mayhem" signature details that distinguish this hood from a
- * generic racing game cockpit. Ornament rotation is a per-frame concern
- * wired up in a parent animation hook (not yet landed in v2).
+ * When the live hood shape changes, the source of truth is
+ * `src/config/cockpit-blueprint.json` + the blueprintMesh + FlowerOrnament
+ * components. Identity signatures — polka-dot livery, spinning flower,
+ * gold accent, chrome ridge — are all reproduced there.
  */
 import { useMemo } from 'react';
 import { makePolkaDotTexture } from './polkaDotTexture';
