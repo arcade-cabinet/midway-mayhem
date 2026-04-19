@@ -102,6 +102,17 @@ const DamageTunablesSchema = z.object({
   badThreshold: z.number(),
 });
 
+const ObstacleKindWeightsSchema = z
+  .object({
+    barrier: z.number().nonnegative(),
+    cones: z.number().nonnegative(),
+    gate: z.number().nonnegative(),
+    oil: z.number().nonnegative(),
+    hammer: z.number().nonnegative(),
+    critter: z.number().nonnegative(),
+  })
+  .strict();
+
 const ObstacleTunablesSchema = z.object({
   forwardRenderM: z.number().positive(),
   behindRenderM: z.number().positive(),
@@ -109,6 +120,22 @@ const ObstacleTunablesSchema = z.object({
   nearMissDist: z.number().positive(),
   critterPoolSize: z.number().int().positive(),
   critterScale: z.number().positive(),
+  spawn: z
+    .object({
+      minGap: z.number().positive(),
+      jitter: z.number().positive(),
+      pickupMinGap: z.number().positive(),
+      pickupJitter: z.number().positive(),
+    })
+    .strict(),
+  zoneWeights: z
+    .object({
+      'midway-strip': ObstacleKindWeightsSchema,
+      'balloon-alley': ObstacleKindWeightsSchema,
+      'ring-of-fire': ObstacleKindWeightsSchema,
+      'funhouse-frenzy': ObstacleKindWeightsSchema,
+    })
+    .strict(),
 });
 
 const RaidTunablesSchema = z.object({

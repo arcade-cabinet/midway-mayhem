@@ -7,6 +7,7 @@
  * matrix; keeping them here until that lift has a consumer.
  */
 
+import { tunables } from '@/config';
 import type { CritterKind, ObstacleType, PickupType, ZoneId } from '@/utils/constants';
 import { CRITTER_KINDS, HONK, TRACK } from '@/utils/constants';
 import type { Rng } from '@/utils/rng';
@@ -41,27 +42,17 @@ export interface Pickup {
   radius: number;
 }
 
-// ─── Spawn parameters (TODO: replace with tunables()) ───────────────────────
+// ─── Spawn parameters (sourced from tunables.obstacles) ────────────────────
 
-const SPAWN = {
-  minGap: 18,
-  jitter: 22,
-  pickupMinGap: 35,
-  pickupJitter: 30,
-} as const;
+const SPAWN = tunables.obstacles.spawn;
 
 const CRITTER_THRESHOLDS = {
   pickupMegaThreshold: 0.93,
   pickupBoostThreshold: 0.7,
 } as const;
 
-/** Zone-based obstacle type weights (static defaults). */
-const ZONE_WEIGHTS: Record<ZoneId, Record<ObstacleType, number>> = {
-  'midway-strip': { barrier: 1, cones: 2, gate: 1, oil: 1, hammer: 0, critter: 2 },
-  'balloon-alley': { barrier: 1, cones: 2, gate: 2, oil: 2, hammer: 1, critter: 2 },
-  'ring-of-fire': { barrier: 2, cones: 1, gate: 1, oil: 3, hammer: 2, critter: 1 },
-  'funhouse-frenzy': { barrier: 2, cones: 2, gate: 2, oil: 2, hammer: 3, critter: 3 },
-};
+/** Zone-based obstacle type weights (sourced from tunables). */
+const ZONE_WEIGHTS: Record<ZoneId, Record<ObstacleType, number>> = tunables.obstacles.zoneWeights;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

@@ -26,7 +26,47 @@
     "nearMissLateral": 0.7,
     "nearMissDist": 3,
     "critterPoolSize": 10,
-    "critterScale": 3.5
+    "critterScale": 3.5,
+    "spawn": {
+      "minGap": 18,
+      "jitter": 22,
+      "pickupMinGap": 35,
+      "pickupJitter": 30
+    },
+    "zoneWeights": {
+      "midway-strip": {
+        "barrier": 1,
+        "cones": 2,
+        "gate": 1,
+        "oil": 1,
+        "hammer": 0,
+        "critter": 2
+      },
+      "balloon-alley": {
+        "barrier": 1,
+        "cones": 2,
+        "gate": 2,
+        "oil": 2,
+        "hammer": 1,
+        "critter": 2
+      },
+      "ring-of-fire": {
+        "barrier": 2,
+        "cones": 1,
+        "gate": 1,
+        "oil": 3,
+        "hammer": 2,
+        "critter": 1
+      },
+      "funhouse-frenzy": {
+        "barrier": 2,
+        "cones": 2,
+        "gate": 2,
+        "oil": 2,
+        "hammer": 3,
+        "critter": 3
+      }
+    }
   },
   "raid": {
     "telegraphMs": 2000,
