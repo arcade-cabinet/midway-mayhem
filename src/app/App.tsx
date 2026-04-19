@@ -31,6 +31,7 @@ import { useKeyboard } from '@/input/useKeyboard';
 import { useMouseSteer } from '@/input/useMouseSteer';
 import { BoostRush } from '@/render/BoostRush';
 import { Cockpit } from '@/render/cockpit/Cockpit';
+import { ExplosionFX } from '@/render/cockpit/ExplosionFX';
 import { HonkContext } from '@/render/cockpit/HonkContext';
 import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
@@ -173,6 +174,9 @@ export function App() {
           <HonkContext.Provider value={() => hornRef.current()}>
             <Cockpit />
           </HonkContext.Provider>
+          {/* Clown explosion on game-over — confetti, hearts, stars, flash.
+              Self-triggers from the store's gameOver flag; no prop wiring. */}
+          <ExplosionFX />
           <SpeedLines />
           <BoostRush />
           <PostFX />
