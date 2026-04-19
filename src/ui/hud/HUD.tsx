@@ -5,7 +5,6 @@ import { Stat } from '@/design/components/Stat';
 import { color, safeArea, space } from '@/design/tokens';
 import { useGameStore } from '@/game/gameState';
 import { useFormFactor } from '@/hooks/useFormFactor';
-import { GameOverOverlay } from './GameOverOverlay';
 import { RacingLineMeter } from './RacingLineMeter';
 import { RaidTelegraphBanner } from './RaidTelegraphBanner';
 import { TrickOverlay } from './TrickOverlay';
@@ -18,8 +17,6 @@ export function HUD() {
   const crowd = useGameStore((s) => s.crowdReaction);
   const gameOver = useGameStore((s) => s.gameOver);
   const plunging = useGameStore((s) => s.plunging);
-  const photoMode = useGameStore((s) => s.photoMode);
-  const startRun = useGameStore((s) => s.startRun);
   const ff = useFormFactor();
 
   const isPhonePortrait = ff.tier === 'phone-portrait';
@@ -90,9 +87,6 @@ export function HUD() {
         </Banner>
         <RaidTelegraphBanner />
         <TrickOverlay />
-        {gameOver && !photoMode && (
-          <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />
-        )}
       </HUDFrame>
     );
   }
@@ -137,9 +131,6 @@ export function HUD() {
       </Banner>
       <RaidTelegraphBanner />
       <TrickOverlay />
-      {gameOver && !photoMode && (
-        <GameOverOverlay distance={distance} crowd={crowd} onRestart={startRun} />
-      )}
     </HUDFrame>
   );
 }

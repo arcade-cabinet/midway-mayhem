@@ -46,11 +46,10 @@ describe('Game-over overlay integration', () => {
       { timeout: 5_000 },
     );
 
-    // Only ONE game-over overlay should mount. Before we hardened the
-    // app, both `src/ui/GameOverOverlay.tsx` (rendered by App) and
-    // `src/ui/hud/GameOverOverlay.tsx` (rendered by HUD) mounted
-    // simultaneously, which stacked two near-identical dialogs on
-    // screen. Gate against that regression.
+    // Only ONE game-over overlay should mount. App owns the overlay
+    // exclusively via GameOverEnd; the HUD used to mount its own copy
+    // too, producing a double-stack — deleted in a follow-up cleanup.
+    // Gate against that regression coming back.
     const overlays = container.querySelectorAll('[data-testid="game-over"]');
     expect(overlays.length, `expected exactly one game-over overlay, got ${overlays.length}`).toBe(
       1,
