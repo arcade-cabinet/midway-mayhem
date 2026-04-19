@@ -13,8 +13,8 @@
  * the player forever. The visible "red slab" was StartPlatform's sign-
  * back mesh glued to the cockpit.
  */
-import { useFrame } from '@react-three/fiber';
-import { type ReactNode, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { type ReactNode, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
@@ -24,6 +24,40 @@ import { world } from '@/ecs/world';
 export function TrackScroller({ children }: { children: ReactNode }) {
   const groupRef = useRef<THREE.Group>(null);
   const sampled = useSampledTrack();
+  const scene = useThree((s) => s.scene);
+
+  // Install __mm.enumerateMeshes() on mount — scene introspection helper
+  // for ad-hoc devtools debugging. Returns name / world-bbox / color per
+  // mesh.
+  useEffect(() => {
+    // biome-ignore lint/suspicious/noExplicitAny: dev handle on window
+    const w = window as any;
+    if (!w.__mm) return;
+    w.__mm.enumerateMeshes = () => {
+      const out: Array<Record<string, unknown>> = [];
+      const bbox = new THREE.Box3();
+      const center = new THREE.Vector3();
+      scene.traverse((o) => {
+        // biome-ignore lint/suspicious/noExplicitAny: duck-typed
+        const mesh = o as any;
+        if (!mesh.isMesh) return;
+        bbox.setFromObject(mesh);
+        bbox.getCenter(center);
+        const color = mesh.material?.color?.getHexString?.() ?? null;
+        out.push({
+          name: mesh.name || '(unnamed)',
+          center: [center.x, center.y, center.z],
+          size: [bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y, bbox.max.z - bbox.min.z],
+          color,
+          visible: mesh.visible,
+        });
+      });
+      return out;
+    };
+    return () => {
+      w.__mm.enumerateMeshes = undefined;
+    };
+  }, [scene]);
 
   useFrame(() => {
     const g = groupRef.current;
