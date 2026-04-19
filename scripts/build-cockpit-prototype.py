@@ -3,6 +3,13 @@ Midway Mayhem cockpit prototype builder (iter 3).
 
 Fixes from iter2: camera to_track_quat uses ("-Z", "Z") to correctly map
 image-up to world +Y in a Y-up scene (Blender defaults to Z-up).
+
+This script is a one-shot Blender render used to seed the cockpit blueprint
+during the cockpit hero pass. The CANONICAL blueprint lives at
+`src/config/cockpit-blueprint.json` and has been hand-edited since (see
+#139). Re-running this script writes to `.cockpit-prototype/` so the
+canonical file is never clobbered. If you need to re-seed from Blender,
+copy `cockpit-blueprint.json` into src/config/ manually.
 """
 
 import bpy, bmesh, math, json, os, sys
@@ -11,7 +18,7 @@ from mathutils import Vector, Matrix, Quaternion
 argv = sys.argv
 argv = argv[argv.index("--") + 1 :] if "--" in argv else []
 REPO_ROOT = argv[0] if argv else "/Users/jbogaty/src/arcade-cabinet/midway-mayhem"
-OUT_DIR = os.path.join(REPO_ROOT, "scripts")
+OUT_DIR = os.path.join(REPO_ROOT, ".cockpit-prototype")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 

@@ -58,6 +58,11 @@ ChatGPT-*.md
 # Debug pause-and-capture output
 .capture/
 
+# Output of scripts/build-cockpit-prototype.py — renders + blueprint.
+# The canonical blueprint lives at src/config/cockpit-blueprint.json;
+# the Blender re-render is for reference only, never committed.
+.cockpit-prototype/
+
 # Ad-hoc Playwright MCP snapshots (console + page dumps) + stray
 # screenshots from live-debugging sessions — never checked in.
 .playwright-mcp/
