@@ -23,7 +23,9 @@ test.describe('mobile-first gameplay', () => {
     await expect(page.getByTestId('title-square-logo')).toBeVisible();
   });
 
-  test('NEW RUN → modal → PLAY transitions into the running game', async ({ page }, testInfo) => {
+  test('NEW RUN → modal → PLAY transitions into the running game @nightly', async ({
+    page,
+  }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-portrait', 'mobile-only');
     await page.goto('/midway-mayhem/');
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 20_000 });
