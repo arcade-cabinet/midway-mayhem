@@ -1,14 +1,6 @@
 {
-  "cameraPosition": [
-    0,
-    1.72,
-    1.55
-  ],
-  "cameraTargetForward": [
-    0,
-    1.72,
-    0
-  ],
+  "cameraPosition": [0, 1.72, 1.55],
+  "cameraTargetForward": [0, 1.72, 0],
   "cameraFov": {
     "horizontalDeg": 88,
     "near": 0.1,
@@ -17,16 +9,8 @@
   "meshes": {
     "hood": {
       "type": "cappedHemisphere",
-      "position": [
-        0,
-        0.35,
-        -0.3
-      ],
-      "rotation": [
-        -1.5707963267948966,
-        0,
-        0
-      ],
+      "position": [0, 0.35, -0.3],
+      "rotation": [-1.5707963267948966, 0, 0],
       "widthScale": 0.85,
       "depthScale": 2.5,
       "heightScale": 0.4,
@@ -37,16 +21,8 @@
     },
     "dashCowl": {
       "type": "cylinderSweep",
-      "position": [
-        0,
-        1.05,
-        -0.12
-      ],
-      "rotation": [
-        0,
-        1.5707963267948966,
-        0
-      ],
+      "position": [0, 1.05, -0.12],
+      "rotation": [0, 1.5707963267948966, 0],
       "radius": 0.32,
       "widthAlongX": 1.3,
       "arcDeg": 160,
@@ -54,152 +30,72 @@
     },
     "pillarLeft": {
       "type": "cylinder",
-      "position": [
-        -0.9,
-        1.35,
-        -0.25
-      ],
-      "rotation": [
-        1.5707963267948966,
-        0,
-        -0.17453292519943295
-      ],
+      "position": [-0.9, 1.35, -0.25],
+      "rotation": [1.5707963267948966, 0, -0.17453292519943295],
       "radius": 0.05,
       "length": 1.1,
       "materialRef": "pillarPurple"
     },
     "pillarRight": {
       "type": "cylinder",
-      "position": [
-        0.9,
-        1.35,
-        -0.25
-      ],
-      "rotation": [
-        1.5707963267948966,
-        0,
-        0.17453292519943295
-      ],
+      "position": [0.9, 1.35, -0.25],
+      "rotation": [1.5707963267948966, 0, 0.17453292519943295],
       "radius": 0.05,
       "length": 1.1,
       "materialRef": "pillarPurple"
     },
     "windshieldArch": {
       "type": "halfTorus",
-      "position": [
-        0,
-        1.9,
-        -0.35
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ],
+      "position": [0, 1.9, -0.35],
+      "rotation": [0, 0, 0],
       "majorRadius": 0.88,
       "minorRadius": 0.055,
       "materialRef": "archYellow"
     },
     "seatBase": {
       "type": "box",
-      "size": [
-        1.4,
-        0.22,
-        0.6
-      ],
-      "position": [
-        0,
-        0.55,
-        1.5
-      ],
-      "rotation": [
-        0,
-        0,
-        0
-      ],
+      "size": [1.4, 0.22, 0.6],
+      "position": [0, 0.55, 1.5],
+      "rotation": [0, 0, 0],
       "materialRef": "seatRed"
     },
     "seatBack": {
       "type": "box",
-      "size": [
-        1.4,
-        0.85,
-        0.16
-      ],
-      "position": [
-        0,
-        1.0,
-        1.72
-      ],
-      "rotation": [
-        -0.13962634015954636,
-        0,
-        0
-      ],
+      "size": [1.4, 0.85, 0.16],
+      "position": [0, 1.0, 1.72],
+      "rotation": [-0.13962634015954636, 0, 0],
       "materialRef": "seatRed"
     },
     "seatPiping": {
       "type": "cylinder",
       "radius": 0.025,
       "length": 1.4,
-      "position": [
-        0,
-        1.4,
-        1.66
-      ],
-      "rotation": [
-        0,
-        1.5707963267948966,
-        0
-      ],
+      "position": [0, 1.4, 1.66],
+      "rotation": [0, 1.5707963267948966, 0],
       "materialRef": "seatPiping"
     },
     "wheelRim": {
       "type": "torus",
       "majorRadius": 0.26,
       "minorRadius": 0.025,
-      "position": [
-        0,
-        1.0,
-        -0.1
-      ],
-      "rotation": [
-        0.6283185307179586,
-        0,
-        0
-      ],
+      "position": [0, 1.0, -0.1],
+      "rotation": [0.6283185307179586, 0, 0],
       "materialRef": "pillarPurple"
     },
     "wheelHub": {
       "type": "cylinder",
       "radius": 0.055,
       "length": 0.04,
-      "position": [
-        0,
-        1.0,
-        -0.1
-      ],
-      "rotation": [
-        0.6283185307179586,
-        0,
-        0
-      ],
+      "position": [0, 1.0, -0.1],
+      "rotation": [0.6283185307179586, 0, 0],
       "materialRef": "chrome"
     },
     "wheelSpoke0": {
       "type": "cylinder",
       "radius": 0.012,
       "length": 0.26,
-      "position": [
-        0.12999999523162842,
-        1.0,
-        -0.1
-      ],
-      "rotationEuler": [
-        1.570796251296997,
-        0.942477822303772,
-        1.570796251296997
-      ],
+      "position": [0.12999999523162842, 1.0, -0.1],
+      "rotationEuler": [1.570796251296997, 0.942477822303772, 1.570796251296997],
       "materialRef": "chrome",
       "note": "Spoke at 0\u00b0 in wheel-local plane"
     },
@@ -207,16 +103,8 @@
       "type": "cylinder",
       "radius": 0.012,
       "length": 0.26,
-      "position": [
-        7.960203880059101e-18,
-        1.1051722054110495,
-        -0.023587920004756985
-      ],
-      "rotationEuler": [
-        7.549789415861596e-08,
-        0.9424777030944824,
-        1.5707963705062866
-      ],
+      "position": [7.960203880059101e-18, 1.1051722054110495, -0.023587920004756985],
+      "rotationEuler": [7.549789415861596e-8, 0.9424777030944824, 1.5707963705062866],
       "materialRef": "chrome",
       "note": "Spoke at 90\u00b0 in wheel-local plane"
     },
@@ -224,16 +112,8 @@
       "type": "cylinder",
       "radius": 0.012,
       "length": 0.26,
-      "position": [
-        -0.12999999523162842,
-        1.0,
-        -0.09999999999999999
-      ],
-      "rotationEuler": [
-        -1.5707961320877075,
-        0.942477822303772,
-        1.5707964897155762
-      ],
+      "position": [-0.12999999523162842, 1.0, -0.09999999999999999],
+      "rotationEuler": [-1.5707961320877075, 0.942477822303772, 1.5707964897155762],
       "materialRef": "chrome",
       "note": "Spoke at 180\u00b0 in wheel-local plane"
     },
@@ -241,16 +121,8 @@
       "type": "cylinder",
       "radius": 0.012,
       "length": 0.26,
-      "position": [
-        -2.3880613294538528e-17,
-        0.8948277945889505,
-        -0.17641207999524303
-      ],
-      "rotationEuler": [
-        -7.549790836947068e-08,
-        2.1991147994995117,
-        -1.5707963705062866
-      ],
+      "position": [-2.3880613294538528e-17, 0.8948277945889505, -0.17641207999524303],
+      "rotationEuler": [-7.549790836947068e-8, 2.1991147994995117, -1.5707963705062866],
       "materialRef": "chrome",
       "note": "Spoke at 270\u00b0 in wheel-local plane"
     },
@@ -258,64 +130,32 @@
       "type": "cylinder",
       "radius": 0.07,
       "length": 0.02,
-      "position": [
-        0.0,
-        0.9870687244495656,
-        -0.08220162612375116
-      ],
-      "rotation": [
-        0.6283185307179586,
-        0,
-        0
-      ],
+      "position": [0.0, 0.9870687244495656, -0.08220162612375116],
+      "rotation": [0.6283185307179586, 0, 0],
       "materialRef": "hornRed"
     },
     "hornRing": {
       "type": "torus",
       "majorRadius": 0.075,
       "minorRadius": 0.008,
-      "position": [
-        0.0,
-        0.9817786571789333,
-        -0.07492047317437664
-      ],
-      "rotation": [
-        0.6283185307179586,
-        0,
-        0
-      ],
+      "position": [0.0, 0.9817786571789333, -0.07492047317437664],
+      "rotation": [0.6283185307179586, 0, 0],
       "materialRef": "chrome"
     },
     "steeringColumn": {
       "type": "cylinder",
       "radius": 0.035,
       "length": 0.3,
-      "position": [
-        0.0,
-        1.088167787843871,
-        -0.2213525491562421
-      ],
-      "rotation": [
-        0.6283185307179586,
-        0,
-        0
-      ],
+      "position": [0.0, 1.088167787843871, -0.2213525491562421],
+      "rotation": [0.6283185307179586, 0, 0],
       "materialRef": "chrome"
     },
     "gaugeFace_LAUGHS": {
       "type": "cylinder",
       "radius": 0.09,
       "length": 0.028,
-      "position": [
-        -0.3,
-        1.12,
-        -0.32
-      ],
-      "rotation": [
-        -0.4363323129985824,
-        0,
-        0
-      ],
+      "position": [-0.3, 1.12, -0.32],
+      "rotation": [-0.4363323129985824, 0, 0],
       "materialRef": "gaugeFace",
       "label": "LAUGHS"
     },
@@ -323,36 +163,16 @@
       "type": "torus",
       "majorRadius": 0.09,
       "minorRadius": 0.012,
-      "position": [
-        -0.3,
-        1.1267618921878513,
-        -0.3054990754074136
-      ],
-      "rotation": [
-        -0.4363323129985824,
-        0,
-        0
-      ],
+      "position": [-0.3, 1.1267618921878513, -0.3054990754074136],
+      "rotation": [-0.4363323129985824, 0, 0],
       "materialRef": "chrome",
       "label": "LAUGHS"
     },
     "gaugeNeedle_LAUGHS": {
       "type": "box",
-      "size": [
-        0.01,
-        0.0765,
-        0.004
-      ],
-      "position": [
-        -0.3,
-        1.1477330182833216,
-        -0.3193375020037157
-      ],
-      "rotation": [
-        -0.4363323129985824,
-        0,
-        0
-      ],
+      "size": [0.01, 0.0765, 0.004],
+      "position": [-0.3, 1.1477330182833216, -0.3193375020037157],
+      "rotation": [-0.4363323129985824, 0, 0],
       "materialRef": "gaugeNeedle",
       "label": "LAUGHS",
       "pointsUp": true
@@ -361,16 +181,8 @@
       "type": "cylinder",
       "radius": 0.09,
       "length": 0.028,
-      "position": [
-        0.3,
-        1.12,
-        -0.32
-      ],
-      "rotation": [
-        -0.4363323129985824,
-        0,
-        0
-      ],
+      "position": [0.3, 1.12, -0.32],
+      "rotation": [-0.4363323129985824, 0, 0],
       "materialRef": "gaugeFace",
       "label": "FUN"
     },
@@ -378,36 +190,16 @@
       "type": "torus",
       "majorRadius": 0.09,
       "minorRadius": 0.012,
-      "position": [
-        0.3,
-        1.1267618921878513,
-        -0.3054990754074136
-      ],
-      "rotation": [
-        -0.4363323129985824,
-        0,
-        0
-      ],
+      "position": [0.3, 1.1267618921878513, -0.3054990754074136],
+      "rotation": [-0.4363323129985824, 0, 0],
       "materialRef": "chrome",
       "label": "FUN"
     },
     "gaugeNeedle_FUN": {
       "type": "box",
-      "size": [
-        0.01,
-        0.0765,
-        0.004
-      ],
-      "position": [
-        0.3,
-        1.1477330182833216,
-        -0.3193375020037157
-      ],
-      "rotation": [
-        -0.4363323129985824,
-        0,
-        0
-      ],
+      "size": [0.01, 0.0765, 0.004],
+      "position": [0.3, 1.1477330182833216, -0.3193375020037157],
+      "rotation": [-0.4363323129985824, 0, 0],
       "materialRef": "gaugeNeedle",
       "label": "FUN",
       "pointsUp": true
@@ -415,300 +207,121 @@
     "flowerCenter": {
       "type": "sphere",
       "radius": 0.065,
-      "position": [
-        0,
-        0.95,
-        -2.6
-      ],
+      "position": [0, 0.95, -2.6],
       "materialRef": "flowerCenter"
     },
     "flowerPetal0": {
       "type": "sphere",
-      "position": [
-        0.13,
-        0.95,
-        -2.6
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        -0.26179933547973633,
-        -0.0,
-        0.0
-      ],
+      "position": [0.13, 0.95, -2.6],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [-0.26179933547973633, -0.0, 0.0],
       "materialRef": "flowerPetal"
     },
     "flowerPetal1": {
       "type": "sphere",
-      "position": [
-        0.09192388155425119,
-        0.9737916512459884,
-        -2.5112083487540118
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        -0.36221811175346375,
-        -0.7518795132637024,
-        0.253261536359787
-      ],
+      "position": [0.09192388155425119, 0.9737916512459884, -2.5112083487540118],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [-0.36221811175346375, -0.7518795132637024, 0.253261536359787],
       "materialRef": "flowerPetal"
     },
     "flowerPetal2": {
       "type": "sphere",
-      "position": [
-        7.960204194457797e-18,
-        0.9836464758633277,
-        -2.4744296425824213
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        -1.5707964897155762,
-        -1.3089970350265503,
-        1.5707964897155762
-      ],
+      "position": [7.960204194457797e-18, 0.9836464758633277, -2.4744296425824213],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [-1.5707964897155762, -1.3089970350265503, 1.5707964897155762],
       "materialRef": "flowerPetal"
     },
     "flowerPetal3": {
       "type": "sphere",
-      "position": [
-        -0.09192388155425117,
-        0.9737916512459884,
-        -2.5112083487540118
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        0.36221808195114136,
-        -2.3897132873535156,
-        -0.2532615065574646
-      ],
+      "position": [-0.09192388155425117, 0.9737916512459884, -2.5112083487540118],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [0.36221808195114136, -2.3897132873535156, -0.2532615065574646],
       "materialRef": "flowerPetal"
     },
     "flowerPetal4": {
       "type": "sphere",
-      "position": [
-        -0.13,
-        0.95,
-        -2.6
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        0.26179933547973633,
-        3.141592502593994,
-        2.262667386787598e-08
-      ],
+      "position": [-0.13, 0.95, -2.6],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [0.26179933547973633, 3.141592502593994, 2.262667386787598e-8],
       "materialRef": "flowerPetal"
     },
     "flowerPetal5": {
       "type": "sphere",
-      "position": [
-        -0.0919238815542512,
-        0.9262083487540115,
-        -2.6887916512459884
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        0.3622179925441742,
-        2.3897135257720947,
-        0.25326138734817505
-      ],
+      "position": [-0.0919238815542512, 0.9262083487540115, -2.6887916512459884],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [0.3622179925441742, 2.3897135257720947, 0.25326138734817505],
       "materialRef": "flowerPetal"
     },
     "flowerPetal6": {
       "type": "sphere",
-      "position": [
-        -2.3880612583373387e-17,
-        0.9163535241366723,
-        -2.725570357417579
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        -1.570796012878418,
-        1.3089970350265503,
-        -1.570796012878418
-      ],
+      "position": [-2.3880612583373387e-17, 0.9163535241366723, -2.725570357417579],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [-1.570796012878418, 1.3089970350265503, -1.570796012878418],
       "materialRef": "flowerPetal"
     },
     "flowerPetal7": {
       "type": "sphere",
-      "position": [
-        0.09192388155425116,
-        0.9262083487540115,
-        -2.688791651245989
-      ],
-      "scale": [
-        0.09,
-        0.035,
-        0.045
-      ],
-      "rotationEuler": [
-        -0.3622182011604309,
-        0.7518796920776367,
-        -0.2532616853713989
-      ],
+      "position": [0.09192388155425116, 0.9262083487540115, -2.688791651245989],
+      "scale": [0.09, 0.035, 0.045],
+      "rotationEuler": [-0.3622182011604309, 0.7518796920776367, -0.2532616853713989],
       "materialRef": "flowerPetal"
     },
     "flowerStem": {
       "type": "cylinder",
       "radius": 0.018,
       "length": 0.2,
-      "position": [
-        0,
-        0.85,
-        -2.6
-      ],
-      "rotation": [
-        1.5707963267948966,
-        0,
-        0
-      ],
+      "position": [0, 0.85, -2.6],
+      "rotation": [1.5707963267948966, 0, 0],
       "materialRef": "chrome"
     },
     "diceStringRed": {
       "type": "cylinder",
       "radius": 0.006,
-      "fromPos": [
-        0.3,
-        2.1,
-        -0.25
-      ],
-      "toPos": [
-        0.26,
-        1.75,
-        -0.27
-      ],
+      "fromPos": [0.3, 2.1, -0.25],
+      "toPos": [0.26, 1.75, -0.27],
       "materialRef": "chrome"
     },
     "diceStringBlue": {
       "type": "cylinder",
       "radius": 0.006,
-      "fromPos": [
-        0.3,
-        2.1,
-        -0.25
-      ],
-      "toPos": [
-        0.33999999999999997,
-        1.73,
-        -0.23
-      ],
+      "fromPos": [0.3, 2.1, -0.25],
+      "toPos": [0.33999999999999997, 1.73, -0.23],
       "materialRef": "chrome"
     },
     "diceRed": {
       "type": "box",
-      "size": [
-        0.16,
-        0.16,
-        0.16
-      ],
-      "position": [
-        0.25,
-        1.65,
-        -0.29
-      ],
-      "rotation": [
-        0.2617993877991494,
-        0.3490658503988659,
-        0.13962634015954636
-      ],
+      "size": [0.16, 0.16, 0.16],
+      "position": [0.25, 1.65, -0.29],
+      "rotation": [0.2617993877991494, 0.3490658503988659, 0.13962634015954636],
       "materialRef": "diceRed"
     },
     "diceBlue": {
       "type": "box",
-      "size": [
-        0.16,
-        0.16,
-        0.16
-      ],
-      "position": [
-        0.35,
-        1.5999999999999999,
-        -0.21
-      ],
-      "rotation": [
-        -0.17453292519943295,
-        -0.3141592653589793,
-        -0.08726646259971647
-      ],
+      "size": [0.16, 0.16, 0.16],
+      "position": [0.35, 1.5999999999999999, -0.21],
+      "rotation": [-0.17453292519943295, -0.3141592653589793, -0.08726646259971647],
       "materialRef": "diceBlue"
     },
     "mirrorFrame": {
       "type": "box",
-      "size": [
-        0.42,
-        0.14,
-        0.02
-      ],
-      "position": [
-        0,
-        2.15,
-        -0.25
-      ],
-      "rotation": [
-        -0.20943951023931956,
-        0,
-        0
-      ],
+      "size": [0.42, 0.14, 0.02],
+      "position": [0, 2.15, -0.25],
+      "rotation": [-0.20943951023931956, 0, 0],
       "materialRef": "chrome"
     },
     "mirrorGlass": {
       "type": "plane",
-      "size": [
-        0.38,
-        0.1
-      ],
-      "position": [
-        0,
-        2.142,
-        -0.238
-      ],
-      "rotation": [
-        1.361356816555577,
-        0,
-        0
-      ],
+      "size": [0.38, 0.1],
+      "position": [0, 2.142, -0.238],
+      "rotation": [1.361356816555577, 0, 0],
       "materialRef": "mirrorGlass"
     },
     "mirrorStem": {
       "type": "cylinder",
       "radius": 0.012,
       "length": 0.18,
-      "position": [
-        0,
-        2.05,
-        -0.37
-      ],
-      "rotation": [
-        0.6108652381980153,
-        0,
-        0
-      ],
+      "position": [0, 2.05, -0.37],
+      "rotation": [0.6108652381980153, 0, 0],
       "materialRef": "chrome"
     }
   },
