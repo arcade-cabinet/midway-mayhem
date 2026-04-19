@@ -19,9 +19,9 @@ const CANON_PHRASES = [
   'cosmic-harlequin-bozo',
 ] as const;
 
-test.describe('seed-deterministic playthroughs', () => {
+test.describe('seed-deterministic playthroughs @nightly', () => {
   for (const phrase of CANON_PHRASES) {
-    test(`phrase "${phrase}" advances deterministically`, async ({ page }, testInfo) => {
+    test(`phrase "${phrase}" advances deterministically @nightly`, async ({ page }, testInfo) => {
       // Mobile emulator is ~4x slower. Cap the mobile run short enough
       // to stay within the test budget but still prove movement.
       const isMobile = testInfo.project.name === 'mobile-portrait';

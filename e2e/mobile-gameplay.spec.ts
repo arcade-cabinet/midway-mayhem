@@ -51,7 +51,7 @@ test.describe('mobile-first gameplay', () => {
     await expect(page.getByRole('button', { name: /honk/i })).toBeVisible({ timeout: 10_000 });
   });
 
-  test('autoplay advances deterministically on mobile', async ({ page }, testInfo) => {
+  test('autoplay advances deterministically on mobile @nightly', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-portrait', 'mobile-only');
     test.setTimeout(90_000);
     await page.goto('/midway-mayhem/?autoplay=1&governor=1&phrase=neon-polkadot-jalopy');

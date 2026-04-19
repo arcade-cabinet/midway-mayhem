@@ -216,12 +216,13 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: [build]
-    # Non-blocking — Playwright E2E covers the same surfaces that the
-    # vitest-browser suite verifies deterministically in the same Chromium
-    # runtime. CI-runner flakiness (HDRI asset timing, swiftshader perf,
-    # preview-server port binding) produces noise that is not representative
-    # of real play. We keep the suite for telemetry + regression screenshots
-    # but do not block merge on it — the authoritative gate is vitest-browser.
+    # Runs the SMOKE subset only — see the e2e step's script below.
+    # Non-blocking while we stabilise: CI-runner flakiness (HDRI asset
+    # timing, swiftshader perf, preview-server port binding) still
+    # produces noise. Flip `continue-on-error` to false once the smoke
+    # suite has run green consistently.
+    # The deep telemetry suite (@nightly) runs only via `pnpm e2e:nightly`
+    # locally or on a scheduled workflow.
     continue-on-error: true
     # Cap the whole E2E job so a stalled playwright run can't tie up a
     # GitHub Actions runner for hours. Individual Playwright test
@@ -242,18 +243,22 @@ jobs:
       - name: Install xvfb for headed browser
         run: sudo apt-get update && sudo apt-get install -y xvfb
       - run: pnpm build
-      - name: Run E2E tests (headed via xvfb)
+      - name: Run E2E smoke tests (headed via xvfb)
         env:
           REFRESH_SNAPSHOTS: ${{ inputs.refresh_snapshots }}
         run: |
           pnpm copywasm
-          # --update-snapshots=missing accepts new baselines for brand-new tests
-          # but still compares existing ones. Full-refresh requires the workflow
-          # input so accidental drift doesn't silently pass.
+          # CI runs the SMOKE subset only (everything without an @nightly
+          # tag) — targeted merge-gate coverage in under 10 min. The
+          # deep telemetry specs (seed-playthroughs, determinism, the
+          # 5-second governor runs) stay in the suite but run only via
+          # `pnpm e2e:nightly` on local dev or a scheduled nightly job.
+          # --update-snapshots=missing accepts new baselines for
+          # brand-new tests but still compares existing ones.
           if [ "$REFRESH_SNAPSHOTS" = "true" ]; then
-            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots=all
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --grep-invert @nightly --update-snapshots=all
           else
-            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --update-snapshots=missing
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --grep-invert @nightly --update-snapshots=missing
           fi
       - uses: actions/upload-artifact@v4
         if: always()
