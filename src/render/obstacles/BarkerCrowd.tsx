@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import { onHonk } from '@/audio/honkBus';
 import { sampleTrackPoseOrNull } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
+import { combo } from '@/game/comboSystem';
 import { useGameStore } from '@/game/gameState';
 import { TRACK } from '@/utils/constants';
 
@@ -128,8 +129,14 @@ export function BarkerCrowd() {
         if (now - b.lastHonkAt < COOLDOWN_S * 1000) continue;
         b.cheerStartedAt = now;
         b.lastHonkAt = now;
+        // Register a combo event so consecutive barker-honks within the
+        // chain-expiry window (5s) accumulate to climb through the
+        // multiplier tiers (PRQ B4).
+        combo.registerEvent('scare');
+        const mult = combo.getMultiplier();
         useGameStore.setState({
-          crowdReaction: useGameStore.getState().crowdReaction + BARKER_CROWD_BONUS,
+          crowdReaction:
+            useGameStore.getState().crowdReaction + BARKER_CROWD_BONUS * mult,
         });
       }
     });
