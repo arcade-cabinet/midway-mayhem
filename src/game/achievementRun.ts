@@ -22,6 +22,27 @@ export interface Achievement {
 }
 
 export const ACHIEVEMENTS: Achievement[] = [
+  // First-time milestones — fire early in the player's first run for
+  // immediate positive feedback (PRQ D3).
+  {
+    id: 'first-balloon',
+    title: 'POP!',
+    detail: 'First balloon claimed',
+    test: (s) => s.balloons >= 1,
+  },
+  {
+    id: 'first-boost',
+    title: 'NITRO DIP',
+    detail: 'First boost of the run',
+    test: (s) => s.boostRemaining > 0,
+  },
+  {
+    id: 'first-score',
+    title: 'ON THE BOARD',
+    detail: 'Scored your first 100',
+    test: (s) => s.value >= 100,
+  },
+  // Mid-run milestones.
   {
     id: 'score-100k',
     title: 'SIX FIGURES',
@@ -34,12 +55,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     detail: '50 balloons popped in one run',
     test: (s) => s.balloons >= 50,
   },
-  {
-    id: 'first-boost',
-    title: 'NITRO DIP',
-    detail: 'First boost of the run',
-    test: (s) => s.boostRemaining > 0,
-  },
+  // End-of-run milestones.
   {
     id: 'clean-sheet',
     title: 'SPOTLESS',
