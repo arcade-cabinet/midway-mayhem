@@ -12,10 +12,8 @@ name: CD – Deploy + release-please
 # and NOT in a separate workflow. GitHub Pages deploy goes HERE, not
 # in a dedicated gh-pages workflow.
 #
-# NOTE: android/ directory is not yet present in this repo.
-# The android-debug-apk job is commented out until `npx cap add android`
-# is run and the android/ directory is committed.
-# TODO: run `pnpm exec cap add android`, commit android/, then uncomment.
+# The android-debug-apk job below builds an unsigned debug APK on
+# every push to main and uploads it as a release-candidate artifact.
 
 on:
   push:

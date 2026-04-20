@@ -5,11 +5,8 @@ name: Release
 # cd.yml on push-to-main and is responsible for creating the release
 # that eventually reaches this workflow.
 #
-# NOTE: android/ directory is not yet present in this repo.
-# The Android APK block is commented out until `npx cap add android`
-# is run and the android/ directory is committed.
-# TODO: run `pnpm exec cap add android`, commit android/, then uncomment
-#       the APK assembly block and restore it to gh release upload.
+# Builds the Android release APK (unsigned) and attaches it to the
+# GitHub Release as a named artifact.
 
 on:
   release:
