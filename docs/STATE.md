@@ -1,11 +1,36 @@
 ---
 title: State
-updated: 2026-04-19
+updated: 2026-04-20
 status: current
 domain: context
 ---
 
-# State — as of 2026-04-19
+# State — as of 2026-04-20
+
+## Live update — 2026-04-20 PRQ execution session
+
+Kicked off `/task-batch docs/prd/ROAD_TO_1_0.prq.md`. Progress so far:
+
+**Landed before PRQ kickoff (polish/unblock cascade 208–216):**
+- PR #208 CI Browser Snapshot Tests job unbroken — was silently red for ~40 PRs; now enforces 49 browser tests + plunge vs damage end-reason disambiguation + 4 real bug fixes
+- PR #210 Diegetic speedometer fontSize 0.28 → 0.12 (was dominating POV)
+- PR #209 Visual-matrix test — 8-slice deterministic POV baseline capture
+- PR #211 Governor autopilot coord-space bug (pinned steer right, crashed at 300m) + SCORE text resize + regression tests
+- PR #212 Baseline PNGs + node diff gate
+- PR #213 Docs on CI vs local diff-gate behavior
+- PR #214 StartPlatform sign moved out of POV + TireSqueal autoplay retry (was MAYHEM HALTED modal)
+- PR #215 Governor writes continuous steer (wheel rim visible again)
+- PR #216 ROAD_TO_1_0.prq.md
+
+**PRQ tasks so far:**
+- **A2** (PR #217) — camera y 1.72→1.55 + hood heightScale 0.4→0.6; hood now fills lower third of POV
+- **B2** (PR #218) — pause UX: fullscreen PAUSED overlay + mobile pause button. Esc/P/click all work
+
+Still in the queue (priority order): A1 (HDRI), A3 (themed obstacles), B3 (mobile touch), B4 (combo honk), D1 (profile onboarding), D3 (achievements UI), E1 (stability), F1 (iOS IPA), F2 (app icon), plus P2/P3 tracks.
+
+## Correction — docs that were wrong in the pre-PRQ STATE.md
+
+The table below claimed `trackComposer.ts` was deleted per PLAN.md A5. **It is NOT deleted** — it's still at `src/track/trackComposer.ts` with 10+ live imports (it provides the `PieceKind` type used across the game state, ECS traits, obstacles, and daily route). G4 on the PRQ will actually delete it (probably by migrating PieceKind to its real home in traits.ts).
 
 ## What is done
 
@@ -100,7 +125,7 @@ All dark code from PR #21 is now wired. Audit confirms imports in live App/GameL
 | `BarkerCrowd` | Wired |
 | `replayRecorder` | Wired |
 | `RacingLineGhost` | Wired into cockpit |
-| `src/track/trackComposer.ts` | Deleted per PLAN.md A5 |
+| `src/track/trackComposer.ts` | Still present — 10+ live imports. Deletion scheduled as PRQ task G4. |
 
 ---
 
