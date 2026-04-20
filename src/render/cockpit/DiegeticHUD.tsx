@@ -130,12 +130,16 @@ export function DiegeticHUD() {
         </Text>
       </group>
 
-      {/* Score in top-left of dash, balloon count + damage pips right */}
+      {/* Score in top-left of dash, balloon count + damage pips right.
+          fontSize was 0.12 but 6 zero-padded digits at z=-0.5 produce a
+          ~0.6m wide readout that reads like HUD spam from the driver's
+          POV; dropped to 0.09 so score integrates with the dashboard
+          instead of competing with the track view. */}
       <Text
         ref={scoreTextRef as never}
-        position={[-0.9, 1.4, -0.5]}
+        position={[-0.85, 1.4, -0.42]}
         rotation={[-0.2, 0, 0]}
-        fontSize={0.12}
+        fontSize={0.09}
         color={CHROME}
         anchorX="left"
         anchorY="middle"
@@ -143,9 +147,9 @@ export function DiegeticHUD() {
         000000
       </Text>
       <Text
-        position={[-0.9, 1.25, -0.5]}
+        position={[-0.85, 1.28, -0.42]}
         rotation={[-0.2, 0, 0]}
-        fontSize={0.05}
+        fontSize={0.04}
         color={YELLOW}
         anchorX="left"
         anchorY="middle"
