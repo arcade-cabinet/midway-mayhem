@@ -131,7 +131,7 @@ export async function waitPastDropIn(timeoutMs = 10_000): Promise<void> {
  * use this multiplier so local dev stays fast but CI has enough budget.
  * Vite injects VITE_CI at build time when it's on the environment.
  */
-const CI_TIME_MULTIPLIER = import.meta.env['VITE_CI'] ? 5 : 1;
+const CI_TIME_MULTIPLIER = (import.meta.env as Record<string, unknown>).VITE_CI ? 5 : 1;
 
 /** Spin until diag().distance > `metres`, up to `timeoutMs` (scaled on CI). */
 export async function waitForDistance(metres: number, timeoutMs = 20_000): Promise<void> {
