@@ -4,36 +4,24 @@
  * R3F component that injects Governor steering input when ?governor=1 or
  * ?autoplay=1 is set. Must live inside <Canvas> because useFrame is R3F-scoped.
  *
- * Drives the game by dispatching real ArrowLeft / ArrowRight keyboard events
- * on `window` — exercises the same input pipeline a human player uses.
+ * Writes the driver's continuous steer output directly to the Steer trait
+ * each frame. Previously synthesized ArrowLeft/Right keydown events, which
+ * went through useKeyboard and clamped steer to discrete ±1 — the result
+ * was autopilot always pinning the wheel fully left/right whenever any
+ * correction was needed, making the steering wheel look broken even when
+ * the actual lateral correction was small.
  */
 import { useFrame } from '@react-three/fiber';
 import { useWorld } from 'koota/react';
 import { useEffect, useRef } from 'react';
-import { Obstacle, Pickup, Player, Position, Throttle } from '@/ecs/traits';
+import { Obstacle, Pickup, Player, Position, Steer, Throttle } from '@/ecs/traits';
 import { useGameStore } from '@/game/gameState';
 import { GovernorDriver } from './GovernorDriver';
-
-type KeyState = 'left' | 'neutral' | 'right';
-
-function steerToKey(steer: number, deadzone = 0.12): KeyState {
-  if (steer < -deadzone) return 'left';
-  if (steer > deadzone) return 'right';
-  return 'neutral';
-}
-
-function dispatchKey(code: 'ArrowLeft' | 'ArrowRight', type: 'keydown' | 'keyup'): void {
-  if (typeof window === 'undefined') return;
-  window.dispatchEvent(
-    new KeyboardEvent(type, { key: code, code, bubbles: true, cancelable: true }),
-  );
-}
 
 export function Governor() {
   const world = useWorld();
   const enabled = useRef(false);
   const driverRef = useRef(new GovernorDriver());
-  const currentKey = useRef<KeyState>('neutral');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -44,14 +32,6 @@ export function Governor() {
       // biome-ignore lint/suspicious/noExplicitAny: test hook
       (window as any).__mmGovernor = driverRef.current;
     }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (currentKey.current === 'left') dispatchKey('ArrowLeft', 'keyup');
-      else if (currentKey.current === 'right') dispatchKey('ArrowRight', 'keyup');
-      currentKey.current = 'neutral';
-    };
   }, []);
 
   useFrame((_, dt) => {
@@ -112,14 +92,12 @@ export function Governor() {
     });
 
     const result = driverRef.current.step({ playerD, playerLateral, obstacles, pickups }, dt);
-    const next = steerToKey(result.steer);
-    const prev = currentKey.current;
-    if (next === prev) return;
-    if (prev === 'left') dispatchKey('ArrowLeft', 'keyup');
-    else if (prev === 'right') dispatchKey('ArrowRight', 'keyup');
-    if (next === 'left') dispatchKey('ArrowLeft', 'keydown');
-    else if (next === 'right') dispatchKey('ArrowRight', 'keydown');
-    currentKey.current = next;
+    // Write the continuous steer value directly to the Steer trait so the
+    // wheel rotates proportionally and the motion integration gets the
+    // actual intent (not a discrete ±1 keyboard synth).
+    world.query(Player, Steer).updateEach(([s]) => {
+      s.value = Math.max(-1, Math.min(1, result.steer));
+    });
   });
 
   return null;
