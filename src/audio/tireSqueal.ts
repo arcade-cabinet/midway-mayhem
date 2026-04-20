@@ -14,7 +14,6 @@
  */
 
 import * as Tone from 'tone';
-import { reportError } from '@/game/errorBus';
 import { useGameStore } from '@/game/gameState';
 import { getBuses } from './buses';
 
@@ -46,19 +45,19 @@ export class TireSquealSystem {
     return this.squealing;
   }
 
-  init(): void {
-    if (this.initialized) return;
-    this.initialized = true;
+  init(): boolean {
+    if (this.initialized) return true;
 
-    // Brown noise → bandpass filter → gain → sfxBus
-    // getBuses() throws if buses haven't been initialized yet; surface via error modal.
+    // Brown noise → bandpass filter → gain → sfxBus.
+    // getBuses() throws if buses haven't been initialized yet — that's
+    // expected on the autoplay/test path where there's no user gesture
+    // to unlock the AudioContext. Return false so update() retries on
+    // the next tick; audio is non-critical so don't halt the game.
     let sfxBus: ReturnType<typeof getBuses>['sfxBus'];
     try {
       sfxBus = getBuses().sfxBus;
-    } catch (err) {
-      this.initialized = false;
-      reportError(err, 'TireSquealSystem.init — audio buses not ready');
-      return;
+    } catch {
+      return false;
     }
 
     this.gainNode = new Tone.Gain(0).connect(sfxBus);
@@ -70,6 +69,8 @@ export class TireSquealSystem {
     this.noise = new Tone.Noise('brown').connect(this.filter);
     this.noise.start();
     // Start silent — gain is 0
+    this.initialized = true;
+    return true;
   }
 
   /**
@@ -77,8 +78,7 @@ export class TireSquealSystem {
    * Handles the debounce logic and starts/stops the squeal accordingly.
    */
   update(steer: number, dt: number): void {
-    if (!this.initialized) this.init();
-    if (!this.initialized) return; // audio still not ready
+    if (!this.initialized && !this.init()) return; // audio still not ready
 
     const absSteer = Math.abs(steer);
     const now = this.clock();
