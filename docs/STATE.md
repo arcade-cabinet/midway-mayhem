@@ -106,7 +106,7 @@ All dark code from PR #21 is now wired. Audit confirms imports in live App/GameL
 
 ## Active work (as of 2026-04-19)
 
-**Recent merges (today's session, 24 PRs):**
+**Recent merges (today's session, 40 PRs):**
 
 Code cleanup + telemetry foundations:
 - #166 `useKeyboardControls` → `useTitleKeyboard` rename + editable-target guard + ref-stable listener
@@ -117,19 +117,43 @@ Code cleanup + telemetry foundations:
 - #171 CI uploads `playthrough-dumps` artifact
 - #172 `scripts/playthrough-governor.ts` now uses the autoplay URL (previously broken since #170)
 - #173 enriched `__mm.diag()` dump — difficulty, seedPhrase, throttle, targetSpeedMps, airborne, trickActive, scaresThisRun, maxComboThisRun, raidsSurvived, ecsBoostRemaining, ecsCleanSeconds
+
+CI reliability — E2E merge gate went from 90-min stalls to 3-min green runs:
 - #174/#180/#182/#183/#184/#186/#188/#189 iterations on the playthrough-smoke spec
 - #175 deleted flaky `visual-regression.spec.ts` — root cause of 50+ min CI stalls
-- #176 README "Playthrough telemetry" section
-- #177 STATE.md refresh
 - #178 e2e job `timeout-minutes: 20` cap
 - #179 split smoke vs nightly + scheduled nightly workflow
-- #181 docs/TESTING.md smoke vs nightly section
 - #185 removed `continue-on-error` from three CI jobs — all blocking now except Maestro emulator step
-- #187 disabled `preserveDrawingBuffer` in prod (fixing a per-frame GPU stall revealed by trace download)
+- #187 disabled `preserveDrawingBuffer` in prod (per-frame GPU stall revealed by trace download)
+- #191/#192 nightly desktop-only + reduced frames → fits in 45-min cap
 
-**CI reliability arc** — E2E merge gate went from 90-min stalls to 3-minute green runs. See PR chain #175 → #188.
+Docs:
+- #176 README "Playthrough telemetry" section
+- #177/#190 STATE.md refresh
+- #181 docs/TESTING.md smoke vs nightly section
+- #193 dropped stale android-not-present TODOs from cd.yml + release.yml
+- #194 archived docs/gap-analysis/PLAN.md (all tracks landed)
+
+Real bug fix:
+- #198 mounted ErrorModal + ReactErrorBoundary + LiveRegion in App
+  (they were built but never mounted — every \`reportError\` call was
+  silently swallowed, violating the "hard-fail, no fallbacks" rule)
+
+Dead code deletion (~3000 LOC total):
+- #195 3 orphan hooks (useResponsiveFov / useResponsiveCockpitScale / useDeviceDetection)
+- #196 orphan WorldScroller (replaced by TrackScroller)
+- #197 5 orphan cockpit modules (CameraRig/CockpitCamera/CockpitDamageFX/CockpitSteeringWheel/PlayerCar)
+- #199 5 more orphans (SkyDome/Lighting/CockpitHood/useCockpitAnimation/useShake)
+- #200 orphan useObstacleFrame + collisionSystem + tests
+- #201 dropped stale re-exports from ObstacleSystem
+- #202 orphan damageLevel + difficultyTelemetry
+- #203 orphan PhotoMode UI (never mounted)
+- #204 7 cascading orphans (AchievementToast/ZoneBanner/useComboMultiplier/usePrefersReducedMotion/critterPool/plungeMotion/+tests)
+- #205 orphan toastTimings
 
 **Track C (orphan code wiring)** is done — see table above.
+
+Test count: 815 passing (down from 898 — all removed tests were for deleted orphans, live coverage intact).
 
 ---
 
