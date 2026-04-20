@@ -4,15 +4,18 @@
  * "lightning-kerosene-ferris" and dumps POV captures at 8 distance
  * checkpoints into .test-screenshots/visual-matrix/slice-NNNm.png.
  *
- * This node-side test diffs each capture against a pinned baseline.
- * Unlike the single-frame mid-run baseline, the matrix catches regressions
- * at specific points along the run: a mesh that drops out only during a
- * zone transition, a HUD overlay that clips only at mid-distance, etc.
+ * This node-side test diffs each capture against a pinned baseline
+ * whenever the browser test has just run in the same session. On CI,
+ * node tests and browser tests run in separate jobs, so CURRENT_DIR
+ * won't exist — the test skips gracefully and CI coverage relies on the
+ * browser test's "PNG ≥ 20 KB" content gate instead.
  *
- * Tolerance is the same as mid-run (8% / 40-per-channel) since the scene
- * is integrated like `MidRunVisualBaseline`; HUD digits, RNG-driven
- * critters, and HDRI sampling introduce a small baseline jitter that
- * shouldn't flag a regression.
+ * Locally: run `pnpm test:browser VisualMatrix` then `pnpm test:node --
+ * visualMatrixBaseline` and the diff catches regressions (lost mesh,
+ * duplicated layer, scale explosion).
+ *
+ * Baselines were captured on real-GPU chrome; CI's swiftshader would
+ * produce different pixels, so CI intentionally doesn't run the diff.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
