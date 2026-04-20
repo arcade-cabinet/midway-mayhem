@@ -59,18 +59,54 @@ export interface GeneratedSegment {
 }
 
 /**
- * Pitch is clamped to this band so the track can't loop over on itself or
- * hand you an upside-down section. About 46°, plenty for a steep Hot Wheels
- * descent, not enough to violate "gravity is down".
+ * Pitch is clamped tight so the descent reads as a gentle coil, not a
+ * free-fall. Average descent angle for ~50m over 80×~22m pieces is only
+ * ~1.6°; the clamp at ~8.6° gives plunge sections room without letting
+ * the integrator pin against the rail.
  */
-const PITCH_MAX = 0.8;
-const PITCH_MIN = -0.8;
+const PITCH_MAX = 0.06;
+const PITCH_MIN = -0.06;
+
+/**
+ * Per-zone weight multipliers applied on top of the archetype JSON weights.
+ * Zone 1 (pieces 0-19) is the tutorial space — flat, almost no descent.
+ * Zones 2-4 progressively favor descent pieces and disable climb so the
+ * cumulative Y is monotonically non-increasing.
+ *
+ * See docs/ARCHITECTURE.md "Run elevation profile" for the target shape.
+ */
+type ArchetypeId =
+  | 'straight'
+  | 'slight-left'
+  | 'slight-right'
+  | 'hard-left'
+  | 'hard-right'
+  | 'dip'
+  | 'climb'
+  | 'plunge';
+
+const ZONE_WEIGHT_MULTIPLIERS: Record<number, Partial<Record<ArchetypeId, number>>> = {
+  // Zone 1 — Midway Strip: nearly flat tutorial. No descent pieces.
+  0: { straight: 3, dip: 0, plunge: 0, climb: 0 },
+  // Zone 2 — Balloon Alley: gentle descent — straights still dominate.
+  1: { straight: 2, dip: 0.6, plunge: 0, climb: 0 },
+  // Zone 3 — Ring of Fire: moderate descent. Some plunges, mostly straights.
+  2: { straight: 1.8, dip: 0.7, plunge: 0.3, climb: 0 },
+  // Zone 4 — Funhouse Frenzy: final coil. Most descent of any zone.
+  3: { straight: 1.2, dip: 0.9, plunge: 0.5, climb: 0 },
+};
+
+function zoneIndexFor(pieceIndex: number, runLength: number): number {
+  // 4 equal-size zones across the run.
+  const zoneSize = runLength / 4;
+  return Math.min(3, Math.floor(pieceIndex / zoneSize));
+}
 
 /** Pure generator — for tests + for the world-seeding system. */
 export function generateTrack(seed: number): GeneratedSegment[] {
   const rng = createRng(seed);
   const archetypes = trackArchetypes.archetypes;
-  const weights = archetypes.map((a) => a.weight);
+  const baseWeights = archetypes.map((a) => a.weight);
   const segments: GeneratedSegment[] = [];
 
   // Start elevated so the track slab (thickness ~0.45m + curb height ~0.18m)
@@ -80,9 +116,16 @@ export function generateTrack(seed: number): GeneratedSegment[] {
   let distanceStart = 0;
 
   for (let i = 0; i < trackArchetypes.runLength; i++) {
+    const zone = zoneIndexFor(i, trackArchetypes.runLength);
+    const multipliers = ZONE_WEIGHT_MULTIPLIERS[zone] ?? {};
+    const zoneWeights = archetypes.map((a, idx) => {
+      const mul = multipliers[a.id as ArchetypeId];
+      return baseWeights[idx]! * (mul ?? 1);
+    });
+
     // Draw an archetype, but if the resulting pitch would breach the band,
     // substitute a reasonable correction.
-    let archetype = rng.weightedPick(archetypes, weights);
+    let archetype = rng.weightedPick(archetypes, zoneWeights);
     const predicted = startPose.pitch + archetype.deltaPitch;
     if (predicted > PITCH_MAX || predicted < PITCH_MIN) {
       // Far too steep in whichever direction — swap to a straight so the

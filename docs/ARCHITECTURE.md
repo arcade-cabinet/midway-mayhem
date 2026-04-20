@@ -1,6 +1,6 @@
 ---
 title: Architecture
-updated: 2026-04-18
+updated: 2026-04-20
 status: current
 domain: technical
 ---
@@ -88,6 +88,48 @@ Zustand (`gameState.ts`) provides a reactive session/player shim (`useGameStore`
 ```
 
 The camera is a child of `<Cockpit>`. When the cockpit group moves (banking, steering), the camera moves with it. This is the architectural fix for the "sail glitch" from the HTML POC.
+
+---
+
+## Run elevation profile
+
+The Midway is **a coiled descent through the big-top.** The track is generated from `src/config/archetypes/track-pieces.json` archetype set, but the per-archetype `deltaPitch` values + `weight` distribution are tuned so the **cumulative Y across the run is monotonically non-increasing across the descent zones.**
+
+### Target shape
+
+```
+Cumulative Y (m)
+  +5 ┤●─╮
+   0 ┤  ╰●──╮
+  -5 ┤      ╰●──●──╮
+ -15 ┤              ╰●──●──╮
+ -25 ┤                      ╰●──●──╮
+ -35 ┤                              ╰●──●  finish line on dome floor
+      └──────┬───────┬───────┬───────┬─────
+       zone1   zone2   zone3   zone4
+       intro   tilt    descend coil
+       (flat) (mild)  (steep)  (steep)
+```
+
+- **Zone 1 (Midway Strip, 0-450m)** — start at +30m Y on a wire-hung gondola; track itself stays nearly flat (~5m drop). Tutorial space; player learns to steer before the dive begins.
+- **Zone 2 (Balloon Alley, 450-900m)** — gentle 10-15m descent. `dip` weight bumped, `climb` weight zeroed.
+- **Zone 3 (Ring of Fire, 900-1350m)** — steep 25-35m descent with `plunge` pieces. Audience seats flank both sides; player feels the FALL.
+- **Zone 4 (Funhouse Frenzy, 1350-1800m)** — final coil down to the floor. `coil-down` archetypes (curved + dipping). Run ends at Y ≈ 0 on a black-and-white checker race-line.
+
+### Constraints
+
+- Cumulative pitch is clamped to `±0.06` rad (PITCH_MAX / PITCH_MIN in `src/ecs/systems/track.ts`) — about 3.4°. The clamp is deliberately tight: a 22m piece at the floor of the band drops ~1.3m, so 60 descent-phase pieces accumulate to a coil-readable total without ever pinning the integrator into a free-fall artifact.
+- The generator falls back to `straight` when an archetype would breach the band, so the descent doesn't compound into invalid orientations.
+- Per-zone weight multipliers (`ZONE_WEIGHT_MULTIPLIERS` in `src/ecs/systems/track.ts`) layer on top of the archetype JSON weights to bias archetype selection by zone — zone 1 disables `dip`/`plunge`/`climb` entirely, zones 2-4 progressively increase descent share while keeping `straight` dominant so the descent stays unpinned.
+- Total descent target: **25-70m** across `runLength=80` pieces. The canonical seed (42) lands at ~37m with zone-1 flat, zone 2 ~2m, zones 3-4 ~18m each.
+
+### Test gate
+
+`src/track/__tests__/elevationProfile.test.ts` calls `generateTrack(seed)`, samples cumulative Y at every piece boundary, and asserts:
+1. The last piece's `endPose.y` is at least 25m below the first piece's `startPose.y`.
+2. Across pieces 32-79 (last 60% of the run), the cumulative Y is monotonically non-increasing within a small per-piece tolerance (some `slight-left`/`slight-right` micro-bumps are allowed).
+
+Visual verification: `pnpm test:browser TrackPackage` re-renders `src/track/__baselines__/track-package/side.png`, where the descent should be obvious as a sustained downward Y delta from screen-top to screen-bottom.
 
 ---
 
