@@ -22,10 +22,17 @@ import { Player, Position } from '@/ecs/traits';
 import { world } from '@/ecs/world';
 import { reportScene } from '@/game/diagnosticsBus';
 
+// Preallocated buffers — reused each frame to avoid per-frame GC churn
+// (reportScene runs in useFrame so this fires every tick).
+const cameraPosTuple: [number, number, number] = [0, 0, 0];
+const worldScrollerPosTuple: [number, number, number] = [0, 0, 0];
+const cameraWorldPos = new THREE.Vector3();
+
 export function TrackScroller({ children }: { children: ReactNode }) {
   const groupRef = useRef<THREE.Group>(null);
   const sampled = useSampledTrack();
   const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
 
   // Install __mm.enumerateMeshes() + __mm.dumpScene() on mount. The two
   // helpers differ in shape: enumerateMeshes is a flat mesh list with
@@ -117,12 +124,29 @@ export function TrackScroller({ children }: { children: ReactNode }) {
     g.position.copy(negAnchor);
     g.updateMatrixWorld();
 
-    const trackGroup = g.getObjectByName('track');
+    // Count track pieces authoritatively from the ECS-sampled track —
+    // not scene.getObjectByName('track'), which returns null (no object
+    // is named 'track'). `sampled.length` IS the composed piece count,
+    // which is what the diag bus should report.
+    const trackPieces = sampled.length;
+    // meshesRendered = every mesh currently drawable under the scroller.
+    let meshesRendered = 0;
+    g.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) meshesRendered++;
+    });
+    // Mutate preallocated tuples in place — avoid per-frame allocation.
+    camera.getWorldPosition(cameraWorldPos);
+    cameraPosTuple[0] = cameraWorldPos.x;
+    cameraPosTuple[1] = cameraWorldPos.y;
+    cameraPosTuple[2] = cameraWorldPos.z;
+    worldScrollerPosTuple[0] = g.position.x;
+    worldScrollerPosTuple[1] = g.position.y;
+    worldScrollerPosTuple[2] = g.position.z;
     reportScene({
-      trackPieces: trackGroup ? trackGroup.children.length : g.children.length,
-      meshesRendered: g.children.length,
-      cameraPos: [0, 0, 0],
-      worldScrollerPos: [g.position.x, g.position.y, g.position.z],
+      trackPieces,
+      meshesRendered,
+      cameraPos: cameraPosTuple,
+      worldScrollerPos: worldScrollerPosTuple,
     });
   });
 
