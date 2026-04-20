@@ -29,9 +29,16 @@ export function RearViewMirror() {
   return (
     <mesh name="mirrorGlass" position={glass.position} rotation={glass.rotation ?? [0, 0, 0]}>
       <planeGeometry args={size} />
+      {/* The mirror is 38×13cm on a peripheral driver's-side surface —
+       * its on-screen pixel footprint is tiny, so 256× RT with a
+       * lighter blur pass matches the visual identity without
+       * burning per-frame GPU time on a mostly-invisible reflection.
+       * Previously 512 + blur=[120,30] was identified as a source of
+       * the "GPU stall due to ReadPixels" trace warning on CI
+       * swiftshader and real mobile GPUs. */}
       <MeshReflectorMaterial
-        blur={[120, 30]}
-        resolution={512}
+        blur={[64, 16]}
+        resolution={256}
         mixBlur={0.6}
         mixStrength={1.1}
         roughness={0.25}
