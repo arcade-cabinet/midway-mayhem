@@ -52,5 +52,7 @@ describe('Procedural track integration', () => {
 
     // Composer window should be stable or growing, never shrinking.
     expect(advanced.trackPieces).toBeGreaterThanOrEqual(baseline.trackPieces);
-  });
+    // 300s covers CI swiftshader's 5× slowdown on the 450m drive —
+    // locally it completes in ~10s.
+  }, 300_000);
 });

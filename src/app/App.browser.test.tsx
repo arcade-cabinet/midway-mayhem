@@ -9,11 +9,27 @@
  * the game is running.
  */
 import { render, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { diag, waitFrames } from '@/test/integration';
 import { App } from './App';
 
 describe('App root-render integration', () => {
+  // canvas.toDataURL() below reads the GL drawing buffer. In prod App.tsx
+  // leaves preserveDrawingBuffer off (ReadPixels stalls on swiftshader),
+  // so this test opts back in via the ?preserve=1 URL flag App reads.
+  // Restore the URL in afterAll to avoid leaking ?preserve=1 into later
+  // browser tests in the same worker.
+  let originalUrl = '';
+  beforeAll(() => {
+    originalUrl = window.location.href;
+    const url = new URL(originalUrl);
+    url.searchParams.set('preserve', '1');
+    window.history.replaceState(null, '', url.toString());
+  });
+  afterAll(() => {
+    if (originalUrl) window.history.replaceState(null, '', originalUrl);
+  });
+
   it('mounts a real R3F canvas with a rendered scene', async () => {
     const { container } = render(<App />);
 

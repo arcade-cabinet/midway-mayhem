@@ -1,11 +1,14 @@
 /**
- * Game-over overlay — shows after a run ends. "RUN COMPLETE" for finish,
- * "WIPEOUT" for 3-damage end. Restart button reloads the page (simplest
- * possible reset; preserves determinism of the first-paint seed).
+ * Game-over overlay — shows after a run ends.
+ *   'finish' → "RUN COMPLETE" (gold)
+ *   'damage' → "WIPEOUT" (pink)
+ *   'plunge' → "MELTDOWN" (pink) — fell off the track
+ * Restart button reloads the page (simplest possible reset; preserves
+ * determinism of the first-paint seed).
  */
 
 interface GameOverProps {
-  reason: 'damage' | 'finish' | null;
+  reason: 'damage' | 'plunge' | 'finish' | null;
   score: number;
   balloons: number;
   onRestart: () => void;
@@ -13,7 +16,7 @@ interface GameOverProps {
 
 export function GameOverOverlay({ reason, score, balloons, onRestart }: GameOverProps) {
   if (!reason) return null;
-  const title = reason === 'finish' ? 'RUN COMPLETE' : 'WIPEOUT';
+  const title = reason === 'finish' ? 'RUN COMPLETE' : reason === 'plunge' ? 'MELTDOWN' : 'WIPEOUT';
   const titleColor = reason === 'finish' ? '#ffd600' : '#ff2d87';
 
   return (

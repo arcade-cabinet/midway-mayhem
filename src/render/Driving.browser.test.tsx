@@ -102,5 +102,8 @@ describe('Driving — player motion + track scroll', () => {
       '.test-screenshots/playthrough/driving-at-3s.png',
     );
     expect(result.bytes).toBeGreaterThan(10_000);
-  }, 45_000);
+    // 180s covers CI swiftshader, which runs WebGL 3-5× slower than real-
+    // GPU chrome. Locally the test finishes well under 10s; the large
+    // budget just prevents spurious CI timeouts.
+  }, 180_000);
 });

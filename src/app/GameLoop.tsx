@@ -133,7 +133,7 @@ export function GameLoop({ world, active, onPickup, onObstacle, onEnd }: GameLoo
     reportFrame(clamped);
 
     // Report ECS counts only. Scene info (cameraPos, worldScrollerPos,
-    // meshesRendered, trackPieces) is reported by WorldScroller each frame
+    // meshesRendered, trackPieces) is reported by TrackScroller each frame
     // with the live values — clobbering it here with [0,0,0] stubs made
     // diagnostics useless for debugging the scene. Don't re-report here.
     const obstacleCount = world.query(Obstacle).length;

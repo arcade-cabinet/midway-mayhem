@@ -46,5 +46,6 @@ describe('Racing-line cleanliness integration', () => {
       drifted.cleanliness,
       `cleanliness after sustained drift off-line: ${drifted.cleanliness} (baseline ${onLine.cleanliness})`,
     ).toBeLessThan(onLine.cleanliness);
-  });
+    // 180s covers CI swiftshader; locally finishes in ~10s.
+  }, 180_000);
 });

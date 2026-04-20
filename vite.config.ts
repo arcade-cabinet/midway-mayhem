@@ -10,6 +10,12 @@ import { writePngFromDataUrl } from './scripts/vitest-write-png-command';
 const isCapacitor = process.env.CAPACITOR === 'true';
 const alias = { '@': path.resolve(__dirname, 'src') };
 
+// Browser test timeouts. CI swiftshader runs 3-5× slower than real-GPU
+// Chrome, so tests that wait for distance accumulation need a longer
+// budget on CI. Named constants so the threshold is easy to find.
+const LOCAL_BROWSER_TEST_TIMEOUT_MS = 30_000;
+const CI_BROWSER_TEST_TIMEOUT_MS = 120_000;
+
 export default defineConfig({
   base: isCapacitor ? './' : '/midway-mayhem/',
   plugins: [react(), captureServerPlugin()],
@@ -71,7 +77,11 @@ export default defineConfig({
           include: ['src/**/*.browser.test.{ts,tsx}'],
           fileParallelism: false,
           maxWorkers: 1,
-          testTimeout: 30000,
+          // CI swiftshader runs WebGL 3-5× slower than real-GPU Chrome, so
+          // any integration test that waits for distance to accumulate
+          // (driveInto + waitForDistance flows) needs proportionally more
+          // wall-clock budget. See constants above.
+          testTimeout: process.env.CI ? CI_BROWSER_TEST_TIMEOUT_MS : LOCAL_BROWSER_TEST_TIMEOUT_MS,
           setupFiles: ['src/test/setup.ts'],
           browser: {
             enabled: true,

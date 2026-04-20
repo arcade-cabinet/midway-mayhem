@@ -6,13 +6,18 @@ import { createWorld } from 'koota';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trackArchetypes } from '@/config';
 import { resetGameOver, stepGameOver } from '@/ecs/systems/gameOver';
-import { Player, Position, Score } from '@/ecs/traits';
+import { Player, Position, RunSession, Score } from '@/ecs/traits';
 
 const LAST_DISTANCE = trackArchetypes.runLength * 28;
 
-function makeWorld(damage = 0, distance = 0) {
+function makeWorld(damage = 0, distance = 0, runSessionGameOver = false) {
   const w = createWorld();
-  w.spawn(Player, Position({ distance, lateral: 0 }), Score({ damage }));
+  w.spawn(
+    Player,
+    Position({ distance, lateral: 0 }),
+    Score({ damage }),
+    RunSession({ gameOver: runSessionGameOver }),
+  );
   return w;
 }
 
@@ -92,5 +97,28 @@ describe('stepGameOver', () => {
     const onEnd = vi.fn();
     stepGameOver(w, { onEnd });
     expect(onEnd).not.toHaveBeenCalled();
+  });
+
+  it('fires "plunge" when RunSession.gameOver flips without damage', () => {
+    const w = makeWorld(0, 100, true);
+    const onEnd = vi.fn();
+    stepGameOver(w, { onEnd });
+    expect(onEnd).toHaveBeenCalledWith('plunge');
+  });
+
+  it('prefers "damage" over "plunge" when both are set', () => {
+    const w = makeWorld(3, 100, true);
+    const onEnd = vi.fn();
+    stepGameOver(w, { onEnd });
+    expect(onEnd).toHaveBeenCalledWith('damage');
+    expect(onEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it('prefers "plunge" over "finish" when both are set', () => {
+    const w = makeWorld(0, LAST_DISTANCE + 10, true);
+    const onEnd = vi.fn();
+    stepGameOver(w, { onEnd });
+    expect(onEnd).toHaveBeenCalledWith('plunge');
+    expect(onEnd).toHaveBeenCalledTimes(1);
   });
 });
