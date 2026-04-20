@@ -7,9 +7,6 @@
  * TrackContent.tsx can animate them fleeing.
  *
  * Returns null — no geometry rendered here.
- *
- * Re-exports trackToWorld and pickIdleClip for any callers that imported
- * those from this module previously.
  */
 import { useWorld } from 'koota/react';
 import { useEffect } from 'react';
@@ -56,7 +53,3 @@ export function ObstacleSystem() {
 
   return null;
 }
-
-// Re-export for any callers that previously imported from this path.
-export { pickIdleClip } from '@/game/obstacles/critterPool';
-export { trackToWorld } from '@/game/obstacles/trackToWorld';
