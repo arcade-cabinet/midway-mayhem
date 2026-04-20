@@ -71,7 +71,11 @@ export default defineConfig({
           include: ['src/**/*.browser.test.{ts,tsx}'],
           fileParallelism: false,
           maxWorkers: 1,
-          testTimeout: 30000,
+          // CI swiftshader runs WebGL 3-5× slower than real-GPU Chrome, so
+          // any integration test that waits for distance to accumulate
+          // (driveInto + waitForDistance flows) needs proportionally more
+          // wall-clock budget. 30s is plenty locally; CI needs 120s.
+          testTimeout: process.env.CI ? 120_000 : 30_000,
           setupFiles: ['src/test/setup.ts'],
           browser: {
             enabled: true,
