@@ -103,25 +103,28 @@ export function DiegeticHUD() {
 
   return (
     <group name="diegetic-hud">
-      {/* Speedometer digits, floating just above the dashboard chrome strip */}
-      <group ref={speedRef} position={[0, 1.3, -0.5]} rotation={[-0.2, 0, 0]}>
+      {/* Speedometer digits, tucked into the dashboard chrome strip between
+          the two gauge bezels. Prior size 0.28 dominated the center of the
+          screen and crowded the track view; scaled to 0.12 so it reads as
+          a dashboard readout, not a billboard. */}
+      <group ref={speedRef} position={[0, 1.2, -0.38]} rotation={[-0.2, 0, 0]}>
         <Text
           ref={speedTextRef as never}
-          fontSize={0.28}
+          fontSize={0.12}
           color={YELLOW}
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.01}
+          outlineWidth={0.005}
           outlineColor="#000000"
         >
           000
         </Text>
         <Text
-          fontSize={0.09}
+          fontSize={0.05}
           color={CHROME}
           anchorX="center"
           anchorY="top"
-          position={[0, -0.18, 0]}
+          position={[0, -0.08, 0]}
         >
           MPH
         </Text>
