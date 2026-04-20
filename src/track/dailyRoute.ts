@@ -65,11 +65,15 @@ export function setDailyRoute(on: boolean): void {
   _isDailyRoute = on;
 }
 
-/** Read URL params and configure daily/practice mode. Call once at boot. */
+/** Read URL params and configure daily/practice mode. Call once at boot.
+ *  Daily mode is the default; ?practice=1 opts out (free seed); ?daily=1
+ *  is the explicit opt-in (PRQ B6) that overrides any earlier opt-out
+ *  flag and pins the date-derived seed. */
 export function initDailyRouteFromUrl(): void {
   if (typeof window !== 'undefined') {
     const params = new URLSearchParams(window.location.search);
     if (params.get('practice') === '1') _isDailyRoute = false;
+    if (params.get('daily') === '1') _isDailyRoute = true;
   }
 }
 
