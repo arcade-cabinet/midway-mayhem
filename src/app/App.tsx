@@ -56,7 +56,10 @@ import { saveScore } from '@/storage/scores';
 import { initDailyRouteFromUrl } from '@/track/dailyRoute';
 import { AchievementToasts } from '@/ui/AchievementToasts';
 import { GameOverOverlay } from '@/ui/GameOverOverlay';
+import { ErrorModal } from '@/ui/hud/ErrorModal';
 import { HUD } from '@/ui/hud/HUD';
+import { LiveRegion } from '@/ui/hud/LiveRegion';
+import { ReactErrorBoundary } from '@/ui/hud/ReactErrorBoundary';
 import type { NewRunConfig } from '@/ui/title/NewRunModal';
 import { TitleScreen } from '@/ui/title/TitleScreen';
 import { GameLoop } from './GameLoop';
@@ -148,138 +151,142 @@ export function App() {
   }, []);
 
   return (
-    <WorldProvider world={world}>
-      <div
-        data-testid="mm-app"
-        style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
-      >
-        <Canvas
-          // preserveDrawingBuffer forces a ReadPixels on every frame which
-          // stalls the GPU pipeline — catastrophic on swiftshader CI
-          // runners (observed: autoplay frame rate dropping to ~1 FPS and
-          // distance never incrementing past 0). PhotoMode + debugCapture
-          // re-render synchronously before calling toDataURL instead of
-          // relying on a preserved buffer, so we don't need this flag in
-          // prod. It IS still needed by the vitest-browser visual-baseline
-          // tests that call `canvas.toDataURL()` after a wait — those tests
-          // set `?preserve=1` on the URL to opt back in.
-          gl={{ antialias: true, preserveDrawingBuffer: preserveDrawingBufferFromUrl() }}
-          frameloop="always"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+    <ReactErrorBoundary context="App.root">
+      <WorldProvider world={world}>
+        <div
+          data-testid="mm-app"
+          style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
         >
-          <color attach="background" args={['#0b0f1a']} />
-          <ambientLight intensity={0.45} color="#ffd6a8" />
-          <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
-          <Suspense fallback={null}>
-            <BigTopEnvironment night={night} />
-            <ZoneProps />
-          </Suspense>
-          <TrackScroller>
-            <Track />
-            <TrackContent />
-            <ObstacleSystem />
-            <StartPlatform />
-            <FinishBanner />
-            <BalloonLayer />
-            <MirrorLayer />
-            <FireHoopGate />
-            <BarkerCrowd />
-            <ZoneBanners />
-            <GhostCar />
-            <RacingLineGhost />
-          </TrackScroller>
-          <RaidBridge />
-          <RaidLayer />
-          <HonkContext.Provider value={() => hornRef.current()}>
-            <Cockpit />
-          </HonkContext.Provider>
-          {/* Clown explosion on game-over — confetti, hearts, stars, flash.
+          <ErrorModal />
+          <LiveRegion />
+          <Canvas
+            // preserveDrawingBuffer forces a ReadPixels on every frame which
+            // stalls the GPU pipeline — catastrophic on swiftshader CI
+            // runners (observed: autoplay frame rate dropping to ~1 FPS and
+            // distance never incrementing past 0). PhotoMode + debugCapture
+            // re-render synchronously before calling toDataURL instead of
+            // relying on a preserved buffer, so we don't need this flag in
+            // prod. It IS still needed by the vitest-browser visual-baseline
+            // tests that call `canvas.toDataURL()` after a wait — those tests
+            // set `?preserve=1` on the URL to opt back in.
+            gl={{ antialias: true, preserveDrawingBuffer: preserveDrawingBufferFromUrl() }}
+            frameloop="always"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+          >
+            <color attach="background" args={['#0b0f1a']} />
+            <ambientLight intensity={0.45} color="#ffd6a8" />
+            <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
+            <Suspense fallback={null}>
+              <BigTopEnvironment night={night} />
+              <ZoneProps />
+            </Suspense>
+            <TrackScroller>
+              <Track />
+              <TrackContent />
+              <ObstacleSystem />
+              <StartPlatform />
+              <FinishBanner />
+              <BalloonLayer />
+              <MirrorLayer />
+              <FireHoopGate />
+              <BarkerCrowd />
+              <ZoneBanners />
+              <GhostCar />
+              <RacingLineGhost />
+            </TrackScroller>
+            <RaidBridge />
+            <RaidLayer />
+            <HonkContext.Provider value={() => hornRef.current()}>
+              <Cockpit />
+            </HonkContext.Provider>
+            {/* Clown explosion on game-over — confetti, hearts, stars, flash.
               Self-triggers from the store's gameOver flag; no prop wiring. */}
-          <ExplosionFX />
-          <SpeedLines />
-          <BoostRush />
-          <PostFX />
-          <GameLoop
-            world={world}
-            active={playing}
-            onPickup={(kind) => {
-              dingRef.current();
-              if (kind === 'balloon') void haptic('light');
-              else if (kind === 'mega') void haptic('heavy');
-              else void haptic('medium');
-            }}
-            onObstacle={(kind) => {
-              thudRef.current();
-              // Oil slicks feel wobbly, not crashy; everything else thuds.
-              if (kind === 'oil') void haptic('medium');
-              else void haptic('heavy');
-            }}
-            onEnd={(r) => {
-              setEndReason(r);
-              const score = world.query(Player, Score)[0]?.get(Score);
-              if (score) {
-                void saveScore({
-                  score: score.value,
-                  balloons: score.balloons,
-                  seed: 42,
-                  timestamp: Date.now(),
-                });
-              }
-              commitGhost(world);
-            }}
-          />
-          <AudioBridge
-            active={playing}
-            onReady={(fns) => {
-              hornRef.current = fns.honk;
-              dingRef.current = fns.ding;
-              thudRef.current = fns.thud;
-            }}
-          />
-          {/* Autonomous driver — active when ?governor=1 or ?autoplay=1 */}
-          <Governor />
-          {/* Debug frame capture — active in DEV or ?diag=1 */}
-          <DebugCaptureBridge />
-        </Canvas>
-        {titleVisible ? (
-          <TitleScreen
-            onStart={(config?: NewRunConfig) => {
-              // Start the run — sets RunSession.running=true, initializes
-              // the run RNG + optimal path + combo + difficulty profile.
-              const store = useGameStore.getState();
-              if (config) {
-                store.startRun({
-                  seed: config.seed,
-                  difficulty: config.difficulty,
-                  seedPhrase: config.seedPhrase,
-                  permadeath: config.permadeath,
-                });
-              } else {
-                // Autoplay-without-config path (keyboard fallback).
-                store.startRun({ seed: 42, difficulty: 'plenty' });
-              }
-              setTitleVisible(false);
-            }}
-          />
-        ) : (
-          <>
-            <HUD />
-            <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
-          </>
-        )}
-        <AchievementToasts />
-        {endReason !== null ? (
-          <GameOverEnd
-            reason={endReason}
-            onRestart={() => {
-              // Simplest reliable reset: hard reload.
-              resetGameOver();
-              window.location.reload();
-            }}
-          />
-        ) : null}
-      </div>
-    </WorldProvider>
+            <ExplosionFX />
+            <SpeedLines />
+            <BoostRush />
+            <PostFX />
+            <GameLoop
+              world={world}
+              active={playing}
+              onPickup={(kind) => {
+                dingRef.current();
+                if (kind === 'balloon') void haptic('light');
+                else if (kind === 'mega') void haptic('heavy');
+                else void haptic('medium');
+              }}
+              onObstacle={(kind) => {
+                thudRef.current();
+                // Oil slicks feel wobbly, not crashy; everything else thuds.
+                if (kind === 'oil') void haptic('medium');
+                else void haptic('heavy');
+              }}
+              onEnd={(r) => {
+                setEndReason(r);
+                const score = world.query(Player, Score)[0]?.get(Score);
+                if (score) {
+                  void saveScore({
+                    score: score.value,
+                    balloons: score.balloons,
+                    seed: 42,
+                    timestamp: Date.now(),
+                  });
+                }
+                commitGhost(world);
+              }}
+            />
+            <AudioBridge
+              active={playing}
+              onReady={(fns) => {
+                hornRef.current = fns.honk;
+                dingRef.current = fns.ding;
+                thudRef.current = fns.thud;
+              }}
+            />
+            {/* Autonomous driver — active when ?governor=1 or ?autoplay=1 */}
+            <Governor />
+            {/* Debug frame capture — active in DEV or ?diag=1 */}
+            <DebugCaptureBridge />
+          </Canvas>
+          {titleVisible ? (
+            <TitleScreen
+              onStart={(config?: NewRunConfig) => {
+                // Start the run — sets RunSession.running=true, initializes
+                // the run RNG + optimal path + combo + difficulty profile.
+                const store = useGameStore.getState();
+                if (config) {
+                  store.startRun({
+                    seed: config.seed,
+                    difficulty: config.difficulty,
+                    seedPhrase: config.seedPhrase,
+                    permadeath: config.permadeath,
+                  });
+                } else {
+                  // Autoplay-without-config path (keyboard fallback).
+                  store.startRun({ seed: 42, difficulty: 'plenty' });
+                }
+                setTitleVisible(false);
+              }}
+            />
+          ) : (
+            <>
+              <HUD />
+              <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+            </>
+          )}
+          <AchievementToasts />
+          {endReason !== null ? (
+            <GameOverEnd
+              reason={endReason}
+              onRestart={() => {
+                // Simplest reliable reset: hard reload.
+                resetGameOver();
+                window.location.reload();
+              }}
+            />
+          ) : null}
+        </div>
+      </WorldProvider>
+    </ReactErrorBoundary>
   );
 }
 
