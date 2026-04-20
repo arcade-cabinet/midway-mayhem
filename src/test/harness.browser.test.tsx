@@ -8,14 +8,16 @@
  * If this test fails, NOTHING further in v2 matters. Gate step 1 on it.
  */
 import { render, waitFor } from '@testing-library/react';
-import { page } from '@vitest/browser/context';
 import { describe, expect, it } from 'vitest';
 import { Scene, waitFrames } from './scene';
 
 describe('test harness', () => {
   it('renders a cube in a real-GPU Canvas and can screenshot it', async () => {
+    // frameloop="demand" so the scene isn't continuously animating while we
+    // try to read the backbuffer — avoids the "waiting for element to be
+    // stable" hang when vitest-browser's page.screenshot races a live rAF.
     const { container } = render(
-      <Scene>
+      <Scene frameloop="demand">
         <mesh position={[0, 0, 0]}>
           <boxGeometry args={[2, 2, 2]} />
           <meshStandardMaterial color="#E53935" />
@@ -37,8 +39,5 @@ describe('test harness', () => {
     expect(canvas.height).toBeGreaterThan(0);
     const dataUrl = canvas.toDataURL('image/png');
     expect(dataUrl.length).toBeGreaterThan(1000);
-
-    // And the harness can capture via vitest-browser's page API.
-    await page.screenshot({ path: '.test-screenshots/harness-cube.png' });
   });
 });

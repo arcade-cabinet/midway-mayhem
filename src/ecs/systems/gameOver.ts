@@ -8,7 +8,7 @@
  */
 import type { World } from 'koota';
 import { trackArchetypes } from '@/config';
-import { Player, Position, Score } from '@/ecs/traits';
+import { Player, Position, RunSession, Score } from '@/ecs/traits';
 
 export type EndReason = 'damage' | 'finish';
 
@@ -32,7 +32,11 @@ export function stepGameOver(world: World, cb: GameOverCallbacks = {}): void {
   const pos = pe.get(Position);
   if (!score || !pos) return;
 
-  if (score.damage >= 3) {
+  // RunSession.gameOver is the authoritative flag — applyCrashAction flips
+  // it when sanity hits zero. Score.damage is a parallel counter that hits
+  // 3 via the obstacle-collision path. Either source ends the run.
+  const rs = pe.get(RunSession);
+  if (score.damage >= 3 || rs?.gameOver === true) {
     ended = true;
     cb.onEnd?.('damage');
     return;

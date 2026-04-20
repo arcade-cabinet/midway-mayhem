@@ -20,6 +20,7 @@ import { sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { Player, Position } from '@/ecs/traits';
 import { world } from '@/ecs/world';
+import { reportScene } from '@/game/diagnosticsBus';
 
 export function TrackScroller({ children }: { children: ReactNode }) {
   const groupRef = useRef<THREE.Group>(null);
@@ -115,6 +116,14 @@ export function TrackScroller({ children }: { children: ReactNode }) {
     negAnchor.applyEuler(g.rotation);
     g.position.copy(negAnchor);
     g.updateMatrixWorld();
+
+    const trackGroup = g.getObjectByName('track');
+    reportScene({
+      trackPieces: trackGroup ? trackGroup.children.length : g.children.length,
+      meshesRendered: g.children.length,
+      cameraPos: [0, 0, 0],
+      worldScrollerPos: [g.position.x, g.position.y, g.position.z],
+    });
   });
 
   return <group ref={groupRef}>{children}</group>;
