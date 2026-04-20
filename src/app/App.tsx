@@ -59,6 +59,8 @@ import { GameOverOverlay } from '@/ui/GameOverOverlay';
 import { ErrorModal } from '@/ui/hud/ErrorModal';
 import { HUD } from '@/ui/hud/HUD';
 import { LiveRegion } from '@/ui/hud/LiveRegion';
+import { PauseButton } from '@/ui/hud/PauseButton';
+import { PauseOverlay } from '@/ui/hud/PauseOverlay';
 import { ReactErrorBoundary } from '@/ui/hud/ReactErrorBoundary';
 import type { NewRunConfig } from '@/ui/title/NewRunModal';
 import { TitleScreen } from '@/ui/title/TitleScreen';
@@ -270,9 +272,11 @@ export function App() {
           ) : (
             <>
               <HUD />
+              <PauseButton />
               <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
             </>
           )}
+          <PauseOverlay />
           <AchievementToasts />
           {endReason !== null ? (
             <GameOverEnd
