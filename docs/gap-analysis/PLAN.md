@@ -1,11 +1,16 @@
 ---
 title: Gap Analysis — Master Action Plan
-updated: 2026-04-18
-status: current
+updated: 2026-04-19
+status: archived
 domain: context
 ---
 
 # Midway Mayhem — Master Action Plan
+
+> **Status: archived.** This plan was written 2026-04-18 to shepherd
+> Tracks A–E out of the PR #21 port. As of 2026-04-19 all five tracks
+> have landed — see `docs/STATE.md` for the current state. The content
+> below is preserved as a historical record of that clearing pass.
 
 Derived from three parallel audits ([features](features.md), [docs](docs.md),
 [code-quality](code-quality.md)) post PR #21 + #22 merge.
