@@ -112,6 +112,32 @@ describe('GovernorDriver.step', () => {
     expect(Number.isFinite(out.steer)).toBe(true);
   });
 
+  it('steers toward an obstacle-free adjacent lane when blocked', () => {
+    // Player in center lane (lateral=0), obstacle directly ahead in center.
+    // Driver should target an adjacent empty lane, producing non-zero steer.
+    initRunRng(11);
+    const g = new GovernorDriver();
+    const obstacles = [{ d: 20, x: 0, z: -20, type: 'barrier', radius: 2 }];
+    const out = g.step(baseInput({ playerLateral: 0, obstacles }), DT);
+    expect(out.debug.avoidedObstacles).toBeGreaterThan(0);
+    expect(Math.abs(out.steer)).toBeGreaterThan(0.02);
+  });
+
+  it('does NOT pin steer right on a straight track with no obstacles', () => {
+    // Regression: GovernorDriver previously compared world-space laneCenterAt
+    // .x against track-relative playerLateral, producing a nonzero offset
+    // that pinned steer to +1 on any curved track and crashed the autopilot
+    // into obstacles around 300m. With the coordinate-space fix, a centered
+    // player on a flat/straight section produces near-zero steer.
+    initRunRng(42);
+    const g = new GovernorDriver();
+    const out = g.step(baseInput({ playerD: 100, playerLateral: 0 }), DT);
+    expect(
+      Math.abs(out.steer),
+      `center-lane steer on empty track should be near 0, was ${out.steer}`,
+    ).toBeLessThan(0.25);
+  });
+
   it('skill param scales the raw steer output', () => {
     const gSkilled = new GovernorDriver({
       lookaheadMeters: 40,
