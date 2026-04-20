@@ -65,25 +65,30 @@ export function StartPlatform() {
           and back edges. Purely decorative lateral curb pieces. */}
       {buildTrim({ widthM, depthM, y: deckY + 0.22 })}
 
-      {/* START sign plane, facing the player (toward +Z in the platform's
-          local frame = along the track's forward direction into -Z after the
-          heading rotation is applied). We face the sign BACK along the
-          initial track heading so the player reads it head-on as they spawn. */}
-      <mesh position={[0, deckY + 2.2, -depthM / 2 + 0.2]} rotation={[0, Math.PI, 0]}>
+      {/* START sign plane. Previously placed at z = -depthM/2 + 0.2 which
+          put it ~3.8m in FRONT of the driver's face on spawn (platform
+          center at player position, sign at back edge of platform → after
+          the track's forward rotation this becomes +forward of camera).
+          Moved to z = +depthM/2 - 0.2 so the sign is at the BACK of the
+          platform relative to the driver — i.e. behind the car as the
+          player drives forward off the platform. Still read-on at the
+          moment the car crosses the starting line heading toward the sign.
+          Faces -Z (toward the driver approaching from +Z) via rotation 0. */}
+      <mesh position={[0, deckY + 2.2, depthM / 2 - 0.2]}>
         <planeGeometry args={[widthM * 0.55, 1.6]} />
         <meshBasicMaterial map={signTexture} transparent toneMapped={false} />
       </mesh>
       {/* Sign back (blank polka-dot) so the rear isn't an invisible quad */}
-      <mesh position={[0, deckY + 2.2, -depthM / 2 + 0.2 - 0.01]}>
+      <mesh position={[0, deckY + 2.2, depthM / 2 - 0.2 + 0.01]}>
         <planeGeometry args={[widthM * 0.55, 1.6]} />
         <meshStandardMaterial color={COLORS.RED} roughness={0.7} />
       </mesh>
-      {/* Sign posts */}
-      <mesh position={[-widthM * 0.22, deckY + 1.2, -depthM / 2 + 0.2]}>
+      {/* Sign posts — moved to back of platform to flank the relocated sign. */}
+      <mesh position={[-widthM * 0.22, deckY + 1.2, depthM / 2 - 0.2]}>
         <cylinderGeometry args={[0.06, 0.06, 2.2, 8]} />
         <meshStandardMaterial color={COLORS.YELLOW} metalness={0.25} roughness={0.4} />
       </mesh>
-      <mesh position={[widthM * 0.22, deckY + 1.2, -depthM / 2 + 0.2]}>
+      <mesh position={[widthM * 0.22, deckY + 1.2, depthM / 2 - 0.2]}>
         <cylinderGeometry args={[0.06, 0.06, 2.2, 8]} />
         <meshStandardMaterial color={COLORS.YELLOW} metalness={0.25} roughness={0.4} />
       </mesh>
