@@ -9,182 +9,232 @@ domain: context
 
 ## Priority: HIGH
 
-## Overview
+## The vision (canonical)
 
-Drive the game from its current state (functional but visually/gameplay-rough; 49 browser tests, 828 node tests, visual-matrix gate live) to a shippable 1.0 on iOS + Android via Capacitor. Scope is both MACRO (ship-blockers, missing feature work) and MICRO (polish, rough edges, tuning). Work is decomposable into independent PRs; each task below ends at VERIFIED_DONE when its acceptance criteria pass.
+The Midway is **a coiled descent through a circus big-top.**
 
-Shipped-game definition:
-- Loads cleanly on iPhone 14 Pro + a mid-tier Android device at 60 FPS
-- Tutorial flow teaches honk, steer, boost, tricks, plunge, zones before first gameplay
-- Every 3D asset reads as "clown car in a circus big-top" — no stadium backdrop, no raw primitives, no orphan placeholders
-- At least 3 zones have distinct visual + audio identity (Midway Strip, Ring of Fire, Funhouse Frenzy already wired)
-- Scores persist via SQLite; ghost replay works; achievements unlock visibly
-- Haptics + spatial audio match the action
-- No "mayhem halted" modal in any normal play session
-- App store metadata present (icon, screenshots, description)
+- **Start** — a wire-hung platform suspended HIGH inside the dome, near the rafters. The driver's POV looks DOWN at the track unwinding away from the cockpit.
+- **Mid-run** — the track tapers and curls in a long downward spiral, threading through the dome interior. The audience tiers (the red-velvet seating already in the HDRI) flank the descent — those aren't a stadium backdrop, they're spectators watching you fall toward the floor.
+- **Finish** — at the BOTTOM of the dome, on the big-top floor, a black-and-white checkered race-track-style finish line.
+
+A player who completes a run should perceive: "I started high, I spiraled down through cheering bleachers, I landed on the circus floor."
+
+The current build has the geometry pieces (HDRI, archetype set including `dip`/`plunge`/`climb`, StartPlatform, FinishBanner, TrackScroller). What's missing: the cumulative DESCENT bias, the elevation placement of start/finish anchors, the camera tilt that sells the falling sensation, and an audience that fills those seats.
+
+## Already done (trim)
+
+These earlier scope items are VERIFIED_DONE on main and removed from the queue:
+
+| ID | What |
+|----|------|
+| A2 | Hood fills lower third of POV (camera y 1.55) |
+| B2 | Pause UX — overlay + button + Esc/P |
+| B4 | Barker-honk combo chain |
+| B5d | Trick desktop (Q/E/R) — mobile swipe still pending as B5m |
+| B6 | `?daily=1` opt-in URL |
+| B7 | Night mode (already wired) |
+| D1 | Player-name onboarding |
+| D2 | Leaderboard top-10 with player name |
+| D3 | Early-fire achievements + toast UX |
+| D5 | Ticket economy (balloons → tickets → shop, already wired) |
+| F4 | App store description + keywords |
+| G1 | STATE.md current + trackComposer correction |
+| G2 | TESTING.md visual-matrix workflow |
+| G3 | CHANGELOG 0.3 → 1.0 polish entries |
+
+A1 is **NOT** required — `circus_arena_2k.hdr` is the correct asset (real big-top arena interior with audience tiers). Earlier "stadium backdrop" reading was perception drift; it's the spectators.
 
 ---
 
-## Tasks
+## Open tasks — descent-spiral world (NEW canonical scope)
 
-### Track A — Visual identity (P1, unblocks all polish)
+### Track A — descent geometry + audience (P1)
 
-**A1**: P1 — Replace `circus_arena_2k.hdr` with a real big-top interior HDRI.
-- Current HDRI reads as a stadium with theater seats — wrong vibe.
-- Acceptance: visual-matrix slice-040m shows red-striped big-top fabric overhead, not stadium rigging. User visually approves the backdrop.
+**A-DESC-1** P1 — *Track has net-downward elevation profile across the run.*
+- **Doc:** Add a "Run elevation profile" section to `docs/ARCHITECTURE.md` describing target Y delta over `runLength=80` pieces (~30-50m total descent). Per-zone bias: zone 1 mostly flat (intro), zone 2-3 progressive descent, zone 4 steep coil to floor.
+- **Test:** New `src/track/__tests__/elevationProfile.test.ts` that calls `seedTrack` with the canonical phrase, samples the cumulative Y at every piece, and asserts the cumulative descent stays monotonic non-increasing across the last 60% of the run.
+- **Code:** Bias archetype weights / introduce per-zone weight overrides so `dip`/`plunge` outweigh `climb` in zones 2-4. Add a new `coil-down` archetype combining `slight-right`+`dip` if needed for zone 4.
+- **Acceptance:** isolated track screenshot harness output (see A-TRACK-VIS) shows visibly tapering Y from start to finish.
 
-**A2**: P1 — Move the camera to put the hood fully in the POV.
-- Hood (polka-dot dome) renders as a pink sliver at the screen bottom; should occupy the bottom third and feel like you're INSIDE a car.
-- Acceptance: visual-matrix slice-040m shows polka-dot hood filling ≥25% of frame height.
+**A-DESC-2** P1 — *StartPlatform is suspended high in the rafters.*
+- **Doc:** `docs/DESIGN.md` updated with "Start = wire-hung gondola in the dome cap; player is in the bleachers' Y range, NOT on the floor."
+- **Test:** Browser test asserts StartPlatform y is at or above sampled track-piece y at `d=0` (`startY ≥ pose(0).y`) AND at least 25m above the finish-line y.
+- **Code:** Update `src/track/runPlan.ts` (or wherever startPlatform is composed) to place start at `+30m Y` relative to track piece 0; thicker visible wire struts up to dome cap (already partially modeled).
+- **Acceptance:** slice-040m shows steel wires going up out of frame; player feels the height.
 
-**A3**: P1 — Replace obstacle primitives (raw boxes in red/blue) with themed props.
-- Carnival-themed obstacles: garbage bins, paint cans, clown shoes, streamers. Use Kenney carnival/circus pack from `/Volumes/home/assets/`.
-- Acceptance: no `<boxGeometry>` + `color="#e53935"` primitive obstacles in live scene. Visual-matrix reflects themed obstacles.
+**A-DESC-3** P1 — *FinishBanner is at the floor with checker race-line.*
+- **Doc:** Same `DESIGN.md` section — "Finish = black-and-white checker on the dome's circular floor; the run ends visibly DOWN at audience-eye-level base."
+- **Test:** Browser test asserts FinishBanner y ≈ 0 (within 2m) AND the cumulative track Y at `finishBanner.d` is below start by at least 25m.
+- **Code:** FinishBanner sample point clamps Y to dome-floor altitude; checker quad widened to span the full dome floor radius; checker pattern uses real B&W race-track stripes (sized so ~30 stripes wide reads as a finish line, not 8 fat squares).
+- **Acceptance:** at distance ≈ runEndDistance, slice screenshot shows full B&W race-finish on a circular floor.
 
-**A4**: P2 — Zone visual identity per DESIGN.md.
-- Midway Strip: orange track, striped tents, yellow sky. (Current baseline.)
-- Balloon Alley: pink/purple sky, floating pink balloons on track.
-- Ring of Fire: orange/red sky, flaming orange hoops, dark track.
-- Funhouse Frenzy: mirror walls, multicolored strobing lights, distorted props.
-- Acceptance: slice-120m (Midway), slice-480m (Balloon Alley entry) show distinct colorings per zone.
+**A-DESC-4** P1 — *Cockpit camera pitches forward proportionally to track pitch.*
+- **Doc:** `docs/ARCHITECTURE.md` "Camera rig" section adds the pitch-look-down behavior.
+- **Test:** Unit test for the camera-pitch helper: `getCockpitCameraPitch(trackPitch)` returns 0 on flat track, ~0.4× the track's pitch on descent (so the camera leans into the dive but never matches it 1:1 — that would cause vertigo).
+- **Code:** Add a `useCockpitDescentPitch` hook reading current track piece pitch from the diag bus; apply to the cockpit-body group.
+- **Acceptance:** during a `plunge` piece, the visible hood + steering wheel rotate downward in the frame; flat sections return to neutral within 0.5s.
 
-**A5**: P2 — Track surface material — replace flat orange shader with a tracker-pattern PBR material.
-- PolyHaven PBR: wooden planks OR rubber belt OR polished concrete with painted lane lines.
-- Acceptance: track surface reads as a physical surface, not an unshaded orange plane.
+**A-DESC-5** P2 — *Audience fills the empty seats with simple colored crowd silhouettes.*
+- **Doc:** Note in DESIGN.md — "The HDRI seats are emissive but empty; we layer thousands of low-poly crowd silhouettes on top so the audience reads as PRESENT."
+- **Test:** Visual-matrix slice-120m diff shows non-trivial pixel content in the seats region (top-left + top-right of POV) compared to current empty-seat baseline.
+- **Code:** New `src/render/env/Audience.tsx` — instanced-mesh crowd of ~2000 capsule silhouettes in palette colors, placed via radial sweep around the dome at `y = 5..18m`, `r = 60..120m`. Subtle wave animation (idle bob).
+- **Acceptance:** screenshots feel populated — seats no longer empty.
 
-**A6**: P3 — Banners, ribbons, and bunting strung between tent poles as decorative ambient geometry.
+### Track A — visual identity remaining (P1/P2)
 
-### Track B — Gameplay polish (P1)
+**A-OBS** P1 (was A3) — *Replace raw box obstacles with themed props.*
+- **Doc:** New `docs/assets/obstacles.md` — table mapping each ECS Obstacle.kind (`cone`, `barrier`, `gate`, `oil`, `hammer`, `critter`) to a chosen GLB from `/Volumes/home/assets/3DLowPoly` (Kenney carnival/circus pack).
+- **Test:** Update visual-matrix node-side baseline diff allow-list so the obstacle palette change passes; add a unit test that every Obstacle.kind maps to a non-null asset path.
+- **Code:** New `src/render/obstacles/themedAssets.tsx` — replaces the inline `<boxGeometry>` instances in TrackContent with GLB loaders. Falls back to bright magenta box if asset fails to load (loud but visible).
+- **Acceptance:** visual-matrix slices show themed obstacles instead of red/blue boxes; no `<boxGeometry>` + `color="#e53935"` in the live scene.
 
-**B1**: P1 — Tutorial flow. First-run player sees a 6-step guided walk-through:
-  1. Steering (left/right drag or arrow keys)
-  2. Honk (tap horn → barkers wave → bonus)
-  3. Balloon pickup (+1 ticket)
-  4. Boost pickup (speed surge)
-  5. Trick ramp (swipe up → back-flip → combo)
-  6. Plunge recovery (off-track → plunge-animation → respawn)
-- Acceptance: fresh profile auto-launches tutorial; after completion, normal run begins; tutorial persists as "done" in profile.
+**A-ZONE-VIS** P2 (was A4) — *Per-zone visual identity.*
+- **Doc:** `docs/DESIGN.md` zone table: Midway (orange/striped tents), Balloon Alley (pink/purple sky, floating pink), Ring of Fire (orange-red sky, dark track + flaming hoops), Funhouse (mirror walls + multicolored strobing).
+- **Test:** Per-zone visual-matrix gate — slices captured AT each zone center (Midway≈225m, Balloon≈675m, Ring≈1125m, Funhouse≈1575m) baseline-diff against per-zone reference PNGs.
+- **Code:** Extend `src/render/env/ZoneProps.tsx` to swap ambient color, fog density, and zone-specific particle/prop layers; add the 3 missing layers.
+- **Acceptance:** the 4 zone-center slices each look unmistakably distinct.
 
-**B2**: P1 — Pause UX. Esc or P on desktop; dedicated pause button on mobile. Pause overlay shows big "PAUSED" + resume button. Time dilation froze by RunSession.paused.
-- Acceptance: Esc during gameplay freezes the scene; resume continues from exact state.
+**A-TRACK-MAT** P2 (was A5) — *PBR track material.*
+- **Doc:** Note in DESIGN.md — surface = "carnival wood planks" (chosen for the big-top aesthetic).
+- **Test:** Visual-matrix expected delta from new material absorbed into refreshed baselines.
+- **Code:** PolyHaven planks PBR (diffuse + normal + roughness) downloaded via blender MCP, mapped onto `track-surface` mesh with proper UV stretching for the long ribbon.
+- **Acceptance:** track surface reads as a physical wood plank ribbon, not an unshaded orange plane.
 
-**B3**: P1 — Mobile touch controls — whole-canvas horizontal-drag steering (replace virtual joystick if present). Tap top-right horn button for honk.
-- Acceptance: iPhone 14 / Pixel 7 gestures: drag left/right → steering, tap horn → honks, tap pause → pauses. Playable hands-on.
+**A-DECOR** P3 (was A6) — *Banners, ribbons, bunting strung between rafters and dome.*
+- **Code:** Procedural geometry — 4-color triangle bunting strings. Quick win once A-DESC-2 places the start near the dome cap.
 
-**B4**: P1 — Combo crowd-bonus on honk near barker with 3+ lateral lane changes recent.
-- Acceptance: honk while steering back-and-forth awards visible combo text ("CROWD +50! 2× CHAIN!").
+### Track A — isolated procedural-track screenshot package (NEW, prerequisite for A-DESC-*)
 
-**B5**: P2 — Trick system wiring: swipe up on ramp = back-flip; swipe double-left = left barrel roll.
-- Acceptance: trick input → cockpit rotation animation → visible COMBO + Ticket bonus.
+**A-TRACK-VIS** P1 — *Isolated track screenshot harness with orientation/pitch/scale debug overlays.*
 
-**B6**: P2 — Daily route. `?daily=1` URL flag generates same track for all players on the same date.
-- Acceptance: seedPhrase derived from current date; leaderboard shows today's top scores.
+This is the test instrument that makes the descent geometry tasks above measurable.
 
-**B7**: P2 — Night mode. Settings toggle → dim ambient, neon emissive lights, cool-toned HDRI.
+- **Doc:** `docs/TESTING.md` adds a "Track-only visual gate" section. Explains the harness, the orthographic side-view + axonometric overhead views, and the per-piece annotation render.
+- **Test:** New `src/track/__tests__/TrackPackage.browser.test.tsx` — mounts JUST the procedural track (no cockpit, no obstacles, no audience) under a `Scene` harness, captures 3 fixed-camera renders:
+  1. **Side elevation** — orthographic camera looking +X at the track ribbon, full run visible. Pitch + descent are visually obvious.
+  2. **Top-down plan** — orthographic camera looking -Y, shows the spiral footprint.
+  3. **POV at d=0** — the player's first frame.
+  Annotations overlaid: per-piece archetype label, cumulative `(yaw, pitch, y)` at piece boundaries, total run length, total descent.
+  Captures dumped to `.test-screenshots/track-package/{side,plan,pov}.png` + node-side baselines under `src/track/__baselines__/track-package/`.
+- **Code:** A small orthographic-renderer wrapper around the existing `seedTrack` + procedural geometry. Probably 100 LOC. Keep separate from `Track.tsx` so the harness can render with debug overlays without polluting prod.
+- **Acceptance:** the 3 PNGs render the canonical seed deterministically; the side-view PNG visibly shows the descent that A-DESC-1 produces; updates to archetype weights show up as visible deltas in the side-view.
 
-### Track C — Audio (P1)
+**A-TRACK-VIS-ARCH** P1 (depends on A-TRACK-VIS) — *Per-archetype isolated render.*
+- **Code:** Add a per-archetype variant — one PNG per archetype (`straight`, `slight-left`, `slight-right`, `hard-left`, `hard-right`, `dip`, `climb`, `plunge`, plus any new ones from A-DESC-1) showing JUST that piece in isolation, oriented so its `deltaYaw` and `deltaPitch` are obvious. Used to validate archetype changes don't break existing geometry.
+- **Acceptance:** `src/track/__baselines__/archetypes/{archetype-id}.png` exists for every archetype; node diff catches regressions.
 
-**C1**: P1 — Conductor wiring on first user gesture.
-- Start → music fades in; zone transition → music key changes; crash → music ducks.
-- Acceptance: audio starts when player clicks PLAY; zone 2 plays different phrase grammar than zone 1.
+### Track B — gameplay (P1)
 
-**C2**: P2 — SFX palette: honk variants (3-4 per zone for variety), balloon pop, ticket ding, trick-land whoosh, plunge swoosh, crash thud. All procedurally via Tone.js.
-- Acceptance: each action has a sound; no silence during gameplay.
+**B1** P1 — *Tutorial flow.* Unchanged from prior PRQ — depends on A-DESC-* + A-OBS landing so tutorial steps reference real visuals. 6 steps: steer, honk, balloon, boost, trick, plunge.
 
-**C3**: P2 — Spatial audio for big-top via Tone.js 3D panner. Crowd cheers come from the correct side.
+**B3** P1 — *Mobile touch controls.* Whole-canvas horizontal-drag steering; tap-top-right horn. Replaces virtual joystick.
 
-**C4**: P3 — Music stingers on milestones (first zone complete, 1000m, run clear).
+**B5m** P2 — *Mobile trick swipe gestures.* Match desktop Q/E/R (swipe-left/right/up). Pure code; no design lift.
 
-### Track D — Persistence + progression (P1)
+**B-TUTORIAL-DESCENT** P1 — *Tutorial includes a "you're falling" beat.* Step 6 explicitly previews the spiral — show the dome from outside, then drop in. Sells the descent vision before the player drives.
 
-**D1**: P1 — Profile onboarding. First launch asks for player name; persists to SQLite.
-- Acceptance: second launch recognizes player; scoreboard shows name.
+### Track C — audio (P1)
 
-**D2**: P1 — Scoreboard UI on title screen. Local top-10 by score.
-- Acceptance: reachable from title, shows previous runs with name+score+date+difficulty.
+**C1** P1 — *Conductor wiring on first user gesture.* Music fade-in on PLAY, key change on zone transition, duck on crash. Already mostly built; needs the wire to first-gesture init.
 
-**D3**: P1 — Achievements UI. On unlock → AchievementToast mounts for 4s. Full list reachable from title.
-- Acceptance: first 5 achievements actually fire (first honk, first balloon, first zone transit, first trick, first clear).
+**C-DESCENT-AMBIENCE** P1 — *Audience cheer ambient bed scaled by descent depth.* As the player descends through the dome, the crowd noise pans/swells based on how close they are to the floor. Uses Tone.Panner3D.
 
-**D4**: P2 — Ghost replay. After a run, "Watch Ghost" option shows previous-best run as a translucent car overlay.
+**C2** P2 — *SFX palette per zone* (3-4 honk variants, balloon pop, ticket ding, trick whoosh, plunge swoosh, crash thud).
 
-**D5**: P2 — Ticket economy. Balloons → tickets. Tickets unlock cosmetics in a shop.
-- Shop items: cockpit liveries (polka-dot colorways), horn sounds, windshield bling.
-- Acceptance: balloons accumulate to tickets; shop reachable; items equippable.
+**C3** P2 — *Spatial audio* — Tone.Panner3D positional crowd cheers from the actual seat regions defined by the audience layer (A-DESC-5).
 
-### Track E — Stability + perf (P1)
+**C4** P3 — *Music stingers* on first zone complete, 1000m, run clear.
 
-**E1**: P1 — No runtime errors in 5-minute autonomous playthrough at Kazoo/Plenty difficulty.
-- Acceptance: `pnpm playthrough` with `?phrase=lightning-kerosene-ferris&difficulty=plenty` runs 5 minutes without MAYHEM HALTED or uncaught throws.
+### Track D — persistence + progression remaining (P2)
 
-**E2**: P1 — 60 FPS on iPhone 14 Pro at all zones.
-- Acceptance: telemetry artifact from iPhone shows fps ≥55 p95 across a 3-minute run.
+**D4** P2 — *Ghost replay UI.* "Watch Ghost" option after a run shows previous-best as translucent overlay car. Recorder + commit logic exist; needs UX.
 
-**E3**: P1 — 45 FPS on Pixel 6a (mid-tier Android).
-- Acceptance: same as E2 on the Android device.
+### Track E — stability + perf (P1)
 
-**E4**: P2 — Bundle budget. App + Three.js + Tone.js + drei under 2 MB gzipped for the critical path; remaining assets lazy-load.
+**E1** P1 — *5-min autonomous playthrough at Kazoo+Plenty without MAYHEM HALTED.* Uses existing governor + watches `errorBus` for halt events.
 
-**E5**: P2 — Memory profile. No leaks over a 30-minute session. World entity count stable within ±10% after zone loop.
+**E2** P1 — *60 FPS on iOS Simulator (iPhone 17 Pro available locally).*
+- **Test:** New `e2e/perf-ios.spec.ts` — boots the iOS simulator (xcrun simctl boot), installs the IPA from F1, runs `?autoplay=1&phrase=lightning-kerosene-ferris` for 3 minutes, scrapes `__mm.diag().fps` per second, asserts p95 ≥ 55.
+- **Code:** Add `pnpm perf:ios` script wrapping the simctl + Playwright iOS device flow.
+- **Acceptance:** CI nightly artifact `perf-ios.json` shows p95 ≥ 55 fps for the 3-min run.
 
-### Track F — App store + build (P1)
+**E3** P1 — *45 FPS on Android emulator (already running locally).*
+- **Test:** Mirror E2 — `e2e/perf-android.spec.ts` against `emulator-5554`. Asserts p95 ≥ 40.
+- **Code:** `pnpm perf:android` wraps adb install + autoplay URL load.
+- **Acceptance:** `perf-android.json` shows p95 ≥ 40 fps.
 
-**F1**: P1 — iOS build in CI + signed APK for Android. cd.yml already produces Android debug; add iOS path.
+**E4** P2 — *Bundle under 2MB gzipped critical path.* Profile with `vite-bundle-visualizer`, lazy-load Tone soundfont, lazy-load PostFX shaders.
 
-**F2**: P1 — App icon set (all required sizes) from the existing brand palette. Use the hood polka-dot + car silhouette.
+**E5** P2 — *No memory leaks over 30-min session.* Heap snapshot every 5 min via Chrome DevTools protocol.
 
-**F3**: P1 — Screenshots for App Store / Play Store: 5 per platform showing cockpit, boost, trick, zone 2 transit, game-over overlay. Generate via `pnpm playthrough` + post-process.
+### Track F — app store (P1)
 
-**F4**: P2 — App description copy: tagline, genre, key features.
+**F1** P1 — *iOS IPA in CI + signed APK.* Requires Apple Developer cert (user blocker — deferred until creds provided). Android APK already signs in cd.yml.
 
-**F5**: P2 — Privacy policy + terms-of-use pages on a static site (required by stores).
+**F2** P1 — *App icon set.* Procedural — polka-dot hood + car silhouette. Generate via existing brand palette in design tokens.
 
-### Track G — Documentation + polish (P2)
+**F3** P1 — *5 screenshots per platform for app stores.* Generate from `pnpm playthrough` after A-OBS + A-DESC-* land. Cockpit, boost, mid-zone, trick, game-over.
 
-**G1**: P2 — Update STATE.md to reflect actual current state (post-visual-matrix fixes).
+**F5** P2 — *Privacy + terms* (no data collected — the game is local-only). Static pages on the GitHub Pages deploy.
 
-**G2**: P2 — Write TESTING.md section on visual-matrix baselines — how to re-pin, how to interpret diff failures.
+### Track G — documentation (P2)
 
-**G3**: P2 — Changelog for 0.3 → 1.0 per Keep a Changelog.
+**G4** P2 — *Migrate `PieceKind` out of `trackComposer.ts`, then delete the file.* `composeTrack` and `DEFAULT_TRACK` are still referenced by 2 game-logic modules (`optimalPathScripts.ts`, `obstacles/trackToWorld.ts`); they must be migrated to the archetype API first. 14-file refactor scoped as one careful PR.
 
-**G4**: P2 — Delete dead code surfaced by the recent audit (`trackComposer.ts` and its `PieceKind` export — replaced by the archetype system but still referenced by legacy tests).
+### Track H — testing hardening (P3)
 
-### Track H — Testing hardening (P3)
+**H1** P3 — *Visual matrix × 4 form factors = 32 baselines.* Adds viewport switch infra to vitest-browser.
 
-**H1**: P3 — Expand visual matrix to 4 form factors × 8 slices = 32 baselines.
+**H2** P3 — *Per-archetype browser test* (subsumed by A-TRACK-VIS-ARCH above; keep this entry as the catch-all for any archetypes added after the descent landing).
 
-**H2**: P3 — Per-archetype visual test: every archetype (straight, slight-left, hard-right, dip, climb, plunge) gets a dedicated browser test that spawns the player ON that piece and captures.
+**H3** P3 — *Pixel-exact Cockpit diff* (currently exists-only).
 
-**H3**: P3 — Pixel-exact diff for Cockpit.browser.test.tsx (currently just an "exists" gate).
+---
+
+## Doc → Tests → Code ordering
+
+Every task above follows the contract:
+
+1. **Doc first** — write the constraint into ARCHITECTURE.md / DESIGN.md / TESTING.md / asset-mapping doc. The doc is what's reviewed — code is the implementation of an agreed contract.
+2. **Tests next** — node test if pure logic; browser test if it needs render; visual-matrix slice if it needs pixels. Test fails initially.
+3. **Code last** — implement until the failing test passes. Visual baselines re-pinned only when the test was already passing AND the user-visible change is intentional.
+
+For visual-only tasks (A-DESC-*, A-OBS, A-ZONE-VIS, A-DECOR, A-DESCENT-AMBIENCE), the test step REQUIRES re-rendering the isolated track package screenshots (A-TRACK-VIS) so the diff is reviewable.
 
 ---
 
 ## Dependencies
 
-- B1 (tutorial) depends on A1-A3 landing so the tutorial references the real visuals
-- F1-F3 (app store) depend on A1-A5 + B1-B5 (can't ship raw primitives to the store)
-- E2-E3 (perf) depend on A1-A5 (perf profile changes when assets change)
-- D1-D5 can land in parallel with A/B tracks
-- C1-C3 can land in parallel once A1 is done (audio doesn't need perfect visuals)
+- **A-TRACK-VIS** unblocks all A-DESC-* (you can't tune what you can't see).
+- **A-DESC-1, A-DESC-2, A-DESC-3** are siblings — can land in any order once A-TRACK-VIS exists.
+- **A-DESC-4** (camera pitch) depends on A-DESC-1 (need real track pitch to react to).
+- **A-DESC-5** (audience) is independent — can land anytime.
+- **B1** (tutorial) depends on A-DESC-* + A-OBS so tutorial visuals match shipped game.
+- **C-DESCENT-AMBIENCE** depends on A-DESC-1.
+- **F3** (store screenshots) depends on A-DESC-* + A-OBS + A-ZONE-VIS.
 
-Priority order for the first phase:
-1. **Unblock Track A** first — visual identity gates everything else
-2. **Track B** in parallel (gameplay polish is independent of visual identity)
-3. **Track C** once A1 lands
-4. **Track D** anytime
-5. **Track E** after A/B/C land (measure on real assets)
-6. **Track F** last — app store requires polished scene
-7. **Track G** ongoing
-8. **Track H** nice-to-have, not 1.0-blocking
+Priority lane:
+
+1. **A-TRACK-VIS** (the instrument) — gate everything else
+2. **A-DESC-1, A-DESC-2, A-DESC-3** (the descent) — core vision
+3. **A-DESC-4, A-DESC-5** (the polish on the descent)
+4. **A-OBS** (themed obstacles) — parallel after A-TRACK-VIS
+5. **A-ZONE-VIS, A-TRACK-MAT, A-DECOR** — incremental visual fidelity
+6. **B1, B3, B5m, B-TUTORIAL-DESCENT** — gameplay layer
+7. **C1, C-DESCENT-AMBIENCE, C2, C3, C4** — audio
+8. **D4, E1-E5, F2, F3, F5, G4, H1, H2, H3** — release prep
+
+---
 
 ## Acceptance — the 1.0 gate
 
 All of the following must hold to call it 1.0:
 
-1. iOS IPA and Android APK both build in CI, pass Maestro smoke tests, open to title screen without error
-2. Fresh-profile player can run the tutorial end-to-end and then complete a normal run without checking docs
-3. Visual matrix at all 8 slices shows themed assets (no raw primitives, real track material, big-top HDRI, hood visible)
-4. 5-minute autonomous playthrough at all 4 difficulty tiers completes with no MAYHEM HALTED
-5. 60 FPS on iPhone 14 Pro; 45 FPS on mid-tier Android across a 3-minute run
-6. Top-10 scoreboard + achievements unlock path both work with SQLite persistence
-7. App store assets (icon, screenshots, copy, privacy) ready for submission
+1. **Descent reads** — A-TRACK-VIS side-view PNG shows visible Y descent across the run; live POV playthrough conveys "I'm spiraling DOWN through the dome to a floor".
+2. **iOS IPA + Android APK** both build in CI, pass Maestro smoke, open to title screen without error.
+3. **Tutorial** — fresh-profile player runs B1 end-to-end + completes a normal run without docs.
+4. **Visual matrix at 8 distance slices** — themed obstacles, real big-top, descent visible, hood prominent, audience populated.
+5. **5-min autonomous playthrough** at all 4 difficulties — no MAYHEM HALTED.
+6. **60 FPS on iOS sim, 45 FPS on Android emulator** for 3-min run (`perf-ios.json`, `perf-android.json` artifacts).
+7. **Top-10 scoreboard + 5+ achievements** unlock through SQLite persistence.
+8. **App store assets** (icon, screenshots, copy, privacy) ready for submission.
