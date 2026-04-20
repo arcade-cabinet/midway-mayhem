@@ -87,6 +87,39 @@ The visual-matrix suite catches the class of bug that subsystem-only tests miss:
 
 **CI behavior:** browser and node tests run in separate jobs, so the node baseline-diff skips on CI (the baseline images were captured on real-GPU Chrome; CI swiftshader would produce different pixels). CI's safety net is the browser test's per-slice "PNG ≥ 20 KB" content gate. Local dev catches the subtle drifts.
 
+### Track-only visual gate
+
+The visual-matrix above captures the *integrated* scene (cockpit + track + audience + HUD). When a track-geometry change lands — new archetype, weight shift, descent profile — the integrated diffs swing wildly because cockpit pose + camera reaction also move. The track-only gate captures the procedural track in isolation so geometry regressions are reviewable without polish noise.
+
+| File | Role |
+|------|------|
+| `src/track/__tests__/TrackPackage.browser.test.tsx` | Mounts JUST the procedural track (no cockpit, no obstacles, no audience) under three fixed cameras and dumps the renders. |
+| `src/track/__baselines__/track-package/{side,plan,pov}.png` | Pinned baselines for the canonical seed phrase. |
+| `src/track/__baselines__/archetypes/{archetype-id}.png` | One pinned baseline per archetype (`straight`, `slight-left`, `dip`, `plunge`, etc.) showing each piece in isolation, oriented so `deltaYaw` + `deltaPitch` are obvious. |
+| `src/track/__tests__/trackPackageBaseline.test.ts` | Node-side diff against the pinned baselines (same 30% per-pixel tolerance as the integrated matrix). |
+
+**Three captured renders per run:**
+
+1. **Side elevation** — orthographic camera looking down +X at the track ribbon. Full run visible; pitch + descent are obvious. This is the gate for the descent vision (PRQ A-DESC-1) — a flat ribbon means the descent regressed.
+2. **Top-down plan** — orthographic camera looking down -Y. Shows the spiral footprint.
+3. **POV at d=0** — what the player sees in their first frame, with no cockpit chrome obstructing.
+
+**Per-piece annotations are baked into the geometry render** (small text labels at piece boundaries showing archetype id + cumulative `(yaw, pitch, y)`). Reviewing the side-view PNG lets you read off the run's elevation profile at a glance.
+
+**Workflow:**
+
+```bash
+# Generate fresh captures (browser test).
+pnpm test:browser TrackPackage
+
+# Diff against pinned baselines (node test).
+pnpm test:node trackPackageBaseline
+
+# Update baselines after an intentional geometry change:
+cp .test-screenshots/track-package/*.png src/track/__baselines__/track-package/
+cp .test-screenshots/track-package/archetypes/*.png src/track/__baselines__/archetypes/
+```
+
 ---
 
 ## Tier 3 — Playwright e2e
