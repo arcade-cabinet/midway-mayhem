@@ -12,8 +12,10 @@ describe('cockpitBlueprint (parsed cockpit-blueprint.json)', () => {
     expect(() => CockpitBlueprintSchema.parse(cockpitBlueprint)).not.toThrow();
   });
 
-  it('camera matches POC-tuned spec (0, 1.72, 1.55), 88° hFov', () => {
-    expect(cockpitBlueprint.cameraPosition).toEqual([0, 1.72, 1.55]);
+  it('camera matches driver-POV tuning (hood fills lower third)', () => {
+    // Camera dropped from 1.72 → 1.55 (PRQ A2) so the polka-dot hood
+    // isn't a sliver at screen bottom. 88° hFov unchanged.
+    expect(cockpitBlueprint.cameraPosition).toEqual([0, 1.55, 1.55]);
     expect(cockpitBlueprint.cameraFov.horizontalDeg).toBe(88);
     expect(cockpitBlueprint.cameraFov.near).toBeGreaterThan(0);
     expect(cockpitBlueprint.cameraFov.far).toBeGreaterThan(1000);
