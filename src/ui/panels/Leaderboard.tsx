@@ -14,6 +14,7 @@ import { color, elevation, radius, space } from '@/design/tokens';
 import { typeStyle, ui } from '@/design/typography';
 import { reportError } from '@/game/errorBus';
 import { db, initDb } from '@/persistence/db';
+import { PREF_KEYS, prefGetString } from '@/persistence/preferences';
 import { dailyRuns } from '@/persistence/schema';
 import { utcDateString } from '@/track/dailyRoute';
 import { formatLeaderboardDistance } from '@/utils/formatters';
@@ -29,6 +30,7 @@ export function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [playerName, setPlayerName] = useState<string | null>(null);
   const today = utcDateString();
 
   useEffect(() => {
@@ -36,14 +38,13 @@ export function Leaderboard() {
     async function load() {
       try {
         await initDb();
-        const rows = await db()
-          .select()
-          .from(dailyRuns)
-          .orderBy(desc(dailyRuns.bestDistanceCm))
-          .limit(5)
-          .all();
+        const [rows, name] = await Promise.all([
+          db().select().from(dailyRuns).orderBy(desc(dailyRuns.bestDistanceCm)).limit(10).all(),
+          prefGetString(PREF_KEYS.PLAYER_NAME),
+        ]);
         if (!cancelled) {
           setEntries(rows);
+          setPlayerName(name);
           setLoading(false);
         }
       } catch (err) {
@@ -84,7 +85,7 @@ export function Leaderboard() {
           alignItems: 'center',
         }}
       >
-        <span>🏆 LOCAL BESTS</span>
+        <span>🏆 {playerName ? `${playerName.toUpperCase()}'S BESTS` : 'LOCAL BESTS'}</span>
       </div>
 
       {loading ? (
