@@ -1,6 +1,6 @@
 ---
 title: Testing
-updated: 2026-04-19
+updated: 2026-04-20
 status: current
 domain: quality
 ---
@@ -69,6 +69,23 @@ pnpm test:browser
 pnpm e2e:update
 ```
 (This reruns browser tests in update mode; accept new screenshots only when intentional.)
+
+### Visual-matrix regression gate
+
+The visual-matrix suite catches the class of bug that subsystem-only tests miss: **what the driver actually sees** (App + Cockpit + TrackContent + StartPlatform + FinishBanner + feature layers + HUD, at the POV camera, at 8 distance checkpoints).
+
+| File | Role |
+|------|------|
+| `src/app/VisualMatrix.browser.test.tsx` | Drives deterministic NIGHTMARE run via `?autoplay=1&phrase=lightning-kerosene-ferris` and dumps 8 PNGs (40m, 80m, 120m, 180m, 250m, 320m, 400m, 480m) into `.test-screenshots/visual-matrix/`. Browser-surface test — runs in `pnpm test:browser`. |
+| `src/app/__tests__/visualMatrixBaseline.test.ts` | Node-surface test that diffs each current capture against the pinned baseline at `src/app/__baselines__/visual-matrix/`. Tolerance: 30% per-pixel drift (legitimate jitter from critter walk cycles, flower ornament spin, and sub-slice frame quantization is ~10-20%; a true regression like a lost mesh or doubled HUD drifts well past 30%). Skips gracefully when `.test-screenshots` doesn't exist. |
+
+**When the diff fails:**
+1. Run `pnpm test:browser VisualMatrix` to generate fresh captures
+2. Visually inspect `.test-screenshots/visual-matrix/slice-NNNm.png` vs `src/app/__baselines__/visual-matrix/slice-NNNm.png`
+3. If the new frame is correct (intentional visual change): `cp .test-screenshots/visual-matrix/slice-*.png src/app/__baselines__/visual-matrix/` and commit
+4. If the new frame looks broken: investigate — you found a regression
+
+**CI behavior:** browser and node tests run in separate jobs, so the node baseline-diff skips on CI (the baseline images were captured on real-GPU Chrome; CI swiftshader would produce different pixels). CI's safety net is the browser test's per-slice "PNG ≥ 20 KB" content gate. Local dev catches the subtle drifts.
 
 ---
 
