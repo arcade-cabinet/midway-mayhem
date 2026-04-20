@@ -135,8 +135,7 @@ export function BarkerCrowd() {
         combo.registerEvent('scare');
         const mult = combo.getMultiplier();
         useGameStore.setState({
-          crowdReaction:
-            useGameStore.getState().crowdReaction + BARKER_CROWD_BONUS * mult,
+          crowdReaction: useGameStore.getState().crowdReaction + BARKER_CROWD_BONUS * mult,
         });
       }
     });

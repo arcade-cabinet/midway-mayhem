@@ -21,6 +21,7 @@ import { SettingsPanel } from '@/ui/panels/SettingsPanel';
 import { StatsPanel } from '@/ui/panels/StatsPanel';
 import { TicketShop } from '@/ui/panels/TicketShop';
 import { phraseToSeed, shufflePhrase } from '@/utils/seedPhrase';
+import { NameOnboardingModal } from './NameOnboardingModal';
 import { type NewRunConfig, NewRunModal } from './NewRunModal';
 import { TitleCompactLayout, type TitleOverlay } from './TitleCompactLayout';
 import { TitleHeroLayout } from './TitleHeroLayout';
@@ -126,26 +127,32 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
 
   if (compact) {
     return (
-      <TitleCompactLayout
-        orientation={formFactor.isPortrait ? 'portrait' : 'landscape'}
+      <>
+        <TitleCompactLayout
+          orientation={formFactor.isPortrait ? 'portrait' : 'landscape'}
+          tickets={tickets}
+          onStart={() => setOverlay('new-run')}
+          onOpen={setOverlay}
+          startButtonRef={startButtonRef}
+        >
+          {overlays}
+        </TitleCompactLayout>
+        <NameOnboardingModal onComplete={() => {}} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <TitleHeroLayout
         tickets={tickets}
         onStart={() => setOverlay('new-run')}
         onOpen={setOverlay}
         startButtonRef={startButtonRef}
       >
         {overlays}
-      </TitleCompactLayout>
-    );
-  }
-
-  return (
-    <TitleHeroLayout
-      tickets={tickets}
-      onStart={() => setOverlay('new-run')}
-      onOpen={setOverlay}
-      startButtonRef={startButtonRef}
-    >
-      {overlays}
-    </TitleHeroLayout>
+      </TitleHeroLayout>
+      <NameOnboardingModal onComplete={() => {}} />
+    </>
   );
 }

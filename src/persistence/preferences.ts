@@ -151,4 +151,6 @@ export const PREF_KEYS = {
   HAPTICS_ENABLED: 'haptics.enabled',
   /** Last launched app version. */
   LAST_VERSION: 'meta.lastVersion',
+  /** Player display name (shown on the scoreboard). Set during first-launch onboarding. */
+  PLAYER_NAME: 'player.name',
 } as const;
