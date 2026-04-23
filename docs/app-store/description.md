@@ -62,9 +62,9 @@ Every `CHANGELOG.md` entry gets a consumer-facing summary here at release time. 
 
 ## Support / legal URLs
 
-- Privacy: TBD (PRQ F5)
+- Privacy: https://arcade-cabinet.github.io/midway-mayhem/privacy.html
 - Support: https://github.com/arcade-cabinet/midway-mayhem/issues
-- Terms: TBD (PRQ F5)
+- Terms: https://arcade-cabinet.github.io/midway-mayhem/terms.html
 
 ## Platform notes
 
