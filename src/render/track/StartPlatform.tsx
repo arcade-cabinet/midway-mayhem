@@ -8,6 +8,15 @@
  * the track centerline at d=0, rotated to align with the initial track
  * heading. Static — composed once at mount from the DEFAULT_TRACK composition.
  *
+ * Height: the platform group sits at PLATFORM_Y (+30m world-space) above the
+ * scene origin so the player's POV looks DOWN at the coil from near the rafters.
+ * Four chrome wire struts extend upward from the deck to the dome cap at
+ * approximately +50m world-space (DOME_CAP_Y). This makes the suspension
+ * structurally obvious: the platform is clearly HANGING, not floating.
+ *
+ * The track generator is not touched — piece 0 remains at y=0.5m (integrator
+ * ground clearance). All height comes from this component's scene-graph y.
+ *
  * Mounted inside <WorldScroller>, so the pad drifts away behind the player as
  * the run progresses (exactly like every other track-anchored prop).
  */
@@ -17,6 +26,31 @@ import { sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { useGameStore } from '@/game/gameState';
 import { COLORS } from '@/utils/constants';
+
+/**
+ * How high the platform group sits in world space (metres above scene origin).
+ * The track generator starts piece 0 at y=0.5; this constant keeps the
+ * platform 30m above scene origin (≈ 29.5m above the track surface).
+ * The player's cockpit camera starts at the platform's height and looks DOWN
+ * at the coil unwinding below.
+ */
+export const PLATFORM_Y = 30;
+
+/**
+ * Approximate world-space y of the dome cap (circus big-top crown). Wire
+ * struts extend from the platform deck upward to this level. In local
+ * group space that is DOME_CAP_Y - PLATFORM_Y above the group origin.
+ */
+export const DOME_CAP_Y = 50;
+
+/**
+ * Inset distance (metres) from each platform edge for the wire strut attachment
+ * points. Exported so structural tests can verify the 4-corner layout.
+ */
+export const STRUT_CORNER_INSET = 0.4 as const;
+
+/** Number of wire struts. Always 4 — one per platform corner. */
+export const WIRE_STRUT_COUNT = 4 as const;
 
 export function StartPlatform() {
   const startPlatform = useGameStore((s) => s.plan?.startPlatform);
@@ -30,28 +64,40 @@ export function StartPlatform() {
   const { widthM, depthM } = startPlatform;
   // Deck sits a hair BELOW the road surface so the player's car rolls off
   // smoothly; the track itself is ~0 elevation at d=0.
+  // deckY is expressed in the group's LOCAL space (group itself is at PLATFORM_Y).
   const deckY = pose.y - 0.1;
-  const rigY = 14; // reach up into the big-top rigging
-  const strutRadius = 0.08;
+
+  // Wire struts: from deck level up to the dome cap.
+  // In local group coordinates: bottom at deckY, top at (DOME_CAP_Y - PLATFORM_Y).
+  const strutBottom = deckY;
+  const strutTop = DOME_CAP_Y - PLATFORM_Y; // = +20m in local group space
+  const strutLength = strutTop - strutBottom;
+  const strutMidY = strutBottom + strutLength / 2;
+  const strutRadius = 0.06;
 
   return (
-    <group data-testid="start-platform" position={[pose.x, 0, pose.z]} rotation={[0, pose.yaw, 0]}>
-      {/* Wire struts — 4 corners up to the rafters */}
+    <group
+      data-testid="start-platform"
+      position={[pose.x, PLATFORM_Y, pose.z]}
+      rotation={[0, pose.yaw, 0]}
+    >
+      {/* Wire struts — 4 corners rising from deck to the dome cap (~+50m world) */}
       {(
         [
-          [-widthM / 2 + 0.4, -depthM / 2 + 0.4],
-          [widthM / 2 - 0.4, -depthM / 2 + 0.4],
-          [-widthM / 2 + 0.4, depthM / 2 - 0.4],
-          [widthM / 2 - 0.4, depthM / 2 - 0.4],
+          [-widthM / 2 + STRUT_CORNER_INSET, -depthM / 2 + STRUT_CORNER_INSET],
+          [widthM / 2 - STRUT_CORNER_INSET, -depthM / 2 + STRUT_CORNER_INSET],
+          [-widthM / 2 + STRUT_CORNER_INSET, depthM / 2 - STRUT_CORNER_INSET],
+          [widthM / 2 - STRUT_CORNER_INSET, depthM / 2 - STRUT_CORNER_INSET],
         ] as const
       ).map(([sx, sz], i) => (
         <mesh
           // biome-ignore lint/suspicious/noArrayIndexKey: stable 4-corner layout
           key={i}
-          position={[sx, deckY + (rigY - deckY) / 2, sz]}
+          data-testid="wire-strut"
+          position={[sx, strutMidY, sz]}
         >
-          <cylinderGeometry args={[strutRadius, strutRadius, rigY - deckY, 8]} />
-          <meshStandardMaterial color="#8a8a92" metalness={0.85} roughness={0.35} />
+          <cylinderGeometry args={[strutRadius, strutRadius, strutLength, 8]} />
+          <meshStandardMaterial color="#8a8a92" metalness={0.9} roughness={0.2} />
         </mesh>
       ))}
 

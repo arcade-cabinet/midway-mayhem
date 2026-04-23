@@ -262,6 +262,23 @@ export function reportCounts(obstacles: number, pickups: number, drawCalls: numb
   bus.pickupCount = pickups;
   bus.drawCalls = drawCalls;
 }
+type SceneListener = (cameraPos: [number, number, number]) => void;
+const sceneListeners: Set<SceneListener> = new Set();
+
+/**
+ * Subscribe to per-frame camera-position updates emitted by TrackScroller.
+ * Returns an unsubscribe function. Used by descentAmbience to track descent Y.
+ */
+export function onCameraPos(fn: SceneListener): () => void {
+  sceneListeners.add(fn);
+  return () => sceneListeners.delete(fn);
+}
+
+/** Synchronous snapshot of the most-recent camera world position. */
+export function getCameraPos(): [number, number, number] {
+  return [...bus.cameraPos] as [number, number, number];
+}
+
 export function reportScene(info: {
   trackPieces: number;
   meshesRendered: number;
@@ -275,6 +292,9 @@ export function reportScene(info: {
   bus.cameraPos = info.cameraPos;
   bus.worldScrollerPos = info.worldScrollerPos;
   if (info.currentPiecePitch !== undefined) bus.currentPiecePitch = info.currentPiecePitch;
+  if (sceneListeners.size > 0) {
+    for (const fn of sceneListeners) fn(info.cameraPos);
+  }
 }
 export function reportEcsStats(info: {
   ecsDamage: number;

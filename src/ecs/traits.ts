@@ -23,8 +23,34 @@ export const Speed = trait({ value: 0, target: 0 });
 export const Steer = trait({ value: 0 });
 export const Throttle = trait({ value: 1 });
 
+/**
+ * Discrete lane position for swipe-driven steering (mobile).
+ *
+ * `current` tracks where the car actually IS (snaps when pos.lateral is
+ * within ε of the target centre). `target` is the lane the player has
+ * requested. Both are integer indices 0 … laneCount-1, where 0 is the
+ * leftmost lane.
+ *
+ * Only added to the player entity on mobile — desktop keeps Steer-only
+ * continuous motion. Systems check for Lane presence before writing to it.
+ */
+export const Lane = trait({ current: 0, target: 0 });
+
 /** Progress along the track (meters) and lateral offset from centerline. */
 export const Position = trait({ distance: 0, lateral: 0 });
+
+/**
+ * Discrete lane position for swipe-driven steering (mobile).
+ *
+ * `current` tracks where the car actually IS (snaps when pos.lateral is
+ * within ε of the target centre). `target` is the lane the player has
+ * requested. Both are integer indices 0 … laneCount-1, where 0 is the
+ * leftmost lane.
+ *
+ * Only added to the player entity on mobile — desktop keeps Steer-only
+ * continuous motion. Systems check for Lane presence before writing to it.
+ */
+export const Lane = trait({ current: 0, target: 0 });
 
 // ─── Track ──────────────────────────────────────────────────────────────────
 
@@ -44,8 +70,13 @@ export const TrackSegment = trait({
   deltaYaw: 0,
   /** Cumulative pitch change (radians) — for hills/dips. */
   deltaPitch: 0,
-  /** Lateral banking angle at piece midpoint (radians). */
+  /** Lateral banking angle at piece midpoint (radians). End-of-piece bank
+   *  is this value; the piece interpolates from `startBank` to `bank`
+   *  across its length so the slab edge is continuous across seams. */
   bank: 0,
+  /** Bank at the piece's START — equals the previous piece's end bank, so
+   *  the LERP'd bank at t=0 matches the outgoing slab orientation. */
+  startBank: 0,
   /** Start pose, produced by the generator and stored verbatim so the
    *  renderer never has to re-integrate. Re-integration in the renderer was
    *  a source of drift that became a visible seam over 80 pieces. */

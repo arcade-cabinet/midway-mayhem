@@ -31,18 +31,20 @@
     "pillarLeft": {
       "type": "cylinder",
       "position": [-0.9, 1.35, -0.25],
-      "rotation": [1.5707963267948966, 0, -0.17453292519943295],
+      "rotation": [0, 0, -0.17453292519943295],
       "radius": 0.05,
       "length": 1.1,
-      "materialRef": "pillarPurple"
+      "materialRef": "pillarPurple",
+      "note": "Vertical A-pillar with 10° outward lean. Cylinder default is Y-aligned so Y-rotation only tilts along X. Previous rotation [pi/2, 0, tilt] laid it flat along -Z — a visible glitch caught by CockpitElements.browser.test.tsx."
     },
     "pillarRight": {
       "type": "cylinder",
       "position": [0.9, 1.35, -0.25],
-      "rotation": [1.5707963267948966, 0, 0.17453292519943295],
+      "rotation": [0, 0, 0.17453292519943295],
       "radius": 0.05,
       "length": 1.1,
-      "materialRef": "pillarPurple"
+      "materialRef": "pillarPurple",
+      "note": "Vertical A-pillar with 10° outward lean; mirror of pillarLeft."
     },
     "windshieldArch": {
       "type": "halfTorus",
@@ -71,8 +73,9 @@
       "radius": 0.025,
       "length": 1.4,
       "position": [0, 1.4, 1.66],
-      "rotation": [0, 1.5707963267948966, 0],
-      "materialRef": "seatPiping"
+      "rotation": [0, 0, 1.5707963267948966],
+      "materialRef": "seatPiping",
+      "note": "Yellow piping running horizontally ACROSS the top of the seat back (along world X). Z-rotation of π/2 rotates a Y-aligned cylinder onto the X axis. Previous rotation [0, π/2, 0] left the cylinder vertical — Y-rotation of a Y-cylinder is a no-op. Caught by CockpitElements.browser.test.tsx."
     },
     "wheelRim": {
       "type": "torus",
