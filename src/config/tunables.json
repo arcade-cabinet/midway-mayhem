@@ -215,5 +215,14 @@
     "returnTauS": 0.12,
     "wheelMaxDeg": 35,
     "sensitivity": 1.0
+  },
+  "audio": {
+    "honkDuckMs": 180,
+    "crashDuckMs": 400,
+    "musicFadeInS": 1.2,
+    "descentAmbienceTopDb": -60,
+    "descentAmbienceFloorDb": -12,
+    "descentAmbienceLpTopHz": 400,
+    "descentAmbienceLpFloorHz": 1600
   }
 }
