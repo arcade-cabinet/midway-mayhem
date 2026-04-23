@@ -1,12 +1,15 @@
 /**
- * Finish line — a black/white checkered banner stretched across the track
- * between two red-and-white candy-stripe posts, followed by a goal platform
- * that serves as the run-end landing pad. Placed at plan.finishBanner.d, the
- * cumulative track distance where the run ends.
+ * Finish line (PRQ A-DESC-3) — a black/white checkered banner stretched
+ * across the track, plus a WIDE B&W race-finish floor quad that spans the
+ * dome floor at the banner distance. The floor quad is how the player
+ * reads "I landed at the bottom of the dome" — it's the geometric anchor
+ * of the descent.
  *
- * Two visual beats:
- *   1. Banner (suspended horizontal rectangle) → "this is THE line"
- *   2. Goal platform (wide deck past the banner) → "keep rolling, you made it"
+ * Visual beats:
+ *   1. Floor checker (~60m square centered on the banner, y clamped near
+ *      0) → "I'm on the circus floor"
+ *   2. Banner (suspended horizontal rectangle) → "this is THE line"
+ *   3. Goal platform (wide deck past the banner) → "keep rolling, you made it"
  *
  * Mounted inside <WorldScroller> so the world transform handles camera
  * alignment; positioning here is done once with trackToWorld at the banner
@@ -19,10 +22,23 @@ import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { useGameStore } from '@/game/gameState';
 import { COLORS, TRACK } from '@/utils/constants';
 
+/** Dome floor altitude — the lowest visible surface inside the big-top,
+ *  a touch below world-origin so the track surface still reads above it. */
+const DOME_FLOOR_Y = -0.1;
+/** Side length in meters of the square B&W checker race-line floor. */
+const FINISH_FLOOR_SIZE_M = 60;
+/** Columns of the floor checker; squares are sized to read as a finish
+ *  grid (~30 cells wide at 60m → 2m per square). */
+const FINISH_FLOOR_CHECKER_COLS = 30;
+
 export function FinishBanner() {
   const finishBanner = useGameStore((s) => s.plan?.finishBanner);
   const sampled = useSampledTrack();
   const checkerTex = useMemo(() => makeCheckerTexture(), []);
+  const floorCheckerTex = useMemo(
+    () => makeFinishFloorTexture(FINISH_FLOOR_CHECKER_COLS),
+    [],
+  );
 
   // Total length of the ECS-sampled track. If the run plan's finish distance
   // is beyond this, sampleTrackPose would clamp the banner to the last-
@@ -58,8 +74,38 @@ export function FinishBanner() {
   const postRadius = 0.25;
   const postHeight = bannerY + bannerHeight / 2 + 1.0;
 
+  // Floor checker: a wide square at the banner position but clamped to
+  // dome-floor altitude. Anchors the run end at y ≈ 0 regardless of where
+  // the track generator happens to land — the player reads "I'm on the
+  // circus floor" even if the integrator drifted slightly high.
+  const floorCheckerSize = FINISH_FLOOR_SIZE_M;
+  // Floor altitude is the dome floor, NOT sampled track y (which descends
+  // from track piece 0 altitude). The descent coil lives ABOVE this floor;
+  // the floor itself is the bottom of the big-top.
+  const floorY = DOME_FLOOR_Y;
+
   return (
     <group data-testid="finish-banner">
+      {/* Floor checker — a wide square at the banner position but y clamped
+          to the dome floor. This is the geometric anchor that reads
+          "circus floor, race finish". Parent-rotated with the banner so the
+          grid aligns with the run's approach axis. */}
+      <group
+        position={[bannerPose.x, floorY, bannerPose.z]}
+        rotation={[0, bannerPose.yaw, 0]}
+        data-testid="finish-floor"
+      >
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[floorCheckerSize, floorCheckerSize]} />
+          <meshStandardMaterial
+            map={floorCheckerTex}
+            side={THREE.DoubleSide}
+            roughness={0.6}
+            metalness={0.05}
+          />
+        </mesh>
+      </group>
+
       {/* Banner + posts group (at exact banner distance). */}
       <group position={[bannerPose.x, 0, bannerPose.z]} rotation={[0, bannerPose.yaw, 0]}>
         {/* Left post */}
@@ -175,5 +221,31 @@ function makeCheckerTexture(): THREE.CanvasTexture {
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
+  return tex;
+}
+
+/**
+ * Floor-scale B&W racing checker. Same black-and-white pattern as the
+ * banner, but square (N×N) instead of wide, sized for the dome floor quad.
+ * Higher resolution (2048) since the player can be close to it at the
+ * finish.
+ */
+function makeFinishFloorTexture(cols: number): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2048;
+  canvas.height = 2048;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('FinishBanner: no 2d ctx for floor');
+  const cellW = canvas.width / cols;
+  const cellH = canvas.height / cols;
+  for (let r = 0; r < cols; r++) {
+    for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#0a0a0a';
+      ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
   return tex;
 }
