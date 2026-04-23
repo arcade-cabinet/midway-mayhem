@@ -9,6 +9,7 @@
 import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { audioBus } from '@/audio/audioBus';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
 import { type EndReason, resetGameOver } from '@/ecs/systems/gameOver';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
@@ -218,6 +219,10 @@ export function App() {
               }}
               onObstacle={(kind) => {
                 thudRef.current();
+                // Route crash through the new 3-bus audioBus so the hard-duck
+                // (PRQ C1) fires and the crash stinger plays through the sfxBus.
+                // heavy = true for everything except the gentle oil-slick graze.
+                audioBus.playCrash(0, kind !== 'oil');
                 // Oil slicks feel wobbly, not crashy; everything else thuds.
                 if (kind === 'oil') void haptic('medium');
                 else void haptic('heavy');
