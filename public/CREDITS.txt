@@ -4,6 +4,8 @@ Midway Mayhem: Clown Car Chaos — Credits
 3D assets
 ---------
 - Racing Kit 2.0 — Kenney (kenney.nl) — CC0 1.0 Universal
+- KayKit Platformer Pack 1.0 (cone_yellow, barrier, hammer_large_red) — Kay Lousberg (kaylousberg.com) — CC0 1.0 Universal
+- KayKit Medieval Hexagon Pack 1.0 (fence_stone_straight_gate, barrel, horse_A) — Kay Lousberg (kaylousberg.com) — CC0 1.0 Universal
 - Ultimate Animated Farm Animals — Quaternius (quaternius.com) — CC0 1.0 Universal
 - circus_arena HDRI — Sergej Majboroda via Poly Haven (polyhaven.com/a/circus_arena) — CC0 1.0
 
