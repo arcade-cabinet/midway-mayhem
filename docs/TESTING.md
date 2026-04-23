@@ -1,6 +1,6 @@
 ---
 title: Testing
-updated: 2026-04-20
+updated: 2026-04-23
 status: current
 domain: quality
 ---
@@ -204,6 +204,67 @@ Requires:
 - Maestro CLI installed (`curl -Ls "https://get.maestro.mobile.dev" | bash`)
 - Android device/emulator connected via ADB
 - Debug APK installed (`pnpm build:native && cap sync android && ./gradlew assembleDebug && adb install ...`)
+
+---
+
+## E1 stability soak
+
+**File:** `e2e/stability-soak.spec.ts` — tagged `@nightly`, runs in the `stability-soak` CI job.
+
+### What it asserts
+
+| Assertion | Threshold | Checked |
+|-----------|-----------|---------|
+| No fatal errorBus events | 0 events | End of soak |
+| No MAYHEM HALTED modal in DOM | 0 occurrences | Every 10s heartbeat + final |
+| fps alive guard | fps > 20 | Every 10s heartbeat |
+| Car actually drove | `distance > 1000m` at t=300s | End of soak |
+
+The test drives the governor autopilot via `?autoplay=1&governor=1&phrase=lightning-kerosene-ferris&difficulty=kazoo` for 300 seconds (5 minutes). It polls `window.__mm.diag()` every 10 seconds (30 heartbeats total), takes a screenshot at each heartbeat, and persists them to `test-results/**/stability-soak/heartbeat-NNN.{png,json}`.
+
+### What it records
+
+Every heartbeat writes a JSON snapshot:
+
+```json
+{
+  "heartbeat": 12,
+  "elapsedMs": 120481,
+  "fps": 58.4,
+  "distance": 1842.3,
+  "running": true,
+  "gameOver": false,
+  "mayhemHaltedVisible": false,
+  "diag": { ... full DiagnosticsDump ... }
+}
+```
+
+On failure the CI artifact `stability-soak-failure-<run_id>` contains:
+
+- `heartbeat-NNN.png` — screenshot at each heartbeat
+- `heartbeat-NNN.json` — diagnostics snapshot
+- `errorBus-transcript.json` — all console errors + page errors with timestamps
+- `summary.json` — rolled-up summary (final distance, final fps, heartbeat list)
+- Playwright HTML report
+
+### Why kazoo difficulty?
+
+Kazoo keeps obstacles sparse so the autopilot naturally survives the full 5 minutes without a difficulty-triggered game-over collision cascade. The goal is to stress the *engine* (memory leaks, render hangs, error bus explosions) not the *difficulty balance*.
+
+### How to reproduce locally
+
+```bash
+# Full soak (takes ~7 min with build):
+pnpm build && pnpm exec playwright test e2e/stability-soak.spec.ts
+
+# Or use the script:
+pnpm e2e:stability-soak
+
+# Watch it run in headed mode:
+pnpm exec playwright test e2e/stability-soak.spec.ts --headed
+```
+
+The test fails loudly: if the preview server doesn't start, if the app doesn't mount within 30 seconds, or if the governor doesn't respond, these are treated as real failures — no silent skip.
 
 ---
 

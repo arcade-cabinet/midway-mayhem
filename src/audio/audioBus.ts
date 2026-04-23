@@ -1,8 +1,10 @@
 import * as Tone from 'tone';
+import { tunables } from '@/config';
 import { reportError } from '@/game/errorBus';
 import type { PickupType, ZoneId } from '@/utils/constants';
-import { getBuses, initBuses } from './buses';
+import { duckMusicBus, getBuses, initBuses } from './buses';
 import { conductor } from './conductor';
+import { initDescentAmbience } from './descentAmbience';
 import { GM, initSF2Safely, sf2Bridge } from './sf2';
 import {
   triggerClownHorn,
@@ -57,15 +59,22 @@ class AudioBus {
     this.engineSynth.triggerAttack('A2');
     new Tone.LFO('6hz', -26, -18).connect(this.engineSynth.volume).start();
 
-    // Start the procedural circus music (calliope + oom-pah) on musicBus
+    // Fade the music bus in from silence so the calliope doesn't blast the
+    // player the instant they hit PLAY (PRQ C1 — music fade-in on first gesture).
+    musicBus.volume.value = -Infinity;
     conductor.start('midway-strip');
-    void musicBus; // referenced via conductor
+    musicBus.volume.rampTo(-6, tunables.audio.musicFadeInS);
 
     // Kick off SF2 sampled sweetener in the background — if the SF2 file is
     // missing from public/soundfonts/, the bridge silently disables itself
     // and procedural music continues uninterrupted.
     const baseUrl = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
     initSF2Safely(baseUrl);
+
+    // Wire the descent-ambience crowd bed (PRQ C-DESCENT-AMBIENCE).
+    // descentTopY / descentFloorY are the world-Y extents of the A-DESC-1 coil.
+    // Defaults match the coil geometry: platform drop at Y≈20, dome floor at Y≈0.
+    initDescentAmbience();
 
     this.initialized = true;
   }
@@ -99,9 +108,12 @@ class AudioBus {
   /**
    * Play a horn sound. `slug` selects the loadout-chosen horn recipe;
    * unknown slugs fall back to the classic clown bulb honk.
+   * Also hard-ducks the music bus for tunables.audio.honkDuckMs (PRQ C1).
    */
   playHonk(slug?: string): void {
     if (!this.initialized || !this.enabled) return;
+    // Hard-duck music for the duration of the honk (PRQ C1 sidechain).
+    duckMusicBus(tunables.audio.honkDuckMs);
     switch (slug) {
       case 'slide-whistle':
         triggerSlideWhistle('up');
@@ -122,9 +134,15 @@ class AudioBus {
     }
   }
 
-  /** Play crash sound with optional spatial position (xLanes ∈ [-1, 1]) */
+  /**
+   * Play crash sound with optional spatial position (xLanes ∈ [-1, 1]).
+   * Hard-ducks the music bus for tunables.audio.crashDuckMs (PRQ C1).
+   */
   playCrash(xLanes = 0, heavy = false): void {
     if (!this.initialized || !this.enabled) return;
+    // Hard-duck music on crash — longer than honk because the crash stinger
+    // itself is longer (PRQ C1 crash duck).
+    duckMusicBus(tunables.audio.crashDuckMs);
     if (heavy) {
       triggerCrashRoll();
       triggerCrowdGasp();

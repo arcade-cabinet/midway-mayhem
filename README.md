@@ -182,6 +182,16 @@ Each zone cycles every ~450 track-metres, changing obstacles, lighting, and ambi
 
 ---
 
+## Legal
+
+- [Privacy Policy](public/privacy.html) — Zero data collection. Everything stays on your device.
+- [Terms of Service](public/terms.html) — MIT License, as-is warranty disclaimer.
+- [Legal Landing](public/legal/) — Summary of all legal documents.
+
+All documents are served as static HTML for app store compliance (iOS + Android). No cookies, no tracking, no external calls.
+
+---
+
 ## License
 
 Code: MIT. Assets: Kenney Racing Kit CC0, PolyHaven `circus_arena` HDRI CC0.
