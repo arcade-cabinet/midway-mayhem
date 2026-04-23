@@ -135,6 +135,28 @@ There is no finish line on the first run. The track goes until you crash or your
 
 ---
 
+## Track surface material
+
+The driveable track surface uses a PBR wood-plank material in place of the original flat orange Hot Wheels colour.
+
+**Asset:** PolyHaven "Weathered Brown Planks" (`weathered_brown_planks`) — CC0 licence.
+URL: https://polyhaven.com/a/weathered_brown_planks
+Resolution fetched: 1k JPG (diffuse + OpenGL normal + roughness).
+
+**Why this asset:**
+Warm, aged, slightly worn brown planks with chipped paint and visible grain — exactly the carnival boardwalk / circus big-top floor aesthetic. The maroon/brown tones complement the red-and-white curbs and the arena HDRI lighting without competing with the polka-dot car.
+
+**UV tiling (in `src/render/trackSurfaceMaterial.ts`):**
+- 7 repeats across the 12 m track width
+- 12 repeats along a 20 m track piece
+- Gives boards ~1.7 m wide — oversized for arcade legibility at speed.
+
+**Files stored at:** `public/textures/track/planks/` (diffuse.jpg, normal.jpg, roughness.jpg — each under 240 KB).
+
+**Colour palette note:** "Track Orange" (`#F36F21`) remains in the locked palette table for reference and is still used by walls/underside/curbs. The surface itself is now texture-driven, not tinted.
+
+---
+
 ## What the HTML POC proved
 
 The Gemini + ChatGPT single-file HTML prototype went through seven visual-refinement rounds before this codebase was started. Key decisions that were validated and must be preserved:
