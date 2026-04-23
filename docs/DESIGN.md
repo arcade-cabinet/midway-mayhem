@@ -1,6 +1,6 @@
 ---
 title: Design
-updated: 2026-04-18
+updated: 2026-04-23
 status: current
 domain: product
 ---
@@ -107,6 +107,26 @@ Strobing neon, mirror layer duplicating the scene. Highest obstacle density. Tra
 
 ---
 
+## Start platform — suspended from the dome cap
+
+The start platform is a wire-hung launching pad suspended HIGH inside the
+circus big-top, near the rafters. Visual spec:
+
+- **Height**: y ≥ +25m above track piece 0 (which starts at y = 0.5m). The
+  group origin sits roughly y = +30m so the player's POV looks DOWN the coil
+  at the track unwinding far below.
+- **Wire struts**: at least 4 visible steel-chrome cylinders extend UP from
+  the platform corners to the dome cap at approximately y = +50m. They make
+  the suspension explicit — the platform is obviously hanging, not floating.
+- **Carnival identity preserved**: wooden plank deck + polka-dot trim rails +
+  START sign remain unchanged; only the scene-graph y and wire geometry change.
+
+The height is driven purely by the `StartPlatform` component's own
+`position-y` within the scene graph. The track generator is unchanged; piece 0
+stays at y = 0.5m as required by the integrator's ground clearance.
+
+---
+
 ## World premise
 
 The ride has gone off the rails. Literally. You are a clown in a polka-dot car that somehow ended up on the Hot Wheels mega-track inside a circus big-top. The Ringmaster is not pleased. The crowd is screaming. The track loops into zones you never agreed to race through.
@@ -125,3 +145,63 @@ The Gemini + ChatGPT single-file HTML prototype went through seven visual-refine
 4. **Zones as distinct experiences** — same track, radically different atmosphere
 5. **Crowd as a living presence** — the big-top audience is always audible and reactive
 6. **SANITY/HYPE as the tension axes** — not a health bar, not a timer
+
+---
+
+## App icon
+
+### Source
+
+- **Master SVG**: `raw-assets/app-icon.svg`
+- **Generator**: `scripts/generate-icons.ts` (run with `pnpm icons`)
+
+### Concept
+
+Night (`#0B0F1A`) background. Red (`#E53935`) clown car silhouette viewed from the front.
+Polka-dot hood: black base with Yellow (`#FFD600`) and Blue (`#1E88E5`) dots — the same procedural signature as the in-game hood texture.
+Big-top tent peaks behind the car use the Red/Yellow stripe pattern.
+Orange (`#F36F21`) Hot Wheels track strip across the bottom.
+Purple (`#8E24AA`) cabin-roof arc and hood-ornament (squirting flower) detail.
+Headlight glow in Yellow. Electric-Blue wheels with Yellow hub caps.
+
+All palette values are taken verbatim from the STANDARDS.md brand palette.
+
+### Sizes generated
+
+| Platform | Density | Size (px) | Destination |
+|----------|---------|-----------|-------------|
+| iOS iPhone | notification @2x | 40 | `AppIcon.appiconset/Icon-20@2x.png` |
+| iOS iPhone | notification @3x | 60 | `AppIcon.appiconset/Icon-20@3x.png` |
+| iOS iPhone | settings @1x | 29 | `AppIcon.appiconset/Icon-29@1x.png` |
+| iOS iPhone | settings @2x | 58 | `AppIcon.appiconset/Icon-29@2x.png` |
+| iOS iPhone | settings @3x | 87 | `AppIcon.appiconset/Icon-29@3x.png` |
+| iOS iPhone | spotlight @2x | 80 | `AppIcon.appiconset/Icon-40@2x.png` |
+| iOS iPhone | spotlight @3x | 120 | `AppIcon.appiconset/Icon-40@3x.png` |
+| iOS iPhone | app @2x | 120 | `AppIcon.appiconset/Icon-60@2x.png` |
+| iOS iPhone | app @3x | 180 | `AppIcon.appiconset/Icon-60@3x.png` |
+| iOS iPad | notification @1x | 20 | `AppIcon.appiconset/Icon-ipad-20@1x.png` |
+| iOS iPad | notification @2x | 40 | `AppIcon.appiconset/Icon-ipad-20@2x.png` |
+| iOS iPad | settings @1x | 29 | `AppIcon.appiconset/Icon-ipad-29@1x.png` |
+| iOS iPad | settings @2x | 58 | `AppIcon.appiconset/Icon-ipad-29@2x.png` |
+| iOS iPad | spotlight @1x | 40 | `AppIcon.appiconset/Icon-ipad-40@1x.png` |
+| iOS iPad | spotlight @2x | 80 | `AppIcon.appiconset/Icon-ipad-40@2x.png` |
+| iOS iPad | app @1x | 76 | `AppIcon.appiconset/Icon-76@1x.png` |
+| iOS iPad | app @2x | 152 | `AppIcon.appiconset/Icon-76@2x.png` |
+| iOS iPad Pro | app @2x | 167 | `AppIcon.appiconset/Icon-83.5@2x.png` |
+| iOS App Store | marketing | 1024 | `AppIcon.appiconset/Icon-1024.png` |
+| Android | mdpi (1×) | 48 | `mipmap-mdpi/ic_launcher.png` |
+| Android | hdpi (1.5×) | 72 | `mipmap-hdpi/ic_launcher.png` |
+| Android | xhdpi (2×) | 96 | `mipmap-xhdpi/ic_launcher.png` |
+| Android | xxhdpi (3×) | 144 | `mipmap-xxhdpi/ic_launcher.png` |
+| Android | xxxhdpi (4×) | 192 | `mipmap-xxxhdpi/ic_launcher.png` |
+
+### Regenerating
+
+```bash
+# Edit raw-assets/app-icon.svg, then:
+pnpm icons
+```
+
+The generator hard-fails on any rasterisation error. `Contents.json` is
+rebuilt automatically on each run, so it stays in sync with the spec table
+inside `scripts/generate-icons.ts`.

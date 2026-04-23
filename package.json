@@ -2,7 +2,7 @@
   "name": "midway-mayhem",
   "version": "0.2.0",
   "private": true,
-  "description": "Midway Mayhem: Clown Car Chaos — cockpit-perspective arcade driver",
+  "description": "Midway Mayhem: Clown Car Chaos \u2014 cockpit-perspective arcade driver",
   "type": "module",
   "packageManager": "pnpm@10.32.0",
   "scripts": {
@@ -19,8 +19,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:node": "vitest run --project node",
-    "audit:bundle": "pnpm build && node -e \"const fs=require('fs'),p=require('path');const d='dist/assets';if(!fs.existsSync(d)){console.log('no dist/assets — skipping');process.exit(0)}const f=fs.readdirSync(d).filter(x=>x.endsWith('.js')).map(x=>({x,s:fs.statSync(p.join(d,x)).size}));const t=f.reduce((a,b)=>a+b.s,0);console.log('JS bundle total:',(t/1024).toFixed(1),'KB');f.sort((a,b)=>b.s-a.s).slice(0,5).forEach(e=>console.log(' ',(e.s/1024).toFixed(1)+'KB',e.x));const BUDGET=3*1024*1024;if(t>BUDGET){console.error('bundle exceeds',BUDGET/1024/1024,'MB');process.exit(1)}\"",
-    "copywasm": "node -e \"const fs=require('fs'),p=require('path');const files=['sql-wasm.wasm','sql-wasm-browser.wasm'];for(const dir of [p.join('public'),p.join('public','assets')]){fs.mkdirSync(dir,{recursive:true});for(const f of files){fs.copyFileSync(require.resolve('sql.js/dist/'+f),p.join(dir,f));}}console.log('copied',files.join(' + '),'→ public/ + public/assets/')\"",
+    "audit:bundle": "pnpm build && node -e \"const fs=require('fs'),p=require('path');const d='dist/assets';if(!fs.existsSync(d)){console.log('no dist/assets \u2014 skipping');process.exit(0)}const f=fs.readdirSync(d).filter(x=>x.endsWith('.js')).map(x=>({x,s:fs.statSync(p.join(d,x)).size}));const t=f.reduce((a,b)=>a+b.s,0);console.log('JS bundle total:',(t/1024).toFixed(1),'KB');f.sort((a,b)=>b.s-a.s).slice(0,5).forEach(e=>console.log(' ',(e.s/1024).toFixed(1)+'KB',e.x));const BUDGET=3*1024*1024;if(t>BUDGET){console.error('bundle exceeds',BUDGET/1024/1024,'MB');process.exit(1)}\"",
+    "copywasm": "node -e \"const fs=require('fs'),p=require('path');const files=['sql-wasm.wasm','sql-wasm-browser.wasm'];for(const dir of [p.join('public'),p.join('public','assets')]){fs.mkdirSync(dir,{recursive:true});for(const f of files){fs.copyFileSync(require.resolve('sql.js/dist/'+f),p.join(dir,f));}}console.log('copied',files.join(' + '),'\u2192 public/ + public/assets/')\"",
     "predev": "pnpm copywasm",
     "prebuild": "pnpm copywasm",
     "prepreview": "pnpm copywasm",
@@ -36,7 +36,8 @@
     "test:watch": "vitest",
     "test:visual:update": "vitest run --project browser --update",
     "playthrough": "tsx scripts/playthrough-governor.ts",
-    "playthrough:self": "tsx scripts/playthrough-governor.ts --self-host"
+    "playthrough:self": "tsx scripts/playthrough-governor.ts --self-host",
+    "icons": "tsx scripts/generate-icons.ts"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.0",
@@ -73,6 +74,7 @@
     "@types/pngjs": "^6.0.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/sharp": "^0.32.0",
     "@types/sql.js": "^1.4.11",
     "@types/three": "^0.184.0",
     "@vitejs/plugin-react": "^6",
@@ -81,6 +83,7 @@
     "cross-env": "^10.1.0",
     "playwright": "^1.59.1",
     "pngjs": "^7.0.0",
+    "sharp": "^0.34.5",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.8",
@@ -95,7 +98,8 @@
       "three": "0.184.0"
     },
     "onlyBuiltDependencies": [
-      "esbuild"
+      "esbuild",
+      "sharp"
     ]
   }
 }
