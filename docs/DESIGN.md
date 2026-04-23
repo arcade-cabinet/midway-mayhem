@@ -1,6 +1,6 @@
 ---
 title: Design
-updated: 2026-04-18
+updated: 2026-04-23
 status: current
 domain: product
 ---
@@ -104,6 +104,26 @@ Deep red lighting, heat shimmer post-fx. Hammer hazards swing across lanes with 
 
 ### 4. Funhouse Frenzy
 Strobing neon, mirror layer duplicating the scene. Highest obstacle density. Track markings distort. Music: chaotic, maximum energy. Crowd: frenzy. SANITY drain accelerates.
+
+---
+
+## Start platform — suspended from the dome cap
+
+The start platform is a wire-hung launching pad suspended HIGH inside the
+circus big-top, near the rafters. Visual spec:
+
+- **Height**: y ≥ +25m above track piece 0 (which starts at y = 0.5m). The
+  group origin sits at y = +30m so the player's POV looks DOWN the coil at
+  the track unwinding far below.
+- **Wire struts**: at least 4 visible steel-chrome cylinders extend UP from
+  the platform corners to the dome cap at approximately y = +50m. They make
+  the suspension explicit — the platform is obviously hanging, not floating.
+- **Carnival identity preserved**: wooden plank deck + polka-dot trim rails +
+  START sign remain unchanged; only the scene-graph y and wire geometry change.
+
+The height is driven purely by the `StartPlatform` component's own
+`position-y` within the scene graph. The track generator is unchanged; piece 0
+stays at y = 0.5m as required by the integrator's ground clearance.
 
 ---
 
