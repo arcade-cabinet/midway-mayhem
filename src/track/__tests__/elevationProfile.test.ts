@@ -23,13 +23,22 @@ import { generateTrack } from '@/ecs/systems/track';
 
 const CANONICAL_SEED = 42;
 const RUN_LENGTH = trackArchetypes.runLength;
-const ZONE_1_END_INDEX = Math.floor(RUN_LENGTH * 0.25);
+// Mirror the generator's own zone split exactly: `zoneSize = runLength / 4`
+// and zone boundaries land via `floor(pieceIndex / zoneSize)`. For
+// non-divisible-by-4 runLengths the test must use the same boundary the
+// generator uses, not `floor(runLength * 0.25)`.
+const ZONE_SIZE = RUN_LENGTH / 4;
+const ZONE_1_END_INDEX = Math.floor(ZONE_SIZE);
 const DESCENT_PHASE_START_INDEX = ZONE_1_END_INDEX;
 
 const ZONE_1_MAX_DESCENT_M = 8;
 const TOTAL_MIN_DESCENT_M = 25;
 const TOTAL_MAX_DESCENT_M = 70;
-const PER_PIECE_RISE_TOLERANCE_M = 1.5;
+// At PITCH_MIN = -0.06 rad, the longest piece (28m) descends ~1.68m in a
+// single step. The tolerance must be strictly BELOW that floor so we catch
+// any legitimate mid-descent rise, while still absorbing the small yaw-only
+// slight-left / slight-right micro-jitter from float pose integration.
+const PER_PIECE_RISE_TOLERANCE_M = 0.25;
 
 describe('Elevation profile (PRQ A-DESC-1)', () => {
   it('generates the canonical track with the configured runLength', () => {

@@ -111,10 +111,10 @@ Cumulative Y (m)
        (flat) (mild)  (steep)  (steep)
 ```
 
-- **Zone 1 (Midway Strip, 0-450m)** — start at +30m Y on a wire-hung gondola; track itself stays nearly flat (~5m drop). Tutorial space; player learns to steer before the dive begins.
-- **Zone 2 (Balloon Alley, 450-900m)** — gentle 10-15m descent. `dip` weight bumped, `climb` weight zeroed.
-- **Zone 3 (Ring of Fire, 900-1350m)** — steep 25-35m descent with `plunge` pieces. Audience seats flank both sides; player feels the FALL.
-- **Zone 4 (Funhouse Frenzy, 1350-1800m)** — final coil down to the floor. `coil-down` archetypes (curved + dipping). Run ends at Y ≈ 0 on a black-and-white checker race-line.
+- **Zone 1 (Midway Strip, 0-450m)** — track starts at `y = 0.5` (slab-clearance above the integrator ground plane). Zone-1 weight multipliers zero out `dip`/`plunge`/`climb`, so the cumulative Y stays nearly flat (< 8m drop). Tutorial space; player learns to steer before the dive begins. Visual "start is suspended high" comes from the StartPlatform scene prop (see `src/render/track/StartPlatform.tsx` + the planned A-DESC-2 pass), not from the track generator itself — the generator produces a coil whose base altitude is clamped near 0.
+- **Zone 2 (Balloon Alley, 450-900m)** — gentle descent. `dip` weight bumped, `climb` zeroed.
+- **Zone 3 (Ring of Fire, 900-1350m)** — moderate descent with some `plunge` pieces. Audience seats flank both sides; player feels the FALL.
+- **Zone 4 (Funhouse Frenzy, 1350-1800m)** — final coil down to the floor. Highest `dip` + `plunge` mix of any zone. Run ends at the floor checker (FinishBanner, see A-DESC-3). There is no dedicated `coil-down` archetype — the coil is emergent from `slight-left`/`slight-right` + `dip`/`plunge` mixes under zone-4 weights.
 
 ### Constraints
 
@@ -126,8 +126,9 @@ Cumulative Y (m)
 ### Test gate
 
 `src/track/__tests__/elevationProfile.test.ts` calls `generateTrack(seed)`, samples cumulative Y at every piece boundary, and asserts:
-1. The last piece's `endPose.y` is at least 25m below the first piece's `startPose.y`.
-2. Across pieces 32-79 (last 60% of the run), the cumulative Y is monotonically non-increasing within a small per-piece tolerance (some `slight-left`/`slight-right` micro-bumps are allowed).
+1. Zone 1 (pieces `0..floor(runLength/4) - 1`) keeps cumulative descent ≤ 8m — tutorial space.
+2. Total descent lands in `[25, 70]m` — less reads as flat, more is a free-fall artifact.
+3. Across the descent phase (pieces `floor(runLength/4)..runLength-1`, last 75% of the run), cumulative Y is monotonically non-increasing within a tight per-piece tolerance of 0.25m. The tolerance is strictly below the 1.68m single-step descent floor, so it catches any legitimate rise while absorbing float-pose integration jitter on yaw-only `slight-left`/`slight-right` pieces.
 
 Visual verification: `pnpm test:browser TrackPackage` re-renders `src/track/__baselines__/track-package/side.png`, where the descent should be obvious as a sustained downward Y delta from screen-top to screen-bottom.
 

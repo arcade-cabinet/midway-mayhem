@@ -61,8 +61,8 @@ export interface GeneratedSegment {
 /**
  * Pitch is clamped tight so the descent reads as a gentle coil, not a
  * free-fall. Average descent angle for ~50m over 80×~22m pieces is only
- * ~1.6°; the clamp at ~8.6° gives plunge sections room without letting
- * the integrator pin against the rail.
+ * ~1.6°; the clamp at ~3.4° (0.06 rad) gives plunge sections room without
+ * letting the integrator pin against the rail.
  */
 const PITCH_MAX = 0.06;
 const PITCH_MIN = -0.06;
@@ -109,6 +109,18 @@ export function generateTrack(seed: number): GeneratedSegment[] {
   const baseWeights = archetypes.map((a) => a.weight);
   const segments: GeneratedSegment[] = [];
 
+  // Precompute per-zone effective weights + the straight-fallback archetype
+  // once, outside the per-piece loop. Before: every iteration re-allocated
+  // a weight array and scanned archetypes for 'straight'.
+  const weightsByZone: number[][] = [0, 1, 2, 3].map((zone) => {
+    const multipliers = ZONE_WEIGHT_MULTIPLIERS[zone] ?? {};
+    return archetypes.map((a, idx) => {
+      const mul = multipliers[a.id as ArchetypeId];
+      return baseWeights[idx]! * (mul ?? 1);
+    });
+  });
+  const straightFallback = archetypes.find((a) => a.id === 'straight');
+
   // Start elevated so the track slab (thickness ~0.45m + curb height ~0.18m)
   // clears the ground plane at y=-4 with room for the camera's ground-level
   // POV to sit just above the track surface, not below it.
@@ -117,11 +129,7 @@ export function generateTrack(seed: number): GeneratedSegment[] {
 
   for (let i = 0; i < trackArchetypes.runLength; i++) {
     const zone = zoneIndexFor(i, trackArchetypes.runLength);
-    const multipliers = ZONE_WEIGHT_MULTIPLIERS[zone] ?? {};
-    const zoneWeights = archetypes.map((a, idx) => {
-      const mul = multipliers[a.id as ArchetypeId];
-      return baseWeights[idx]! * (mul ?? 1);
-    });
+    const zoneWeights = weightsByZone[zone]!;
 
     // Draw an archetype, but if the resulting pitch would breach the band,
     // substitute a reasonable correction.
@@ -130,7 +138,7 @@ export function generateTrack(seed: number): GeneratedSegment[] {
     if (predicted > PITCH_MAX || predicted < PITCH_MIN) {
       // Far too steep in whichever direction — swap to a straight so the
       // accumulated pitch holds its current value instead of compounding.
-      archetype = archetypes.find((a) => a.id === 'straight') ?? archetype;
+      archetype = straightFallback ?? archetype;
     }
     const finish = endPose(startPose, archetype);
     segments.push({
