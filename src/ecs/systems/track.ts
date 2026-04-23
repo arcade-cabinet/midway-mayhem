@@ -160,7 +160,10 @@ export function generateTrack(seed: number): GeneratedSegment[] {
  * via the world — callers should clear any prior track entities first.
  */
 export function seedTrack(world: World, seed: number): void {
-  for (const seg of generateTrack(seed)) {
+  const generated = generateTrack(seed);
+  for (const seg of generated) {
+    const prev = seg.index > 0 ? generated[seg.index - 1] : undefined;
+    const startBank = prev?.archetype.bank ?? 0;
     world.spawn(
       TrackSegment({
         index: seg.index,
@@ -170,6 +173,7 @@ export function seedTrack(world: World, seed: number): void {
         deltaYaw: seg.archetype.deltaYaw,
         deltaPitch: seg.archetype.deltaPitch,
         bank: seg.archetype.bank,
+        startBank,
         startX: seg.startPose.x,
         startY: seg.startPose.y,
         startZ: seg.startPose.z,

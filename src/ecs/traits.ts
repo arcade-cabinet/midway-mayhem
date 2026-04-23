@@ -44,8 +44,13 @@ export const TrackSegment = trait({
   deltaYaw: 0,
   /** Cumulative pitch change (radians) — for hills/dips. */
   deltaPitch: 0,
-  /** Lateral banking angle at piece midpoint (radians). */
+  /** Lateral banking angle at piece midpoint (radians). End-of-piece bank
+   *  is this value; the piece interpolates from `startBank` to `bank`
+   *  across its length so the slab edge is continuous across seams. */
   bank: 0,
+  /** Bank at the piece's START — equals the previous piece's end bank, so
+   *  the LERP'd bank at t=0 matches the outgoing slab orientation. */
+  startBank: 0,
   /** Start pose, produced by the generator and stored verbatim so the
    *  renderer never has to re-integrate. Re-integration in the renderer was
    *  a source of drift that became a visible seam over 80 pieces. */
