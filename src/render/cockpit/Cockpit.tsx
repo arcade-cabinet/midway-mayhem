@@ -20,6 +20,7 @@
  * factors — vertical FOV just absorbs the aspect change.
  */
 import { PerspectiveCamera } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import { useMemo } from 'react';
 import { cockpitBlueprint } from '@/config';
 import { CockpitMeshNode } from './blueprintMesh';
@@ -30,6 +31,7 @@ import { Headlights } from './Headlights';
 import { HonkableHorn, isHonkableMesh } from './HonkableHorn';
 import { isMirrorGlassMesh, RearViewMirror } from './RearViewMirror';
 import { isWheelMesh, SteeringWheel } from './SteeringWheel';
+import { useCockpitDescentPitch } from './useCockpitDescentPitch';
 import { useCockpitFeel } from './useCockpitFeel';
 import { type FormTier, responsiveCockpitTransform, useFormFactor } from './useFormFactor';
 
@@ -79,6 +81,16 @@ export function Cockpit({ tier }: CockpitProps) {
   // Camera lives inside it, so the camera rides the body's motion — the
   // driver's head tracks the clown car's sway.
   const feelRef = useCockpitFeel();
+
+  // Descent pitch — additive rotation-X on the body group so the hood
+  // dips into a plunge and floats up on a climb, layered on top of the
+  // roll/yaw/bob from useCockpitFeel.
+  const descentPitchRef = useCockpitDescentPitch();
+  useFrame(() => {
+    const group = feelRef.current;
+    if (!group) return;
+    group.rotation.x = descentPitchRef.current;
+  });
 
   return (
     <group scale={scale} name="cockpit">

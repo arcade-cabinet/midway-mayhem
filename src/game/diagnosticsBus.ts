@@ -48,6 +48,12 @@ export interface DiagnosticsDump {
   seedPhrase: string | null;
   /** Track archetype the player is currently over (flat | ramp | plunge | etc). Null before first piece. */
   currentPieceKind: string | null;
+  /**
+   * Pitch of the track segment directly under the player, in radians.
+   * Negative = descending (plunge), positive = climbing (ramp). Zero on flat.
+   * Populated by TrackScroller each frame via reportScene.
+   */
+  currentPiecePitch: number;
   /** True when the cockpit is off the track — i.e. mid-trick airborne window. */
   airborne: boolean;
   /** True while a trick animation is mid-flight. */
@@ -95,6 +101,7 @@ const bus = {
   ecsLateral: 0,
   ecsBoostRemaining: 0,
   ecsCleanSeconds: 0,
+  currentPiecePitch: 0,
 };
 
 export function installDiagnosticsBus() {
@@ -153,6 +160,7 @@ export function installDiagnosticsBus() {
         ecsLateral: bus.ecsLateral,
         ecsBoostRemaining: bus.ecsBoostRemaining,
         ecsCleanSeconds: bus.ecsCleanSeconds,
+        currentPiecePitch: bus.currentPiecePitch,
       };
     },
     setSteer(v: number) {
@@ -232,6 +240,18 @@ export function wireDiagnosticsHooks(hooks: DiagHooks): void {
   if (hooks.getObstacles) g.__mmGetObstacles = hooks.getObstacles;
 }
 
+/**
+ * Returns the pitch of the track segment directly under the player, in
+ * radians. Updated by TrackScroller every frame via reportScene. Zero when
+ * no frame has been reported yet (pre-run or no track sampled).
+ *
+ * Intentionally a direct bus read — the full diag() dump triggers a
+ * gameState snapshot which is too expensive for per-frame cockpit use.
+ */
+export function getCurrentPiecePitch(): number {
+  return bus.currentPiecePitch;
+}
+
 export function reportFrame(dt: number) {
   const fpsSample = 1 / Math.max(dt, 1e-4);
   bus.fps = bus.fps === 0 ? fpsSample : bus.fps * 0.9 + fpsSample * 0.1;
@@ -264,11 +284,14 @@ export function reportScene(info: {
   meshesRendered: number;
   cameraPos: [number, number, number];
   worldScrollerPos: [number, number, number];
+  /** Pitch of the segment directly under the player — cockpit pitch-look uses this. */
+  currentPiecePitch?: number;
 }) {
   bus.trackPieces = info.trackPieces;
   bus.meshesRendered = info.meshesRendered;
   bus.cameraPos = info.cameraPos;
   bus.worldScrollerPos = info.worldScrollerPos;
+  if (info.currentPiecePitch !== undefined) bus.currentPiecePitch = info.currentPiecePitch;
   if (sceneListeners.size > 0) {
     for (const fn of sceneListeners) fn(info.cameraPos);
   }
