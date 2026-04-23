@@ -73,8 +73,11 @@ const ELEMENTS: ElementView[] = [
       'gaugeBezel_FUN',
       'gaugeNeedle_FUN',
     ],
-    cameraPos: [0.4, 1.45, 0.4],
-    target: [0, 1.12, -0.28],
+    // View from the driver's eye position so the dashCowl's front-facing
+    // 160° arc is visible. A side-view would see the backface-culled inner
+    // shell and the cowl would appear invisible.
+    cameraPos: [0, 1.55, 1.2],
+    target: [0, 1.1, -0.2],
   },
   {
     id: 'hood-flower',
