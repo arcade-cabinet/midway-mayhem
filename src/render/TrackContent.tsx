@@ -5,8 +5,9 @@
  * that to world-space via useSampledTrack + sampleTrackPose so everything
  * stays perfectly on-rails.
  *
- * All geometry uses Three.js primitives — no GLB loads, no /models/ paths.
- * New obstacle kinds (critter, hammer) animate per-frame.
+ * Obstacles are rendered via ThemedObstacle (GLB assets from KayKit CC0),
+ * replacing the old inline Three.js primitive geometry.
+ * Pickups remain as Three.js primitives (no GLB needed for collectibles).
  * Critters apply a lateral flee displacement driven by fleeStartedAt / fleeDir
  * set by ObstacleSystem's honk-scare bridge.
  *
@@ -20,19 +21,10 @@ import * as THREE from 'three';
 import { sampleTrackPose } from '@/ecs/systems/trackSampler';
 import { useSampledTrack } from '@/ecs/systems/useSampledTrack';
 import { Obstacle, Pickup } from '@/ecs/traits';
-import type { CritterKind } from '@/utils/constants';
-import { COLORS, HONK } from '@/utils/constants';
+import { COLORS } from '@/utils/constants';
+import { StaticObstacle, ThemedCritter, ThemedHammer } from './obstacles/ThemedObstacle';
 
-// ─── Critter colors ──────────────────────────────────────────────────────────
-
-const CRITTER_COLORS: Record<CritterKind, string> = {
-  cow: '#f5f5f5',
-  horse: '#8b4513',
-  llama: '#deb887',
-  pig: '#ffb6c1',
-};
-
-// ─── Bobbing balloon sub-component ──────────────────────────────────────────
+// ─── Bobbing balloon sub-component (pickup, not obstacle) ───────────────────
 
 const BALLOON_COLORS = [COLORS.RED, COLORS.BLUE, COLORS.YELLOW, COLORS.ORANGE, '#c71585'];
 
@@ -73,120 +65,6 @@ function BobbingBalloon({
   );
 }
 
-// ─── Animated hammer sub-component ──────────────────────────────────────────
-
-function AnimatedHammer({
-  position,
-  yaw,
-  swingPhase,
-}: {
-  position: [number, number, number];
-  yaw: number;
-  swingPhase: number;
-}) {
-  const pivotRef = useRef<THREE.Group>(null);
-  useFrame(({ clock }) => {
-    const g = pivotRef.current;
-    if (!g) return;
-    // Pendulum swing: ±40° at ~0.8 Hz
-    g.rotation.z = Math.sin(clock.elapsedTime * 5.0 + swingPhase) * 0.7;
-  });
-  return (
-    <group position={position} rotation={[0, yaw, 0]}>
-      {/* Pivot at top */}
-      <group ref={pivotRef}>
-        {/* Handle */}
-        <mesh position={[0, -0.8, 0]}>
-          <boxGeometry args={[0.2, 1.6, 0.2]} />
-          <meshStandardMaterial color="#5d4037" roughness={0.7} />
-        </mesh>
-        {/* Head */}
-        <mesh position={[0, -1.7, 0]}>
-          <boxGeometry args={[1.4, 0.9, 1.4]} />
-          <meshStandardMaterial color={COLORS.BLUE} roughness={0.5} metalness={0.4} />
-        </mesh>
-      </group>
-      {/* Ceiling mount */}
-      <mesh position={[0, 0.1, 0]}>
-        <cylinderGeometry args={[0.12, 0.12, 0.2, 8]} />
-        <meshStandardMaterial color="#333" roughness={0.6} />
-      </mesh>
-    </group>
-  );
-}
-
-// ─── Animated critter sub-component ─────────────────────────────────────────
-
-function AnimatedCritter({
-  baseX,
-  baseY,
-  baseZ,
-  yaw,
-  critterKind,
-  fleeStartedAt,
-  fleeDir,
-}: {
-  baseX: number;
-  baseY: number;
-  baseZ: number;
-  yaw: number;
-  critterKind: CritterKind | '';
-  fleeStartedAt: number;
-  fleeDir: -1 | 0 | 1;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const color = CRITTER_COLORS[(critterKind as CritterKind) || 'cow'] ?? '#fff';
-
-  useFrame(() => {
-    const g = groupRef.current;
-    if (!g) return;
-    if (fleeStartedAt > 0 && fleeDir !== 0) {
-      const elapsed = (performance.now() - fleeStartedAt) / 1000;
-      const t = Math.min(elapsed / HONK.FLEE_DURATION_S, 1);
-      // Ease out: fast start, slow end
-      const eased = 1 - (1 - t) * (1 - t);
-      const lateralOffset = fleeDir * HONK.FLEE_LATERAL_M * eased;
-      // Apply offset in world-space right direction
-      g.position.set(
-        baseX + Math.cos(yaw) * lateralOffset,
-        baseY,
-        baseZ + -Math.sin(yaw) * lateralOffset,
-      );
-    } else {
-      g.position.set(baseX, baseY, baseZ);
-    }
-  });
-
-  return (
-    <group ref={groupRef} position={[baseX, baseY, baseZ]} rotation={[0, yaw, 0]}>
-      {/* Body */}
-      <mesh position={[0, 0.55, 0]}>
-        <boxGeometry args={[0.9, 0.7, 1.4]} />
-        <meshStandardMaterial color={color} roughness={0.8} />
-      </mesh>
-      {/* Head */}
-      <mesh position={[0, 1.1, 0.55]}>
-        <boxGeometry args={[0.6, 0.55, 0.6]} />
-        <meshStandardMaterial color={color} roughness={0.8} />
-      </mesh>
-      {/* Legs (4x) */}
-      {(
-        [
-          [-0.3, 0, 0.4],
-          [0.3, 0, 0.4],
-          [-0.3, 0, -0.4],
-          [0.3, 0, -0.4],
-        ] as [number, number, number][]
-      ).map((lp) => (
-        <mesh key={`${lp[0]},${lp[2]}`} position={[lp[0], lp[1] + 0.15, lp[2]]}>
-          <boxGeometry args={[0.18, 0.5, 0.18]} />
-          <meshStandardMaterial color={color} roughness={0.8} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export function TrackContent() {
@@ -211,69 +89,22 @@ export function TrackContent() {
 
         switch (ob.kind) {
           case 'cone':
-            return (
-              <group key={id} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
-                <mesh position={[0, 0.5, 0]}>
-                  <coneGeometry args={[0.35, 1.0, 12]} />
-                  <meshStandardMaterial color={COLORS.ORANGE} roughness={0.5} />
-                </mesh>
-                <mesh position={[0, 0.2, 0]}>
-                  <cylinderGeometry args={[0.42, 0.42, 0.08, 12]} />
-                  <meshStandardMaterial color="#3a1a00" roughness={0.85} />
-                </mesh>
-              </group>
-            );
+            return <StaticObstacle key={id} kind="cone" position={[x, p.y, z]} yaw={p.yaw} />;
 
           case 'oil':
-            return (
-              <mesh key={id} position={[x, p.y + 0.01, z]} rotation={[-Math.PI / 2, 0, p.yaw]}>
-                <circleGeometry args={[1.4, 16]} />
-                <meshStandardMaterial color="#1a1a1a" roughness={0.3} metalness={0.4} />
-              </mesh>
-            );
+            return <StaticObstacle key={id} kind="oil" position={[x, p.y, z]} yaw={p.yaw} />;
 
           case 'barrier':
-            return (
-              <group key={id} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
-                <mesh position={[0, 0.6, 0]}>
-                  <boxGeometry args={[1.8, 1.2, 0.35]} />
-                  <meshStandardMaterial color={COLORS.RED} roughness={0.6} />
-                </mesh>
-                <mesh position={[0, 0.6, 0.18]}>
-                  <boxGeometry args={[1.85, 0.25, 0.01]} />
-                  <meshStandardMaterial color="#ffffff" roughness={0.6} />
-                </mesh>
-              </group>
-            );
+            return <StaticObstacle key={id} kind="barrier" position={[x, p.y, z]} yaw={p.yaw} />;
 
           case 'gate':
-            return (
-              <group key={id} position={[x, p.y, z]} rotation={[0, p.yaw, 0]}>
-                <mesh position={[-1.2, 1.0, 0]}>
-                  <boxGeometry args={[0.3, 2.0, 0.3]} />
-                  <meshStandardMaterial color={COLORS.PURPLE} roughness={0.5} metalness={0.3} />
-                </mesh>
-                <mesh position={[1.2, 1.0, 0]}>
-                  <boxGeometry args={[0.3, 2.0, 0.3]} />
-                  <meshStandardMaterial color={COLORS.PURPLE} roughness={0.5} metalness={0.3} />
-                </mesh>
-                <mesh position={[0, 2.1, 0]}>
-                  <boxGeometry args={[2.7, 0.35, 0.3]} />
-                  <meshStandardMaterial
-                    color={COLORS.YELLOW}
-                    emissive={COLORS.YELLOW}
-                    emissiveIntensity={0.4}
-                    roughness={0.3}
-                  />
-                </mesh>
-              </group>
-            );
+            return <StaticObstacle key={id} kind="gate" position={[x, p.y, z]} yaw={p.yaw} />;
 
           case 'hammer':
             return (
-              <AnimatedHammer
+              <ThemedHammer
                 key={id}
-                position={[x, p.y + 2.2, z]}
+                position={[x, p.y, z]}
                 yaw={p.yaw}
                 swingPhase={ob.swingPhase}
               />
@@ -281,7 +112,7 @@ export function TrackContent() {
 
           case 'critter':
             return (
-              <AnimatedCritter
+              <ThemedCritter
                 key={id}
                 baseX={x}
                 baseY={p.y}
