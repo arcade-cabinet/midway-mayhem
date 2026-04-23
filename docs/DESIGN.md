@@ -1,6 +1,6 @@
 ---
 title: Design
-updated: 2026-04-18
+updated: 2026-04-23
 status: current
 domain: product
 ---
@@ -91,19 +91,54 @@ The player spends 100% of the game looking from inside the cockpit. Design decis
 
 ## Zone progression
 
-Zones cycle every ~450 track-metres. Each zone has a distinct sensory identity:
+Zones cycle every ~450 track-metres. Each zone has a completely distinct visual identity — lighting, fog, shoulder props, and ground colour all change simultaneously so the player knows which zone they are in without reading the banner.
 
-### 1. The Midway Strip
-The entry zone. Warm amber light, carousel waltz phrase grammar, red-and-white striped arches overhead. Obstacles: sawhorses, cone clusters. Crowd: excited, expectant.
+| Zone | Distance | Sky | Ambient | Fog | Shoulder props |
+|---|---|---|---|---|---|
+| Midway Strip | 0–450m | Orange (#F36F21 bottom) | Warm yellow (#FFD600) | Thin orange | Striped red/white tent cones |
+| Balloon Alley | 450–900m | Hot-pink/purple (#FF2D87 bottom) | Brand red (#E53935) | Purple (#8E24AA) | Floating pink + purple spheres |
+| Ring of Fire | 900–1350m | Near-black with red glow | Red (#E53935), low | Dense dark red (#3D0800) | Emissive orange fire-ring toruses on posts |
+| Funhouse Frenzy | 1350–1800m | Near-black with purple (#8E24AA) | Blue (#1E88E5), very dim | Heavy purple, density 0.009 | Strobing reflective mirror panels |
 
-### 2. Balloon Alley
-Pastel sky transitions in. Balloon clusters flank the track. Gates force precision threading. Music: playful, slightly building. Crowd: engaged, calling out misses.
+### 1. The Midway Strip (zone 0)
+Warm orange daylight. Yellow key-light from above. Thin fog so sight-lines are long. Striped red/white carnival tent cones line both shoulders. Ground: dark canvas red. Obstacles: sawhorses, cone clusters. Crowd: excited, expectant.
 
-### 3. Ring of Fire
-Deep red lighting, heat shimmer post-fx. Hammer hazards swing across lanes with exact timing windows. Fire hoops at regular intervals. Music: tense, driving. Crowd: gasping, roaring. No forgiveness — graze a ring and you lose SANITY.
+**Visual signature:** Bright, warm, open. Orange everywhere.
 
-### 4. Funhouse Frenzy
-Strobing neon, mirror layer duplicating the scene. Highest obstacle density. Track markings distort. Music: chaotic, maximum energy. Crowd: frenzy. SANITY drain accelerates.
+### 2. Balloon Alley (zone 1)
+Hot-pink/purple sky. Soft pink directional light from straight above. Floating sphere balloons — alternating brand pink (#FF2D87) and purple (#8E24AA) — bob gently at varied heights beside the track. Ground goes dark purple. Music: playful, slightly building. Crowd: engaged, calling out misses.
+
+**Visual signature:** Pink-purple canopy of balloons above and beside you.
+
+### 3. Ring of Fire (zone 2)
+Near-black sky bleeding into deep red. Ground goes almost black (#1A0000). Very thick dark-red fog — sight-lines cut short, oppressive. Emissive orange torus rings (#F36F21, emissiveIntensity 2.0) mounted on dark posts flank the track. Key-light is orange from below-front, giving everything a fire-cast glow. Hammer hazards swing at timing windows. No forgiveness — graze a ring and you lose SANITY.
+
+**Visual signature:** Dark, orange-lit, everything on fire.
+
+### 4. Funhouse Frenzy (zone 3)
+Near-black with purple bottom glow. Heaviest fog (density 0.009) — you can barely see ahead. Flat reflective mirror panels (#1E88E5 tint, metalness 0.95) line both shoulders, strobing on a 4Hz square wave (65% on, 35% off). Pink fill-light at high intensity pulses the scene. Ground is near-black with purple tint. Highest obstacle density. SANITY drain accelerates.
+
+**Visual signature:** Dark strobing mirrors. You cannot see far. Nothing is real.
+
+---
+
+## Start platform — suspended from the dome cap
+
+The start platform is a wire-hung launching pad suspended HIGH inside the
+circus big-top, near the rafters. Visual spec:
+
+- **Height**: y ≥ +25m above track piece 0 (which starts at y = 0.5m). The
+  group origin sits at y = +30m so the player's POV looks DOWN the coil at
+  the track unwinding far below.
+- **Wire struts**: at least 4 visible steel-chrome cylinders extend UP from
+  the platform corners to the dome cap at approximately y = +50m. They make
+  the suspension explicit — the platform is obviously hanging, not floating.
+- **Carnival identity preserved**: wooden plank deck + polka-dot trim rails +
+  START sign remain unchanged; only the scene-graph y and wire geometry change.
+
+The height is driven purely by the `StartPlatform` component's own
+`position-y` within the scene graph. The track generator is unchanged; piece 0
+stays at y = 0.5m as required by the integrator's ground clearance.
 
 ---
 
@@ -112,6 +147,28 @@ Strobing neon, mirror layer duplicating the scene. Highest obstacle density. Tra
 The ride has gone off the rails. Literally. You are a clown in a polka-dot car that somehow ended up on the Hot Wheels mega-track inside a circus big-top. The Ringmaster is not pleased. The crowd is screaming. The track loops into zones you never agreed to race through.
 
 There is no finish line on the first run. The track goes until you crash or your SANITY runs out. Every run is different because every run plan is seeded.
+
+---
+
+## Track surface material
+
+The driveable track surface uses a PBR wood-plank material in place of the original flat orange Hot Wheels colour.
+
+**Asset:** PolyHaven "Weathered Brown Planks" (`weathered_brown_planks`) — CC0 licence.
+URL: https://polyhaven.com/a/weathered_brown_planks
+Resolution fetched: 1k JPG (diffuse + OpenGL normal + roughness).
+
+**Why this asset:**
+Warm, aged, slightly worn brown planks with chipped paint and visible grain — exactly the carnival boardwalk / circus big-top floor aesthetic. The maroon/brown tones complement the red-and-white curbs and the arena HDRI lighting without competing with the polka-dot car.
+
+**UV tiling (in `src/render/trackSurfaceMaterial.ts`):**
+- 7 repeats across the 12 m track width
+- 12 repeats along a 20 m track piece
+- Gives boards ~1.7 m wide — oversized for arcade legibility at speed.
+
+**Files stored at:** `public/textures/track/planks/` (diffuse.jpg, normal.jpg, roughness.jpg — each under 240 KB).
+
+**Colour palette note:** "Track Orange" (`#F36F21`) remains in the locked palette table for reference and is still used by walls/underside/curbs. The surface itself is now texture-driven, not tinted.
 
 ---
 

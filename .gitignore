@@ -39,6 +39,9 @@ ios/DerivedData
 .claude/worktrees/
 .claude/scheduled_tasks.lock
 
+# Project-local worktrees
+.worktrees/
+
 # Reference conversations (kept locally, not tracked in repo)
 ChatGPT-Clown_Car_3D_Prototype.md
 Gemini-Conversation.md

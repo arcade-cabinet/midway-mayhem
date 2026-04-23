@@ -9,6 +9,7 @@
 import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { audioBus } from '@/audio/audioBus';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
 import { type EndReason, resetGameOver } from '@/ecs/systems/gameOver';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
@@ -23,8 +24,10 @@ import { installDiagnosticsBus, wireDiagnosticsHooks } from '@/game/diagnosticsB
 import { ensureGameTraits, useGameStore } from '@/game/gameState';
 import { commitGhost, resetGhostRecorder } from '@/game/ghost';
 import { Governor } from '@/game/governor/Governor';
+import { getTutorialStep, isTutorialActive } from '@/game/tutorial';
 import { useGameSystems } from '@/game/useGameSystems';
 import { useSettings } from '@/hooks/useSettings';
+import { useTutorialWatcher } from '@/hooks/useTutorialWatcher';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
@@ -34,7 +37,9 @@ import { Cockpit } from '@/render/cockpit/Cockpit';
 import { ExplosionFX } from '@/render/cockpit/ExplosionFX';
 import { HonkContext } from '@/render/cockpit/HonkContext';
 import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
+import { DropInIntroCamera } from '@/render/DropInIntro';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
+import { Audience } from '@/render/env/Audience';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
 import { BarkerCrowd } from '@/render/obstacles/BarkerCrowd';
@@ -64,6 +69,7 @@ import { PauseOverlay } from '@/ui/hud/PauseOverlay';
 import { ReactErrorBoundary } from '@/ui/hud/ReactErrorBoundary';
 import type { NewRunConfig } from '@/ui/title/NewRunModal';
 import { TitleScreen } from '@/ui/title/TitleScreen';
+import { TutorialOverlay } from '@/ui/tutorial/TutorialOverlay';
 import { GameLoop } from './GameLoop';
 
 // Seed the world once at module load. ES modules are evaluated exactly
@@ -104,6 +110,16 @@ wireDiagnosticsHooks({
   },
 });
 
+/**
+ * Inner component — reads zone inside WorldProvider so the hook has access
+ * to the koota world context. Passes zone to BigTopEnvironment so lights
+ * and ground colour crossfade to the per-zone palette.
+ */
+function ZoneEnvironment({ night }: { night: boolean }) {
+  const zone = useGameStore((s) => s.currentZone);
+  return <BigTopEnvironment night={night} zone={zone} />;
+}
+
 /** URL flag: `?preserve=1` opts into `gl.preserveDrawingBuffer: true`,
  * which is needed by the vitest-browser tests that call
  * `canvas.toDataURL()` directly (MidRunVisualBaseline, etc). In prod
@@ -129,6 +145,9 @@ function AudioBridge({
 export function App() {
   const [titleVisible, setTitleVisible] = useState(true);
   const [endReason, setEndReason] = useState<EndReason | null>(null);
+  // Tutorial overlay visibility is driven by the tutorial state machine.
+  // We use a local state flag so React re-renders when skip is triggered.
+  const [tutorialSkipped, setTutorialSkipped] = useState(false);
   const playing = !titleVisible && endReason === null;
   const hornRef = useRef<() => void>(() => {});
   const dingRef = useRef<() => void>(() => {});
@@ -137,7 +156,20 @@ export function App() {
   // Night mode: either the URL flag OR the persisted setting forces it.
   const night = isNightFromUrl() || (settings?.nightMode ?? false);
 
-  useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
+  const {
+    onTutorialHonk,
+    onTutorialCleanLanding: _onTutorialCleanLanding,
+    onDropInComplete,
+    onStepFadeOut,
+  } = useTutorialWatcher();
+
+  // Wrap honk so tutorial step 2 is detected alongside the audio honk.
+  const wrappedHorn = () => {
+    hornRef.current();
+    onTutorialHonk();
+  };
+
+  useKeyboard({ world, enabled: playing, onHorn: wrappedHorn });
   useMouseSteer({ world, enabled: playing });
   useGameSystems();
 
@@ -179,7 +211,9 @@ export function App() {
             <ambientLight intensity={0.45} color="#ffd6a8" />
             <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
             <Suspense fallback={null}>
-              <BigTopEnvironment night={night} />
+              <ZoneEnvironment night={night} />
+              {/* Crowd silhouettes — world-static, outside TrackScroller */}
+              <Audience />
               <ZoneProps />
             </Suspense>
             <TrackScroller>
@@ -198,9 +232,14 @@ export function App() {
             </TrackScroller>
             <RaidBridge />
             <RaidLayer />
-            <HonkContext.Provider value={() => hornRef.current()}>
+            <HonkContext.Provider value={wrappedHorn}>
               <Cockpit />
             </HonkContext.Provider>
+            {/* Step-6 tutorial: bird's-eye coil preview → pulls into cockpit POV.
+                Active only while tutorial step 6 is in progress. */}
+            {playing && isTutorialActive() && getTutorialStep() === 6 && (
+              <DropInIntroCamera onComplete={onDropInComplete} />
+            )}
             {/* Clown explosion on game-over — confetti, hearts, stars, flash.
               Self-triggers from the store's gameOver flag; no prop wiring. */}
             <ExplosionFX />
@@ -218,6 +257,10 @@ export function App() {
               }}
               onObstacle={(kind) => {
                 thudRef.current();
+                // Route crash through the new 3-bus audioBus so the hard-duck
+                // (PRQ C1) fires and the crash stinger plays through the sfxBus.
+                // heavy = true for everything except the gentle oil-slick graze.
+                audioBus.playCrash(0, kind !== 'oil');
                 // Oil slicks feel wobbly, not crashy; everything else thuds.
                 if (kind === 'oil') void haptic('medium');
                 else void haptic('heavy');
@@ -273,7 +316,16 @@ export function App() {
             <>
               <HUD />
               <PauseButton />
-              <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+              <TouchControls world={world} enabled={playing} onHorn={wrappedHorn} />
+              {/* Tutorial overlay — shown during the first run while the
+                  tutorial is active. Hidden after skip or step 6 completion.
+                  Renders on top of the HUD (z-index 50, below dialogs). */}
+              {!tutorialSkipped && isTutorialActive() && (
+                <TutorialOverlay
+                  onStepFadeOut={onStepFadeOut}
+                  onSkip={() => setTutorialSkipped(true)}
+                />
+              )}
             </>
           )}
           <PauseOverlay />

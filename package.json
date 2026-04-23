@@ -20,6 +20,7 @@
     "test": "vitest run",
     "test:node": "vitest run --project node",
     "audit:bundle": "pnpm build && node -e \"const fs=require('fs'),p=require('path');const d='dist/assets';if(!fs.existsSync(d)){console.log('no dist/assets — skipping');process.exit(0)}const f=fs.readdirSync(d).filter(x=>x.endsWith('.js')).map(x=>({x,s:fs.statSync(p.join(d,x)).size}));const t=f.reduce((a,b)=>a+b.s,0);console.log('JS bundle total:',(t/1024).toFixed(1),'KB');f.sort((a,b)=>b.s-a.s).slice(0,5).forEach(e=>console.log(' ',(e.s/1024).toFixed(1)+'KB',e.x));const BUDGET=3*1024*1024;if(t>BUDGET){console.error('bundle exceeds',BUDGET/1024/1024,'MB');process.exit(1)}\"",
+    "audit:perf": "tsx scripts/audit-perf.ts",
     "copywasm": "node -e \"const fs=require('fs'),p=require('path');const files=['sql-wasm.wasm','sql-wasm-browser.wasm'];for(const dir of [p.join('public'),p.join('public','assets')]){fs.mkdirSync(dir,{recursive:true});for(const f of files){fs.copyFileSync(require.resolve('sql.js/dist/'+f),p.join(dir,f));}}console.log('copied',files.join(' + '),'→ public/ + public/assets/')\"",
     "predev": "pnpm copywasm",
     "prebuild": "pnpm copywasm",
@@ -29,7 +30,8 @@
     "pree2e": "pnpm copywasm",
     "e2e": "playwright test",
     "e2e:smoke": "playwright test --grep-invert @nightly",
-    "e2e:nightly": "playwright test --grep @nightly",
+    "e2e:nightly": "playwright test --grep @nightly --grep-invert stability-soak",
+    "e2e:stability-soak": "playwright test e2e/stability-soak.spec.ts",
     "e2e:update": "playwright test --update-snapshots",
     "e2e:ui": "playwright test --ui",
     "test:browser": "vitest run --project browser",
@@ -64,7 +66,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.12",
+    "@biomejs/biome": "^2.4.13",
     "@capacitor/cli": "^8.3.1",
     "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -76,15 +78,15 @@
     "@types/sql.js": "^1.4.11",
     "@types/three": "^0.184.0",
     "@vitejs/plugin-react": "^6",
-    "@vitest/browser": "^4.1.4",
-    "@vitest/browser-playwright": "^4.1.4",
+    "@vitest/browser": "^4.1.5",
+    "@vitest/browser-playwright": "^4.1.5",
     "cross-env": "^10.1.0",
     "playwright": "^1.59.1",
     "pngjs": "^7.0.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.8",
-    "vitest": "^4.1.4"
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
   },
   "pnpm": {
     "overrides": {
@@ -92,7 +94,8 @@
       "serialize-javascript": "^7.0.5",
       "react": "19.2.5",
       "react-dom": "19.2.5",
-      "three": "0.184.0"
+      "three": "0.184.0",
+      "@xmldom/xmldom": ">=0.8.13"
     },
     "onlyBuiltDependencies": [
       "esbuild"

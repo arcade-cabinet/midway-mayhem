@@ -1,23 +1,28 @@
 /**
  * On-screen touch controls for mobile form factors.
  *
- * Whole-canvas drag surface (transparent overlay): any finger-down
- * anywhere in the viewport captures the touch and tracks x-delta to
- * drive Steer in [-1, +1]. Matches the vision doc — no virtual
- * joystick stuck in one corner; the player steers by pulling any
- * part of the screen left/right.
+ * SWIPE MODEL (replaces continuous drag steering):
+ * The car is always moving forward; the player's only spatial decision is
+ * which lane to occupy. A fast horizontal flick fires a discrete lane change
+ * (+1 or -1). A slow hold-and-drag, a vertical swipe, or a two-finger gesture
+ * all produce nothing — no accidental lane changes from bracing the phone.
+ *
+ * The whole canvas is the swipe surface (minus the honk button corner) so
+ * the player can gesture anywhere, not just a fixed zone.
  *
  * Bottom-right: honk button (opaque; intercepts pointer events).
  *
- * The controls mount only when form factor says we're on a phone. They
- * write to koota traits directly, same as the keyboard hook — so the
- * motion system is agnostic about input source.
+ * The controls mount only when the form factor is phone-tier. They write to
+ * the Lane trait directly, same as the keyboard hook — the motion system is
+ * agnostic about which input source fires the lane change.
  */
 
 import type { World } from 'koota';
 import { useEffect, useRef, useState } from 'react';
-import { Player, Steer, Throttle } from '@/ecs/traits';
+import { Lane, LaneCount, Player, Throttle } from '@/ecs/traits';
 import { type FormTier, useFormFactor } from '@/render/cockpit/useFormFactor';
+import type { SwipePoint } from './swipeDetector';
+import { detectSwipe } from './swipeDetector';
 
 interface TouchControlsProps {
   world: World;
@@ -31,8 +36,7 @@ export function TouchControls({ world, onHorn, enabled = true }: TouchControlsPr
   const ff = useFormFactor();
   const isMobile = MOBILE_TIERS.includes(ff.tier);
 
-  // Auto-throttle on mobile so the player only needs to steer; full throttle
-  // is always applied while the controls are mounted.
+  // Auto-throttle on mobile: forward motion is always on.
   useEffect(() => {
     if (!enabled || !isMobile) return;
     world.query(Player, Throttle).updateEach(([t]) => {
@@ -44,56 +48,64 @@ export function TouchControls({ world, onHorn, enabled = true }: TouchControlsPr
 
   return (
     <>
-      <DragSurface world={world} />
+      <SwipeSurface world={world} />
       <HornButton onHorn={onHorn} />
     </>
   );
 }
 
-/** How far the finger has to drag (in px) to reach Steer = ±1. */
-const DRAG_RANGE_PX = 160;
-
 /**
- * Transparent full-screen drag overlay. Captures the first touch,
- * tracks dx from the touch-down point, scales to [-1, +1] via
- * DRAG_RANGE_PX, releases on touch-up / cancel (steer → 0).
+ * Transparent full-screen swipe overlay.
  *
- * Second finger is ignored so a two-finger zoom doesn't confuse
- * the driver.
+ * Captures the first pointer down. On pointer up, runs the swipe detector
+ * against the start/end snapshots and fires a lane change if the gesture
+ * qualifies. Second finger is deliberately ignored (two-finger gestures
+ * might be OS-level zoom; we must not fight that).
  */
-function DragSurface({ world }: { world: World }) {
-  const dragId = useRef<number | null>(null);
-  const startX = useRef(0);
+function SwipeSurface({ world }: { world: World }) {
+  const activePointer = useRef<number | null>(null);
+  const startPoint = useRef<SwipePoint | null>(null);
 
-  const setSteer = (v: number) => {
-    world.query(Player, Steer).updateEach(([s]) => {
-      s.value = Math.max(-1, Math.min(1, v));
+  const fireLaneChange = (direction: 'left' | 'right') => {
+    const delta = direction === 'left' ? -1 : 1;
+    world.query(Player, Lane, LaneCount).updateEach(([lane, laneCount]) => {
+      lane.target = Math.max(0, Math.min(laneCount.value - 1, lane.target + delta));
     });
   };
 
   const handleDown = (e: React.PointerEvent) => {
-    if (dragId.current !== null) return;
-    dragId.current = e.pointerId;
-    startX.current = e.clientX;
+    if (activePointer.current !== null) return;
+    activePointer.current = e.pointerId;
+    startPoint.current = {
+      pointerId: e.pointerId,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      timeStamp: e.timeStamp,
+    };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
-  const handleMove = (e: React.PointerEvent) => {
-    if (dragId.current !== e.pointerId) return;
-    const dx = e.clientX - startX.current;
-    setSteer(dx / DRAG_RANGE_PX);
-  };
+
   const handleUp = (e: React.PointerEvent) => {
-    if (dragId.current !== e.pointerId) return;
-    dragId.current = null;
-    setSteer(0);
+    if (activePointer.current !== e.pointerId) return;
+    activePointer.current = null;
     e.currentTarget.releasePointerCapture(e.pointerId);
+
+    if (!startPoint.current) return;
+    const end: SwipePoint = {
+      pointerId: e.pointerId,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      timeStamp: e.timeStamp,
+    };
+    const dir = detectSwipe(startPoint.current, end);
+    startPoint.current = null;
+    if (dir) fireLaneChange(dir);
   };
 
   return (
     <div
-      data-testid="touch-drag-surface"
+      data-testid="touch-swipe-surface"
       onPointerDown={handleDown}
-      onPointerMove={handleMove}
       onPointerUp={handleUp}
       onPointerCancel={handleUp}
       style={{
