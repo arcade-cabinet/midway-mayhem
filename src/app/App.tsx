@@ -9,6 +9,7 @@
 import { Canvas } from '@react-three/fiber';
 import { WorldProvider } from 'koota/react';
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { audioBus } from '@/audio/audioBus';
 import { useArcadeAudio } from '@/audio/useArcadeAudio';
 import { type EndReason, resetGameOver } from '@/ecs/systems/gameOver';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
@@ -35,6 +36,7 @@ import { ExplosionFX } from '@/render/cockpit/ExplosionFX';
 import { HonkContext } from '@/render/cockpit/HonkContext';
 import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
+import { Audience } from '@/render/env/Audience';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
 import { BarkerCrowd } from '@/render/obstacles/BarkerCrowd';
@@ -180,6 +182,8 @@ export function App() {
             <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
             <Suspense fallback={null}>
               <BigTopEnvironment night={night} />
+              {/* Crowd silhouettes — world-static, outside TrackScroller */}
+              <Audience />
               <ZoneProps />
             </Suspense>
             <TrackScroller>
@@ -218,6 +222,10 @@ export function App() {
               }}
               onObstacle={(kind) => {
                 thudRef.current();
+                // Route crash through the new 3-bus audioBus so the hard-duck
+                // (PRQ C1) fires and the crash stinger plays through the sfxBus.
+                // heavy = true for everything except the gentle oil-slick graze.
+                audioBus.playCrash(0, kind !== 'oil');
                 // Oil slicks feel wobbly, not crashy; everything else thuds.
                 if (kind === 'oil') void haptic('medium');
                 else void haptic('heavy');

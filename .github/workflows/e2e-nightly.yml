@@ -5,6 +5,9 @@ name: E2E Nightly
 # the per-interval diag JSON + PNG dumps that let us reason about
 # behavioural regressions between seeds across time.
 #
+# Also runs the E1 stability-soak job: 5-minute autonomous playthrough that
+# asserts zero MAYHEM HALTED events and fps > 20 throughout.
+#
 # NOT run on every push — the suite takes 10+ minutes and mostly
 # generates telemetry that is useful over days, not per-PR. The fast
 # merge gate lives in ci.yml's e2e-tests job (untagged specs only).
@@ -32,7 +35,7 @@ jobs:
       - name: Install xvfb for headed browser
         run: sudo apt-get update && sudo apt-get install -y xvfb
       - run: pnpm build
-      - name: Run @nightly E2E suite
+      - name: Run @nightly E2E suite (excludes stability-soak)
         env:
           PW_NIGHTLY: '1'
         run: |
@@ -53,3 +56,48 @@ jobs:
             test-results/**/playthrough/**/summary.json
           if-no-files-found: ignore
           retention-days: 30
+
+  stability-soak:
+    name: E1 Stability Soak (5-min)
+    runs-on: ubuntu-latest
+    # 5-min soak + build + playwright install + xvfb overhead = ~20 min.
+    # 30-min cap gives a generous buffer without tying up the runner all night.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Install xvfb for headed browser
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - run: pnpm build
+      - name: Run E1 stability soak
+        env:
+          PW_NIGHTLY: '1'
+        run: |
+          pnpm copywasm
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm e2e:stability-soak
+      - name: Upload stability-soak failure artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: stability-soak-failure-${{ github.run_id }}
+          path: |
+            test-results/**/stability-soak/heartbeat-*.png
+            test-results/**/stability-soak/heartbeat-*.json
+            test-results/**/stability-soak/errorBus-transcript.json
+            test-results/**/stability-soak/summary.json
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload stability-soak report (always)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-stability-soak
+          path: playwright-report/
+          retention-days: 14

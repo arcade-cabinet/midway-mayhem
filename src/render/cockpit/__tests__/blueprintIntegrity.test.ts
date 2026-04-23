@@ -19,6 +19,8 @@ import blueprint from '@/config/cockpit-blueprint.json';
 type Vec3 = readonly [number, number, number];
 interface MeshLike {
   position?: number[];
+  rotation?: number[];
+  rotationEuler?: number[];
   materialRef?: string;
   fromPos?: number[];
   toPos?: number[];
@@ -89,13 +91,29 @@ describe('cockpit blueprint — structural invariants', () => {
     expect(Object.keys(meshes).filter((k) => k.startsWith('wheelSpoke'))).toHaveLength(4);
   });
 
-  it('A-pillars reach up to the windshield arch', () => {
+  it('A-pillars are rendered VERTICAL (no ±π/2 X-rotation)', () => {
+    // Past bug: pillars shipped with rotation [π/2, 0, tilt] which under
+    // three.js Y-aligned cylinder default laid them flat along -Z. They
+    // should have ONLY a small z-axis roll for the outward lean, never an
+    // X-rotation approaching π/2. Caught by CockpitElements.browser.test.tsx.
+    for (const id of ['pillarLeft', 'pillarRight'] as const) {
+      const rot = meshes[id]?.rotation ?? meshes[id]?.rotationEuler;
+      if (!Array.isArray(rot)) throw new Error(`${id}: missing rotation`);
+      const [rx] = rot;
+      expect(
+        Math.abs(rx ?? 0),
+        `${id} has X-rotation ${rx} — must be near 0 so the pillar stands vertical (three.js CylinderGeometry is Y-aligned by default)`,
+      ).toBeLessThan(0.2);
+    }
+  });
+
+  it('A-pillar tops reach up to the windshield arch', () => {
     const leftBase = p('pillarLeft');
     const rightBase = p('pillarRight');
     const archCenter = p('windshieldArch');
     const pillarLen = meshes.pillarLeft?.length ?? 0;
-    // Pillar is a cylinder rotated up; its top is at y = base + length/2
-    // (three.js cylinder is centered; rotation aligns length along world Y).
+    // Under a near-zero X-rotation (enforced above), the cylinder's local Y
+    // maps to world Y. Top endpoint is at base.y + length/2.
     const leftTop = leftBase[1] + pillarLen / 2;
     const rightTop = rightBase[1] + pillarLen / 2;
     const archY = archCenter[1];

@@ -106,8 +106,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build production bundle
         run: pnpm build
-      - name: Bundle budget gate
-        run: pnpm audit:bundle
+      - name: Gzipped critical-path budget gate (PRQ E4 — <2 MB)
+        # audit-perf.ts walks dist/assets/*.js, computes gzip size of each
+        # chunk, classifies critical vs lazy, enforces critical < 2 048 KB
+        # and total < 5 120 KB, emits perf-budget.json, and writes a
+        # Markdown table to $GITHUB_STEP_SUMMARY.
+        run: pnpm audit:perf
       - uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -115,8 +119,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bundle-size-report
-          path: docs/media/bundle-size/
+          name: perf-budget-report
+          path: perf-budget.json
 
   android-smoke:
     name: Android Smoke (Maestro)
@@ -282,4 +286,3 @@ jobs:
             test-results/**/playthrough/**/summary.json
           if-no-files-found: ignore
           retention-days: 14
-

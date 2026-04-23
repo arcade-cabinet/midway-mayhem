@@ -12,7 +12,9 @@ import * as Tone from 'tone';
  *   (once we have an IR) via per-source gain sends.
  *
  *   Sidechain ducking: Tone.Meter on sfxBus drives musicBus.volume
- *   down when SFX stingers hit.
+ *   down when SFX stingers hit. Additionally, explicit hard-duck calls
+ *   (duckMusicBus) let callers impose a fixed-duration duck for honk
+ *   (180 ms) and crash (400 ms) that overrides the meter-based duck.
  */
 
 export interface Buses {
@@ -65,12 +67,17 @@ function startDuckingLoop(b: Buses): void {
   const REST_VOL_DB = b.musicBus.volume.value;
 
   const loop = () => {
-    const level = b.sfxMeter.getValue();
-    const levelDb = typeof level === 'number' ? level : (level[0] ?? -Infinity);
-    const over = Math.max(0, levelDb - DUCK_THRESHOLD_DB);
-    const duck = Math.min(1, over / 10) * DUCK_DEPTH_DB;
-    const target = REST_VOL_DB + duck;
-    b.musicBus.volume.rampTo(target, 0.08);
+    // Skip the meter-based loop while a hard duck is in progress — the
+    // explicit duckMusicBus() ramp has priority and we don't want the loop
+    // to fight it by ramping toward REST_VOL_DB simultaneously.
+    if (!hardDuckActive) {
+      const level = b.sfxMeter.getValue();
+      const levelDb = typeof level === 'number' ? level : (level[0] ?? -Infinity);
+      const over = Math.max(0, levelDb - DUCK_THRESHOLD_DB);
+      const duck = Math.min(1, over / 10) * DUCK_DEPTH_DB;
+      const target = REST_VOL_DB + duck;
+      b.musicBus.volume.rampTo(target, 0.08);
+    }
     if (typeof requestAnimationFrame !== 'undefined') {
       duckingLoopId = requestAnimationFrame(loop);
     }
@@ -78,4 +85,42 @@ function startDuckingLoop(b: Buses): void {
   if (typeof requestAnimationFrame !== 'undefined') {
     duckingLoopId = requestAnimationFrame(loop);
   }
+}
+
+// ─── Explicit hard-duck ──────────────────────────────────────────────────────
+// Called by audioBus for honk (180 ms) and crash (400 ms). Takes priority
+// over the sfxMeter-driven loop so the duck is crisp and predictable.
+
+let hardDuckActive = false;
+let hardDuckRestoreId: ReturnType<typeof setTimeout> | null = null;
+const HARD_DUCK_DB = -10;
+
+/**
+ * Duck the music bus by HARD_DUCK_DB for `durationMs`, then restore to the
+ * pre-duck level. Safe to call before initBuses() — if buses aren't ready
+ * the call is a no-op (the meter-based duck from sfxBus traffic still works).
+ */
+export function duckMusicBus(durationMs: number): void {
+  if (!buses) return;
+  const { musicBus } = buses;
+  const restoreDb = musicBus.volume.value;
+
+  if (hardDuckRestoreId !== null) {
+    clearTimeout(hardDuckRestoreId);
+    hardDuckRestoreId = null;
+  }
+
+  hardDuckActive = true;
+  musicBus.volume.rampTo(restoreDb + HARD_DUCK_DB, 0.02);
+
+  hardDuckRestoreId = setTimeout(() => {
+    hardDuckActive = false;
+    hardDuckRestoreId = null;
+    musicBus.volume.rampTo(restoreDb, 0.05);
+  }, durationMs);
+}
+
+/** For tests: query whether a hard duck is currently in progress. */
+export function isHardDuckActive(): boolean {
+  return hardDuckActive;
 }
