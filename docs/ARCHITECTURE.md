@@ -1,6 +1,6 @@
 ---
 title: Architecture
-updated: 2026-04-18
+updated: 2026-04-20
 status: current
 domain: technical
 ---
@@ -88,6 +88,49 @@ Zustand (`gameState.ts`) provides a reactive session/player shim (`useGameStore`
 ```
 
 The camera is a child of `<Cockpit>`. When the cockpit group moves (banking, steering), the camera moves with it. This is the architectural fix for the "sail glitch" from the HTML POC.
+
+---
+
+## Run elevation profile
+
+The Midway is **a coiled descent through the big-top.** The track is generated from `src/config/archetypes/track-pieces.json` archetype set, but the per-archetype `deltaPitch` values + `weight` distribution are tuned so the **cumulative Y across the run is monotonically non-increasing across the descent zones.**
+
+### Target shape
+
+```
+Cumulative Y (m)
+  +5 ┤●─╮
+   0 ┤  ╰●──╮
+  -5 ┤      ╰●──●──╮
+ -15 ┤              ╰●──●──╮
+ -25 ┤                      ╰●──●──╮
+ -35 ┤                              ╰●──●  finish line on dome floor
+      └──────┬───────┬───────┬───────┬─────
+       zone1   zone2   zone3   zone4
+       intro   tilt    descend coil
+       (flat) (mild)  (steep)  (steep)
+```
+
+- **Zone 1 (Midway Strip, 0-450m)** — track starts at `y = 0.5` (slab-clearance above the integrator ground plane). Zone-1 weight multipliers zero out `dip`/`plunge`/`climb`, so the cumulative Y stays nearly flat (< 8m drop). Tutorial space; player learns to steer before the dive begins. Visual "start is suspended high" comes from the StartPlatform scene prop (see `src/render/track/StartPlatform.tsx` + the planned A-DESC-2 pass), not from the track generator itself — the generator produces a coil whose base altitude is clamped near 0.
+- **Zone 2 (Balloon Alley, 450-900m)** — gentle descent. `dip` weight bumped, `climb` zeroed.
+- **Zone 3 (Ring of Fire, 900-1350m)** — moderate descent with some `plunge` pieces. Audience seats flank both sides; player feels the FALL.
+- **Zone 4 (Funhouse Frenzy, 1350-1800m)** — final coil down to the floor. Highest `dip` + `plunge` mix of any zone. Run ends at the floor checker (FinishBanner, see A-DESC-3). There is no dedicated `coil-down` archetype — the coil is emergent from `slight-left`/`slight-right` + `dip`/`plunge` mixes under zone-4 weights.
+
+### Constraints
+
+- Cumulative pitch is clamped to `±0.06` rad (PITCH_MAX / PITCH_MIN in `src/ecs/systems/track.ts`) — about 3.4°. The clamp is deliberately tight: a 22m piece at the floor of the band drops ~1.3m, so 60 descent-phase pieces accumulate to a coil-readable total without ever pinning the integrator into a free-fall artifact.
+- The generator falls back to `straight` when an archetype would breach the band, so the descent doesn't compound into invalid orientations.
+- Per-zone weight multipliers (`ZONE_WEIGHT_MULTIPLIERS` in `src/ecs/systems/track.ts`) layer on top of the archetype JSON weights to bias archetype selection by zone — zone 1 disables `dip`/`plunge`/`climb` entirely, zones 2-4 progressively increase descent share while keeping `straight` dominant so the descent stays unpinned.
+- Total descent target: **25-70m** across `runLength=80` pieces. The canonical seed (42) lands at ~37m with zone-1 flat, zone 2 ~2m, zones 3-4 ~18m each.
+
+### Test gate
+
+`src/track/__tests__/elevationProfile.test.ts` calls `generateTrack(seed)`, samples cumulative Y at every piece boundary, and asserts:
+1. Zone 1 (pieces `0..floor(runLength/4) - 1`) keeps cumulative descent ≤ 8m — tutorial space.
+2. Total descent lands in `[25, 70]m` — less reads as flat, more is a free-fall artifact.
+3. Across the descent phase (pieces `floor(runLength/4)..runLength-1`, last 75% of the run), cumulative Y is monotonically non-increasing within a tight per-piece tolerance of 0.25m. The tolerance is strictly below the 1.68m single-step descent floor, so it catches any legitimate rise while absorbing float-pose integration jitter on yaw-only `slight-left`/`slight-right` pieces.
+
+Visual verification: `pnpm test:browser TrackPackage` re-renders `src/track/__baselines__/track-package/side.png`, where the descent should be obvious as a sustained downward Y delta from screen-top to screen-bottom.
 
 ---
 

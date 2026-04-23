@@ -290,6 +290,25 @@ export const TunablesSchema = z.object({
       sensitivity: z.number().positive(),
     })
     .strict(),
+  /** Audio tuning constants (PRQ C1 + C-DESCENT-AMBIENCE). */
+  audio: z
+    .object({
+      /** Duration (ms) the music bus is hard-ducked after a honk (PRQ C1). */
+      honkDuckMs: z.number().positive(),
+      /** Duration (ms) the music bus is hard-ducked after a crash (PRQ C1). */
+      crashDuckMs: z.number().positive(),
+      /** Fade-in duration (s) for the music bus on first user gesture. */
+      musicFadeInS: z.number().positive(),
+      /** Volume floor (dBFS) of the crowd-ambience bed at the top of descent (0 = top). */
+      descentAmbienceTopDb: z.number().max(0),
+      /** Volume ceiling (dBFS) of the crowd-ambience bed at the floor of descent (1 = floor). */
+      descentAmbienceFloorDb: z.number().max(0),
+      /** Lowpass cutoff (Hz) for the ambience noise filter at the top of descent. */
+      descentAmbienceLpTopHz: z.number().positive(),
+      /** Lowpass cutoff (Hz) for the ambience noise filter at the floor of descent. */
+      descentAmbienceLpFloorHz: z.number().positive(),
+    })
+    .strict(),
 });
 
 export type Tunables = z.infer<typeof TunablesSchema>;
