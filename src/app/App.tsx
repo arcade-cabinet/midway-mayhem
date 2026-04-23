@@ -143,6 +143,21 @@ function AudioBridge({
 }
 
 export function App() {
+  // App splits into an outer shell that owns the WorldProvider and an
+  // inner component that holds all hook calls. This ensures hooks that
+  // call useGameStore (which requires useWorld) always have access to
+  // the koota world context — otherwise useTutorialWatcher and related
+  // crash at boot with "useWorld must be used within a WorldProvider".
+  return (
+    <ReactErrorBoundary context="App.root">
+      <WorldProvider world={world}>
+        <AppInner />
+      </WorldProvider>
+    </ReactErrorBoundary>
+  );
+}
+
+function AppInner() {
   const [titleVisible, setTitleVisible] = useState(true);
   const [endReason, setEndReason] = useState<EndReason | null>(null);
   // Tutorial overlay visibility is driven by the tutorial state machine.
@@ -185,8 +200,6 @@ export function App() {
   }, []);
 
   return (
-    <ReactErrorBoundary context="App.root">
-      <WorldProvider world={world}>
         <div
           data-testid="mm-app"
           style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
@@ -341,8 +354,6 @@ export function App() {
             />
           ) : null}
         </div>
-      </WorldProvider>
-    </ReactErrorBoundary>
   );
 }
 
