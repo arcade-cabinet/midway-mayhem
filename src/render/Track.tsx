@@ -16,15 +16,21 @@
  *
  * Everything coalesces into a handful of draw calls (surface, underside,
  * walls, stripes, curbs-red, curbs-white) regardless of segment count.
+ *
+ * The track surface uses a PBR carnival-plank material loaded via
+ * `useTrackSurfaceMaterial`. That hook is suspense-aware, so <Track> must
+ * be wrapped in a <Suspense> boundary (done here via <TrackWithPBR>).
+ * If the textures fail to load the error propagates through the nearest
+ * ReactErrorBoundary → errorBus → ErrorModal. No fallback colour.
  */
 import { useQuery } from 'koota/react';
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { trackArchetypes } from '@/config';
 import { integratePose, type Pose } from '@/ecs/systems/track';
 import type { SampledSegment } from '@/ecs/systems/trackSampler';
 import { TrackSegment } from '@/ecs/traits';
-import { getTrackTexture } from './trackTexture';
+import { useTrackSurfaceMaterial } from './trackSurfaceMaterial';
 
 const SEGMENT_SUBDIVISIONS = 12;
 const SLAB_DEPTH = 0.45;
@@ -278,10 +284,14 @@ function buildTrackGeometry(segments: SegmentInput[]): BuiltGeo {
   };
 }
 
-export function Track() {
+/**
+ * Inner component: runs inside <Suspense> so `useTrackSurfaceMaterial`
+ * can throw while the three JPGs are in-flight.
+ */
+function TrackInner() {
   const segments = useQuery(TrackSegment);
   const groupRef = useRef<THREE.Group>(null);
-  const surfaceTex = useMemo(() => getTrackTexture(), []);
+  const surfaceMat = useTrackSurfaceMaterial();
 
   const { built } = useMemo(() => {
     const traits = segments
@@ -339,14 +349,7 @@ export function Track() {
 
   return (
     <group ref={groupRef}>
-      <mesh geometry={built.surface} name="track-surface">
-        <meshStandardMaterial
-          color="#F36F21"
-          roughnessMap={surfaceTex}
-          roughness={0.75}
-          metalness={0.15}
-        />
-      </mesh>
+      <mesh geometry={built.surface} name="track-surface" material={surfaceMat} />
       <mesh geometry={built.underside} name="track-underside">
         <meshStandardMaterial color="#2a0d05" roughness={0.95} metalness={0.0} />
       </mesh>
@@ -368,5 +371,19 @@ export function Track() {
         <meshStandardMaterial color="#F5F5F5" roughness={0.5} metalness={0.05} />
       </mesh>
     </group>
+  );
+}
+
+/**
+ * Public export. Wraps <TrackInner> in a Suspense boundary so the PBR
+ * texture load does not block the rest of the scene — the track geometry
+ * simply stays invisible until all three JPGs resolve. On error the throw
+ * propagates up to the nearest ReactErrorBoundary → errorBus → ErrorModal.
+ */
+export function Track() {
+  return (
+    <Suspense fallback={null}>
+      <TrackInner />
+    </Suspense>
   );
 }
