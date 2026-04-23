@@ -29,7 +29,17 @@ describe('ZONE_THEMES', () => {
     const hex = /^#[0-9a-fA-F]{6}$/;
     for (const z of ZONES) {
       const t = ZONE_THEMES[z.id];
-      for (const field of ['skyTop', 'skyBottom', 'fogColor', 'ambientHue', 'accent'] as const) {
+      for (const field of [
+        'skyTop',
+        'skyBottom',
+        'fogColor',
+        'ambientColor',
+        'dirLightColor',
+        'fillLightColor',
+        'groundColor',
+        'accent',
+        'propAccent',
+      ] as const) {
         expect(t[field]).toMatch(hex);
       }
     }

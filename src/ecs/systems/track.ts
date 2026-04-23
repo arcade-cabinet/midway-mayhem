@@ -21,18 +21,38 @@ export interface Pose {
   pitch: number;
 }
 
+/**
+ * Cubic smoothstep: S(t) = 3t² − 2t³.
+ *
+ * Properties that matter here:
+ *   S(0) = 0, S(1) = 1  — total delta is identical to linear
+ *   S′(0) = 0, S′(1) = 0 — pitch-rate is zero at piece boundaries
+ *
+ * The zero-derivative ends mean adjacent pieces that differ in deltaPitch
+ * (e.g. flat → dip) produce a smooth C¹ pitch curve instead of a visible
+ * first-derivative crease in the POV. Because S(1) = 1, endPose continuity
+ * (endPose[i] === startPose[i+1]) is preserved exactly.
+ */
+export function smoothstep(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
 /** Pure function used by both generation + rendering. No side effects. */
 export function integratePose(start: Pose, archetype: TrackArchetype, t: number): Pose {
   // t ∈ [0, 1]: position along the piece
+  // Yaw stays linear — horizontal turns don't show the same crease artifact.
   const yaw = start.yaw + archetype.deltaYaw * t;
-  const pitch = start.pitch + archetype.deltaPitch * t;
+  // Pitch uses smoothstep so pitch-rate → 0 at both piece boundaries,
+  // eliminating the visible crease when deltaPitch changes between pieces.
+  const pitch = start.pitch + archetype.deltaPitch * smoothstep(t);
   // Advance along the local forward vector (+X as forward under yaw=0 would
   // clash with the R3F convention of -Z-forward, so we follow -Z here).
   const stepLen = archetype.length * t;
   // Average yaw/pitch across [0, t] for a rough centerline — accurate enough
-  // for rendering tessellated segments later.
+  // for rendering tessellated segments later. midPitch uses smoothstep at the
+  // half-way point so the centerline advance is consistent with the eased pitch.
   const midYaw = start.yaw + (archetype.deltaYaw * t) / 2;
-  const midPitch = start.pitch + (archetype.deltaPitch * t) / 2;
+  const midPitch = start.pitch + archetype.deltaPitch * smoothstep(t / 2);
   const forwardX = -Math.sin(midYaw) * Math.cos(midPitch);
   const forwardY = Math.sin(midPitch);
   const forwardZ = -Math.cos(midYaw) * Math.cos(midPitch);
