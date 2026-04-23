@@ -36,6 +36,8 @@ ios/DerivedData
 
 .claude/state/
 !.claude/state/.gitkeep
+.claude/worktrees/
+.claude/scheduled_tasks.lock
 
 # Reference conversations (kept locally, not tracked in repo)
 ChatGPT-Clown_Car_3D_Prototype.md
