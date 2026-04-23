@@ -15,8 +15,9 @@
  * segment i coincide with station[0] of segment i+1 within ε for every
  * pair in the canonical run.
  */
-import { describe, expect, it } from 'vitest';
+
 import * as THREE from 'three';
+import { describe, expect, it } from 'vitest';
 import { trackArchetypes } from '@/config';
 import { generateTrack, integratePose, type Pose } from '@/ecs/systems/track';
 

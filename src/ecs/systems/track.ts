@@ -116,10 +116,14 @@ export function generateTrack(seed: number): GeneratedSegment[] {
     const multipliers = ZONE_WEIGHT_MULTIPLIERS[zone] ?? {};
     return archetypes.map((a, idx) => {
       const mul = multipliers[a.id as ArchetypeId];
-      return baseWeights[idx]! * (mul ?? 1);
+      return (baseWeights[idx] ?? 0) * (mul ?? 1);
     });
   });
   const straightFallback = archetypes.find((a) => a.id === 'straight');
+  // Fallback to zone 0's weights if the zone index somehow lies outside
+  // the [0,3] range precomputed above — shouldn't happen under runLength>=1
+  // but the explicit default keeps the type narrow + biome happy.
+  const FALLBACK_WEIGHTS = weightsByZone[0] ?? archetypes.map(() => 1);
 
   // Start elevated so the track slab (thickness ~0.45m + curb height ~0.18m)
   // clears the ground plane at y=-4 with room for the camera's ground-level
@@ -129,7 +133,7 @@ export function generateTrack(seed: number): GeneratedSegment[] {
 
   for (let i = 0; i < trackArchetypes.runLength; i++) {
     const zone = zoneIndexFor(i, trackArchetypes.runLength);
-    const zoneWeights = weightsByZone[zone]!;
+    const zoneWeights = weightsByZone[zone] ?? FALLBACK_WEIGHTS;
 
     // Draw an archetype, but if the resulting pitch would breach the band,
     // substitute a reasonable correction.
