@@ -1,0 +1,89 @@
+<!-- Midway Mayhem: Clown Car Chaos — app icon master
+     Brand palette: Red #E53935, Yellow #FFD600, Blue #1E88E5,
+                    Purple #8E24AA, Orange #F36F21, Night #0B0F1A
+     Concept: polka-dot clown car hood, descending into the big-top.
+     Legible at 57×57 px — no sub-pixel detail.
+     Source of truth for all generated icon sizes. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+
+  <!-- Background — Night -->
+  <rect width="1024" height="1024" fill="#0B0F1A"/>
+
+  <!-- Big-top tent peaks (background atmosphere) -->
+  <polygon points="0,260 128,80 256,260" fill="#E53935" opacity="0.7"/>
+  <polygon points="128,260 256,80 384,260" fill="#FFD600" opacity="0.7"/>
+  <polygon points="256,260 384,80 512,260" fill="#E53935" opacity="0.7"/>
+  <polygon points="384,260 512,80 640,260" fill="#FFD600" opacity="0.7"/>
+  <polygon points="512,260 640,80 768,260" fill="#E53935" opacity="0.7"/>
+  <polygon points="640,260 768,80 896,260" fill="#FFD600" opacity="0.7"/>
+  <polygon points="768,260 896,80 1024,260" fill="#E53935" opacity="0.7"/>
+
+  <!-- Car body — main silhouette (rounded rectangle, red) -->
+  <rect x="140" y="450" width="744" height="300" rx="48" ry="48" fill="#E53935"/>
+
+  <!-- Polka-dot hood (top surface of car) — Night base, brand dots -->
+  <!-- Hood shape: trapezoid sitting on top of body -->
+  <path d="M240,450 L320,310 L704,310 L784,450 Z" fill="#0B0F1A"/>
+
+  <!-- Polka dots on hood — Yellow -->
+  <circle cx="360" cy="360" r="32" fill="#FFD600"/>
+  <circle cx="512" cy="345" r="36" fill="#FFD600"/>
+  <circle cx="664" cy="360" r="32" fill="#FFD600"/>
+  <!-- Blue dots, offset row -->
+  <circle cx="440" cy="420" r="26" fill="#1E88E5"/>
+  <circle cx="584" cy="415" r="26" fill="#1E88E5"/>
+
+  <!-- Windshield (dark glass) -->
+  <path d="M300,450 L350,350 L674,350 L724,450 Z" fill="#0B0F1A" opacity="0.85"/>
+  <!-- Windshield glare -->
+  <path d="M340,450 L375,380 L440,380 L410,450 Z" fill="#FCFCFA" opacity="0.12"/>
+
+  <!-- Car cabin roof arc -->
+  <path d="M300,450 Q512,280 724,450" fill="none" stroke="#8E24AA" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Wheels — left -->
+  <circle cx="290" cy="750" r="110" fill="#120718"/>
+  <circle cx="290" cy="750" r="80" fill="#1E88E5"/>
+  <circle cx="290" cy="750" r="44" fill="#FFD600"/>
+  <circle cx="290" cy="750" r="20" fill="#0B0F1A"/>
+  <!-- Wheel spokes left -->
+  <line x1="290" y1="670" x2="290" y2="830" stroke="#0B0F1A" stroke-width="10"/>
+  <line x1="210" y1="750" x2="370" y2="750" stroke="#0B0F1A" stroke-width="10"/>
+  <line x1="233" y1="693" x2="347" y2="807" stroke="#0B0F1A" stroke-width="10"/>
+  <line x1="347" y1="693" x2="233" y2="807" stroke="#0B0F1A" stroke-width="10"/>
+
+  <!-- Wheels — right -->
+  <circle cx="734" cy="750" r="110" fill="#120718"/>
+  <circle cx="734" cy="750" r="80" fill="#1E88E5"/>
+  <circle cx="734" cy="750" r="44" fill="#FFD600"/>
+  <circle cx="734" cy="750" r="20" fill="#0B0F1A"/>
+  <!-- Wheel spokes right -->
+  <line x1="734" y1="670" x2="734" y2="830" stroke="#0B0F1A" stroke-width="10"/>
+  <line x1="654" y1="750" x2="814" y2="750" stroke="#0B0F1A" stroke-width="10"/>
+  <line x1="677" y1="693" x2="791" y2="807" stroke="#0B0F1A" stroke-width="10"/>
+  <line x1="791" y1="693" x2="677" y2="807" stroke="#0B0F1A" stroke-width="10"/>
+
+  <!-- Hot Wheels track strip under car (Orange) -->
+  <rect x="0" y="840" width="1024" height="80" rx="0" fill="#F36F21"/>
+  <!-- Track lane dividers -->
+  <rect x="300" y="840" width="20" height="80" fill="#FFD600" opacity="0.6"/>
+  <rect x="704" y="840" width="20" height="80" fill="#FFD600" opacity="0.6"/>
+
+  <!-- Speed lines (motion blur feel) — Yellow -->
+  <line x1="0" y1="600" x2="100" y2="600" stroke="#FFD600" stroke-width="6" opacity="0.55"/>
+  <line x1="0" y1="640" x2="80" y2="640" stroke="#FFD600" stroke-width="4" opacity="0.40"/>
+  <line x1="924" y1="600" x2="1024" y2="600" stroke="#FFD600" stroke-width="6" opacity="0.55"/>
+  <line x1="944" y1="640" x2="1024" y2="640" stroke="#FFD600" stroke-width="4" opacity="0.40"/>
+
+  <!-- Horn / squirting flower on hood (tiny signature detail) -->
+  <circle cx="512" cy="308" r="22" fill="#8E24AA"/>
+  <circle cx="512" cy="308" r="12" fill="#FFD600"/>
+
+  <!-- Headlights -->
+  <ellipse cx="172" cy="590" rx="38" ry="22" fill="#FFD600" opacity="0.9"/>
+  <ellipse cx="852" cy="590" rx="38" ry="22" fill="#FFD600" opacity="0.9"/>
+  <!-- Headlight glow -->
+  <ellipse cx="172" cy="590" rx="58" ry="34" fill="#FFD600" opacity="0.18"/>
+  <ellipse cx="852" cy="590" rx="58" ry="34" fill="#FFD600" opacity="0.18"/>
+
+</svg>
