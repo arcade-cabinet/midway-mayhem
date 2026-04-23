@@ -23,8 +23,10 @@ import { installDiagnosticsBus, wireDiagnosticsHooks } from '@/game/diagnosticsB
 import { ensureGameTraits, useGameStore } from '@/game/gameState';
 import { commitGhost, resetGhostRecorder } from '@/game/ghost';
 import { Governor } from '@/game/governor/Governor';
+import { getTutorialStep, isTutorialActive } from '@/game/tutorial';
 import { useGameSystems } from '@/game/useGameSystems';
 import { useSettings } from '@/hooks/useSettings';
+import { useTutorialWatcher } from '@/hooks/useTutorialWatcher';
 import { haptic } from '@/input/haptics';
 import { TouchControls } from '@/input/TouchControls';
 import { useKeyboard } from '@/input/useKeyboard';
@@ -34,6 +36,7 @@ import { Cockpit } from '@/render/cockpit/Cockpit';
 import { ExplosionFX } from '@/render/cockpit/ExplosionFX';
 import { HonkContext } from '@/render/cockpit/HonkContext';
 import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
+import { DropInIntroCamera } from '@/render/DropInIntro';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
@@ -64,6 +67,7 @@ import { PauseOverlay } from '@/ui/hud/PauseOverlay';
 import { ReactErrorBoundary } from '@/ui/hud/ReactErrorBoundary';
 import type { NewRunConfig } from '@/ui/title/NewRunModal';
 import { TitleScreen } from '@/ui/title/TitleScreen';
+import { TutorialOverlay } from '@/ui/tutorial/TutorialOverlay';
 import { GameLoop } from './GameLoop';
 
 // Seed the world once at module load. ES modules are evaluated exactly
@@ -129,6 +133,9 @@ function AudioBridge({
 export function App() {
   const [titleVisible, setTitleVisible] = useState(true);
   const [endReason, setEndReason] = useState<EndReason | null>(null);
+  // Tutorial overlay visibility is driven by the tutorial state machine.
+  // We use a local state flag so React re-renders when skip is triggered.
+  const [tutorialSkipped, setTutorialSkipped] = useState(false);
   const playing = !titleVisible && endReason === null;
   const hornRef = useRef<() => void>(() => {});
   const dingRef = useRef<() => void>(() => {});
@@ -137,7 +144,20 @@ export function App() {
   // Night mode: either the URL flag OR the persisted setting forces it.
   const night = isNightFromUrl() || (settings?.nightMode ?? false);
 
-  useKeyboard({ world, enabled: playing, onHorn: () => hornRef.current() });
+  const {
+    onTutorialHonk,
+    onTutorialCleanLanding: _onTutorialCleanLanding,
+    onDropInComplete,
+    onStepFadeOut,
+  } = useTutorialWatcher();
+
+  // Wrap honk so tutorial step 2 is detected alongside the audio honk.
+  const wrappedHorn = () => {
+    hornRef.current();
+    onTutorialHonk();
+  };
+
+  useKeyboard({ world, enabled: playing, onHorn: wrappedHorn });
   useMouseSteer({ world, enabled: playing });
   useGameSystems();
 
@@ -198,9 +218,14 @@ export function App() {
             </TrackScroller>
             <RaidBridge />
             <RaidLayer />
-            <HonkContext.Provider value={() => hornRef.current()}>
+            <HonkContext.Provider value={wrappedHorn}>
               <Cockpit />
             </HonkContext.Provider>
+            {/* Step-6 tutorial: bird's-eye coil preview → pulls into cockpit POV.
+                Active only while tutorial step 6 is in progress. */}
+            {playing && isTutorialActive() && getTutorialStep() === 6 && (
+              <DropInIntroCamera onComplete={onDropInComplete} />
+            )}
             {/* Clown explosion on game-over — confetti, hearts, stars, flash.
               Self-triggers from the store's gameOver flag; no prop wiring. */}
             <ExplosionFX />
@@ -273,7 +298,16 @@ export function App() {
             <>
               <HUD />
               <PauseButton />
-              <TouchControls world={world} enabled={playing} onHorn={() => hornRef.current()} />
+              <TouchControls world={world} enabled={playing} onHorn={wrappedHorn} />
+              {/* Tutorial overlay — shown during the first run while the
+                  tutorial is active. Hidden after skip or step 6 completion.
+                  Renders on top of the HUD (z-index 50, below dialogs). */}
+              {!tutorialSkipped && isTutorialActive() && (
+                <TutorialOverlay
+                  onStepFadeOut={onStepFadeOut}
+                  onSkip={() => setTutorialSkipped(true)}
+                />
+              )}
             </>
           )}
           <PauseOverlay />
