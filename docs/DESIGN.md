@@ -1,6 +1,6 @@
 ---
 title: Design
-updated: 2026-04-18
+updated: 2026-04-23
 status: current
 domain: product
 ---
@@ -107,11 +107,53 @@ Strobing neon, mirror layer duplicating the scene. Highest obstacle density. Tra
 
 ---
 
+## Start platform — suspended from the dome cap
+
+The start platform is a wire-hung launching pad suspended HIGH inside the
+circus big-top, near the rafters. Visual spec:
+
+- **Height**: y ≥ +25m above track piece 0 (which starts at y = 0.5m). The
+  group origin sits at y = +30m so the player's POV looks DOWN the coil at
+  the track unwinding far below.
+- **Wire struts**: at least 4 visible steel-chrome cylinders extend UP from
+  the platform corners to the dome cap at approximately y = +50m. They make
+  the suspension explicit — the platform is obviously hanging, not floating.
+- **Carnival identity preserved**: wooden plank deck + polka-dot trim rails +
+  START sign remain unchanged; only the scene-graph y and wire geometry change.
+
+The height is driven purely by the `StartPlatform` component's own
+`position-y` within the scene graph. The track generator is unchanged; piece 0
+stays at y = 0.5m as required by the integrator's ground clearance.
+
+---
+
 ## World premise
 
 The ride has gone off the rails. Literally. You are a clown in a polka-dot car that somehow ended up on the Hot Wheels mega-track inside a circus big-top. The Ringmaster is not pleased. The crowd is screaming. The track loops into zones you never agreed to race through.
 
 There is no finish line on the first run. The track goes until you crash or your SANITY runs out. Every run is different because every run plan is seeded.
+
+---
+
+## Track surface material
+
+The driveable track surface uses a PBR wood-plank material in place of the original flat orange Hot Wheels colour.
+
+**Asset:** PolyHaven "Weathered Brown Planks" (`weathered_brown_planks`) — CC0 licence.
+URL: https://polyhaven.com/a/weathered_brown_planks
+Resolution fetched: 1k JPG (diffuse + OpenGL normal + roughness).
+
+**Why this asset:**
+Warm, aged, slightly worn brown planks with chipped paint and visible grain — exactly the carnival boardwalk / circus big-top floor aesthetic. The maroon/brown tones complement the red-and-white curbs and the arena HDRI lighting without competing with the polka-dot car.
+
+**UV tiling (in `src/render/trackSurfaceMaterial.ts`):**
+- 7 repeats across the 12 m track width
+- 12 repeats along a 20 m track piece
+- Gives boards ~1.7 m wide — oversized for arcade legibility at speed.
+
+**Files stored at:** `public/textures/track/planks/` (diffuse.jpg, normal.jpg, roughness.jpg — each under 240 KB).
+
+**Colour palette note:** "Track Orange" (`#F36F21`) remains in the locked palette table for reference and is still used by walls/underside/curbs. The surface itself is now texture-driven, not tinted.
 
 ---
 
