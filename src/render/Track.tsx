@@ -63,6 +63,7 @@ interface SegmentInput {
   deltaYaw: number;
   deltaPitch: number;
   bank: number;
+  startBank: number;
 }
 
 function sampleStation(startPose: Pose, seg: SegmentInput, t: number): Station {
@@ -88,8 +89,12 @@ function sampleStation(startPose: Pose, seg: SegmentInput, t: number): Station {
   const rightFlat = new THREE.Vector3(Math.cos(pose.yaw), 0, -Math.sin(pose.yaw));
   const upFlat = new THREE.Vector3().crossVectors(rightFlat, fwd).normalize();
 
-  // Bank: roll right+up around forward.
-  const bank = seg.bank * t;
+  // Bank: LERP from this piece's startBank (= previous piece's endBank)
+  // to its own target bank across t=[0,1]. Before this fix, bank was
+  // `seg.bank * t`, which reset to 0 at every piece start — the slab
+  // edges on a banked→flat transition diverged up to 3.48m, producing
+  // the torn seams visible in the side-view baseline.
+  const bank = seg.startBank + (seg.bank - seg.startBank) * t;
   const cosB = Math.cos(bank);
   const sinB = Math.sin(bank);
   const right = rightFlat.clone().multiplyScalar(cosB).addScaledVector(upFlat, sinB);
@@ -318,6 +323,7 @@ function TrackInner() {
       deltaYaw: seg.deltaYaw,
       deltaPitch: seg.deltaPitch,
       bank: seg.bank,
+      startBank: seg.startBank,
     }));
     const sampledSegs: SampledSegment[] = traits.map((seg) => ({
       startPose: {

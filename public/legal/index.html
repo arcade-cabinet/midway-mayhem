@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Legal — Midway Mayhem: Clown Car Chaos</title>
+	<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			line-height: 1.6;
+			color: #E8E8E8;
+			background-color: #0B0F1A;
+			padding: 2rem;
+		}
+
+		.container {
+			max-width: 900px;
+			margin: 0 auto;
+		}
+
+		header {
+			text-align: center;
+			margin-bottom: 3rem;
+			border-bottom: 3px solid #E53935;
+			padding-bottom: 2rem;
+		}
+
+		h1 {
+			color: #FFD600;
+			font-size: 2.5rem;
+			margin-bottom: 0.5rem;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+		}
+
+		.tagline {
+			color: #E53935;
+			font-size: 1.1rem;
+			font-weight: 600;
+		}
+
+		h2 {
+			color: #FFD600;
+			font-size: 1.5rem;
+			margin-top: 2.5rem;
+			margin-bottom: 1rem;
+			text-transform: uppercase;
+			letter-spacing: 0.03em;
+		}
+
+		.legal-links {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+			margin: 2rem 0;
+		}
+
+		.legal-card {
+			background-color: rgba(229, 57, 53, 0.05);
+			border: 2px solid #E53935;
+			border-radius: 4px;
+			padding: 2rem;
+			text-align: center;
+		}
+
+		.legal-card h3 {
+			color: #FFD600;
+			font-size: 1.3rem;
+			margin-bottom: 1rem;
+			text-transform: uppercase;
+			letter-spacing: 0.02em;
+		}
+
+		.legal-card p {
+			font-size: 0.95rem;
+			margin-bottom: 1.5rem;
+			color: #CCC;
+		}
+
+		.legal-link {
+			display: inline-block;
+			padding: 0.75rem 2rem;
+			background-color: #E53935;
+			color: #0B0F1A;
+			text-decoration: none;
+			border: none;
+			border-radius: 4px;
+			font-weight: 600;
+			text-transform: uppercase;
+			font-family: 'Rajdhani', sans-serif;
+			font-size: 0.9rem;
+		}
+
+		.legal-link:hover {
+			background-color: #FFD600;
+		}
+
+		footer {
+			margin-top: 3rem;
+			padding-top: 2rem;
+			border-top: 1px solid #333;
+			text-align: center;
+			color: #999;
+			font-size: 0.9rem;
+		}
+
+		.back-link {
+			display: inline-block;
+			margin-top: 2rem;
+			padding: 0.75rem 1.5rem;
+			background-color: #E53935;
+			color: #0B0F1A;
+			text-decoration: none;
+			border: none;
+			border-radius: 4px;
+			font-weight: 600;
+			text-transform: uppercase;
+			font-family: 'Rajdhani', sans-serif;
+		}
+
+		.back-link:hover {
+			background-color: #FFD600;
+		}
+
+		@media (max-width: 768px) {
+			body {
+				padding: 1rem;
+			}
+
+			h1 {
+				font-size: 1.8rem;
+			}
+
+			.legal-links {
+				grid-template-columns: 1fr;
+				gap: 1.5rem;
+			}
+
+			.legal-card {
+				padding: 1.5rem;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<header>
+			<h1>Legal</h1>
+			<p class="tagline">Midway Mayhem: Clown Car Chaos</p>
+		</header>
+
+		<main>
+			<h2>Legal Documents</h2>
+			<p style="margin-bottom: 2rem; color: #CCC;">Midway Mayhem operates with complete transparency. Our legal documents are straightforward because our game is straightforward.</p>
+
+			<div class="legal-links">
+				<div class="legal-card">
+					<h3>Privacy Policy</h3>
+					<p>Learn what we collect (nothing), how your data is stored (locally only), and why your privacy is safe by design.</p>
+					<a href="../privacy.html" class="legal-link">Read Policy</a>
+				</div>
+
+				<div class="legal-card">
+					<h3>Terms of Service</h3>
+					<p>Understand the license, disclaimers, limitations of liability, and your rights when using Midway Mayhem.</p>
+					<a href="../terms.html" class="legal-link">Read Terms</a>
+				</div>
+			</div>
+
+			<h2 style="margin-top: 3rem; font-size: 1.2rem; color: #FFD600; text-transform: none;">Additional Information</h2>
+			<ul style="margin-left: 2rem; margin-bottom: 2rem;">
+				<li style="margin-bottom: 1rem;">Midway Mayhem is released under the <strong>MIT License</strong></li>
+				<li style="margin-bottom: 1rem;">Source code is available at <a href="https://github.com/arcade-cabinet/midway-mayhem">github.com/arcade-cabinet/midway-mayhem</a></li>
+				<li style="margin-bottom: 1rem;">No personal data is collected, stored on servers, or transmitted</li>
+				<li>Fully compliant with COPPA (Children's Online Privacy Protection Act)</li>
+			</ul>
+
+			<center>
+				<a href="../" class="back-link">Back to Game</a>
+			</center>
+		</main>
+
+		<footer>
+			<p>&copy; 2026 Arcade Cabinet. All rights reserved. Midway Mayhem is released under the MIT License.</p>
+		</footer>
+	</div>
+</body>
+</html>
