@@ -91,19 +91,34 @@ The player spends 100% of the game looking from inside the cockpit. Design decis
 
 ## Zone progression
 
-Zones cycle every ~450 track-metres. Each zone has a distinct sensory identity:
+Zones cycle every ~450 track-metres. Each zone has a completely distinct visual identity — lighting, fog, shoulder props, and ground colour all change simultaneously so the player knows which zone they are in without reading the banner.
 
-### 1. The Midway Strip
-The entry zone. Warm amber light, carousel waltz phrase grammar, red-and-white striped arches overhead. Obstacles: sawhorses, cone clusters. Crowd: excited, expectant.
+| Zone | Distance | Sky | Ambient | Fog | Shoulder props |
+|---|---|---|---|---|---|
+| Midway Strip | 0–450m | Orange (#F36F21 bottom) | Warm yellow (#FFD600) | Thin orange | Striped red/white tent cones |
+| Balloon Alley | 450–900m | Hot-pink/purple (#FF2D87 bottom) | Brand red (#E53935) | Purple (#8E24AA) | Floating pink + purple spheres |
+| Ring of Fire | 900–1350m | Near-black with red glow | Red (#E53935), low | Dense dark red (#3D0800) | Emissive orange fire-ring toruses on posts |
+| Funhouse Frenzy | 1350–1800m | Near-black with purple (#8E24AA) | Blue (#1E88E5), very dim | Heavy purple, density 0.009 | Strobing reflective mirror panels |
 
-### 2. Balloon Alley
-Pastel sky transitions in. Balloon clusters flank the track. Gates force precision threading. Music: playful, slightly building. Crowd: engaged, calling out misses.
+### 1. The Midway Strip (zone 0)
+Warm orange daylight. Yellow key-light from above. Thin fog so sight-lines are long. Striped red/white carnival tent cones line both shoulders. Ground: dark canvas red. Obstacles: sawhorses, cone clusters. Crowd: excited, expectant.
 
-### 3. Ring of Fire
-Deep red lighting, heat shimmer post-fx. Hammer hazards swing across lanes with exact timing windows. Fire hoops at regular intervals. Music: tense, driving. Crowd: gasping, roaring. No forgiveness — graze a ring and you lose SANITY.
+**Visual signature:** Bright, warm, open. Orange everywhere.
 
-### 4. Funhouse Frenzy
-Strobing neon, mirror layer duplicating the scene. Highest obstacle density. Track markings distort. Music: chaotic, maximum energy. Crowd: frenzy. SANITY drain accelerates.
+### 2. Balloon Alley (zone 1)
+Hot-pink/purple sky. Soft pink directional light from straight above. Floating sphere balloons — alternating brand pink (#FF2D87) and purple (#8E24AA) — bob gently at varied heights beside the track. Ground goes dark purple. Music: playful, slightly building. Crowd: engaged, calling out misses.
+
+**Visual signature:** Pink-purple canopy of balloons above and beside you.
+
+### 3. Ring of Fire (zone 2)
+Near-black sky bleeding into deep red. Ground goes almost black (#1A0000). Very thick dark-red fog — sight-lines cut short, oppressive. Emissive orange torus rings (#F36F21, emissiveIntensity 2.0) mounted on dark posts flank the track. Key-light is orange from below-front, giving everything a fire-cast glow. Hammer hazards swing at timing windows. No forgiveness — graze a ring and you lose SANITY.
+
+**Visual signature:** Dark, orange-lit, everything on fire.
+
+### 4. Funhouse Frenzy (zone 3)
+Near-black with purple bottom glow. Heaviest fog (density 0.009) — you can barely see ahead. Flat reflective mirror panels (#1E88E5 tint, metalness 0.95) line both shoulders, strobing on a 4Hz square wave (65% on, 35% off). Pink fill-light at high intensity pulses the scene. Ground is near-black with purple tint. Highest obstacle density. SANITY drain accelerates.
+
+**Visual signature:** Dark strobing mirrors. You cannot see far. Nothing is real.
 
 ---
 

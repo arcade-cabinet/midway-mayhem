@@ -104,6 +104,16 @@ wireDiagnosticsHooks({
   },
 });
 
+/**
+ * Inner component — reads zone inside WorldProvider so the hook has access
+ * to the koota world context. Passes zone to BigTopEnvironment so lights
+ * and ground colour crossfade to the per-zone palette.
+ */
+function ZoneEnvironment({ night }: { night: boolean }) {
+  const zone = useGameStore((s) => s.currentZone);
+  return <BigTopEnvironment night={night} zone={zone} />;
+}
+
 /** URL flag: `?preserve=1` opts into `gl.preserveDrawingBuffer: true`,
  * which is needed by the vitest-browser tests that call
  * `canvas.toDataURL()` directly (MidRunVisualBaseline, etc). In prod
@@ -179,7 +189,7 @@ export function App() {
             <ambientLight intensity={0.45} color="#ffd6a8" />
             <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
             <Suspense fallback={null}>
-              <BigTopEnvironment night={night} />
+              <ZoneEnvironment night={night} />
               <ZoneProps />
             </Suspense>
             <TrackScroller>
