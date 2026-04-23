@@ -132,3 +132,62 @@ describe('stopDuckingLoop', () => {
     expect(() => stopDuckingLoop()).not.toThrow();
   });
 });
+
+describe('duckMusicBus (PRQ C1 hard-duck)', () => {
+  it('is a no-op when buses are not yet initialized', async () => {
+    const { duckMusicBus } = await freshModule();
+    // No throw — silently no-ops if buses aren't ready.
+    expect(() => duckMusicBus(180)).not.toThrow();
+  });
+
+  it('ramps musicBus.volume down then restores after durationMs', async () => {
+    vi.useFakeTimers();
+    const { initBuses, duckMusicBus, isHardDuckActive, stopDuckingLoop } = await freshModule();
+    const b = initBuses();
+    stopDuckingLoop();
+
+    const rampTo = vi.spyOn(b.musicBus.volume, 'rampTo');
+
+    duckMusicBus(180);
+
+    // First ramp: duck down
+    expect(rampTo).toHaveBeenCalledWith(expect.any(Number), 0.02);
+    expect(isHardDuckActive()).toBe(true);
+
+    vi.advanceTimersByTime(180);
+
+    // After duration, hard duck should be released and volume restored.
+    expect(isHardDuckActive()).toBe(false);
+    // Restore ramp called with short attack
+    expect(rampTo).toHaveBeenLastCalledWith(expect.any(Number), 0.05);
+
+    vi.useRealTimers();
+  });
+
+  it('isHardDuckActive returns false before any duck', async () => {
+    const { isHardDuckActive } = await freshModule();
+    expect(isHardDuckActive()).toBe(false);
+  });
+
+  it('cancels an in-flight duck when a second duck arrives', async () => {
+    vi.useFakeTimers();
+    const { initBuses, duckMusicBus, isHardDuckActive, stopDuckingLoop } = await freshModule();
+    initBuses();
+    stopDuckingLoop();
+
+    duckMusicBus(400);
+    expect(isHardDuckActive()).toBe(true);
+
+    // Second duck arrives before first expires
+    vi.advanceTimersByTime(100);
+    duckMusicBus(400);
+
+    // Still ducked
+    expect(isHardDuckActive()).toBe(true);
+
+    vi.advanceTimersByTime(400);
+    expect(isHardDuckActive()).toBe(false);
+
+    vi.useRealTimers();
+  });
+});

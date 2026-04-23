@@ -147,6 +147,7 @@ export function TrackScroller({ children }: { children: ReactNode }) {
       meshesRendered,
       cameraPos: cameraPosTuple,
       worldScrollerPos: worldScrollerPosTuple,
+      currentPiecePitch: p.pitch,
     });
   });
 

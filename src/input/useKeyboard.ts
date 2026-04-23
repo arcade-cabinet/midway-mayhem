@@ -7,19 +7,26 @@
  * the audio layer can fire tones without polling.
  *
  * Key bindings (WASD + arrows, space = horn, Q/E/R = tricks):
- *   ArrowLeft / A        Steer left
- *   ArrowRight / D       Steer right
- *   ArrowUp / W          Throttle up
- *   ArrowDown / S        Brake
- *   Space                Honk (onHorn edge-trigger)
- *   Q                    Left barrel roll (left-left trick sequence)
- *   E                    Right barrel roll (right-right trick sequence)
- *   R                    Backflip (up-up trick sequence)
+ *   ArrowLeft / A            Steer left  (continuous analogue)
+ *   ArrowRight / D           Steer right (continuous analogue)
+ *   Shift+ArrowLeft          Discrete lane change: one lane left
+ *   Shift+ArrowRight         Discrete lane change: one lane right
+ *   ArrowUp / W              Throttle up
+ *   ArrowDown / S            Brake
+ *   Space                    Honk (onHorn edge-trigger)
+ *   Q                        Left barrel roll (left-left trick sequence)
+ *   E                        Right barrel roll (right-right trick sequence)
+ *   R                        Backflip (up-up trick sequence)
+ *
+ * Design decision: bare Arrow keys remain continuous so a desktop player
+ * using keyboard can hold-steer around curves. SHIFT+Arrow fires the discrete
+ * lane-change model (same as mobile swipe) — an explicit opt-in that makes
+ * lane-snapping reachable from desktop without removing analogue steering.
  */
 
 import type { World } from 'koota';
 import { useEffect } from 'react';
-import { Player, RunSession, Steer, Throttle } from '@/ecs/traits';
+import { Lane, LaneCount, Player, RunSession, Steer, Throttle } from '@/ecs/traits';
 import { pause, resume } from '@/game/gameState';
 import { trickInputBus } from '@/game/trickInputBus';
 
@@ -49,8 +56,30 @@ export function useKeyboard({ world, onHorn, enabled = true }: UseKeyboardOption
       });
     };
 
+    const fireLaneChange = (delta: -1 | 1) => {
+      world.query(Player, Lane, LaneCount).updateEach(([lane, laneCount]) => {
+        lane.target = Math.max(0, Math.min(laneCount.value - 1, lane.target + delta));
+      });
+    };
+
     const handleDown = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
+
+      // SHIFT+Arrow = discrete lane change (same model as mobile swipe).
+      // Handled before the continuous steer block so we can early-return.
+      if (e.shiftKey && !e.repeat) {
+        if (e.key === 'ArrowLeft') {
+          fireLaneChange(-1);
+          e.preventDefault();
+          return;
+        }
+        if (e.key === 'ArrowRight') {
+          fireLaneChange(1);
+          e.preventDefault();
+          return;
+        }
+      }
+
       const codes: Record<string, string> = {
         arrowleft: 'left',
         a: 'left',
