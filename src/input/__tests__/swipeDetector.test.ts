@@ -12,13 +12,13 @@
  *  - Extreme velocity + distance → accepted
  */
 import { describe, expect, it } from 'vitest';
+import type { SwipePoint } from '../swipeDetector';
 import {
+  detectSwipe,
   SWIPE_MAX_ANGLE_DEG,
   SWIPE_MIN_DIST_PX,
   SWIPE_MIN_VELOCITY_PX_MS,
-  detectSwipe,
 } from '../swipeDetector';
-import type { SwipePoint } from '../swipeDetector';
 
 function pt(clientX: number, clientY: number, timeStamp: number, pointerId = 1): SwipePoint {
   return { pointerId, clientX, clientY, timeStamp };
