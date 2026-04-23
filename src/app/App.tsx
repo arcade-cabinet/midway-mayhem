@@ -36,6 +36,7 @@ import { ExplosionFX } from '@/render/cockpit/ExplosionFX';
 import { HonkContext } from '@/render/cockpit/HonkContext';
 import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
+import { Audience } from '@/render/env/Audience';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
 import { BarkerCrowd } from '@/render/obstacles/BarkerCrowd';
@@ -181,6 +182,8 @@ export function App() {
             <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
             <Suspense fallback={null}>
               <BigTopEnvironment night={night} />
+              {/* Crowd silhouettes — world-static, outside TrackScroller */}
+              <Audience />
               <ZoneProps />
             </Suspense>
             <TrackScroller>
