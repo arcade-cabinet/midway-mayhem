@@ -20,6 +20,7 @@
     "test": "vitest run",
     "test:node": "vitest run --project node",
     "audit:bundle": "pnpm build && node -e \"const fs=require('fs'),p=require('path');const d='dist/assets';if(!fs.existsSync(d)){console.log('no dist/assets — skipping');process.exit(0)}const f=fs.readdirSync(d).filter(x=>x.endsWith('.js')).map(x=>({x,s:fs.statSync(p.join(d,x)).size}));const t=f.reduce((a,b)=>a+b.s,0);console.log('JS bundle total:',(t/1024).toFixed(1),'KB');f.sort((a,b)=>b.s-a.s).slice(0,5).forEach(e=>console.log(' ',(e.s/1024).toFixed(1)+'KB',e.x));const BUDGET=3*1024*1024;if(t>BUDGET){console.error('bundle exceeds',BUDGET/1024/1024,'MB');process.exit(1)}\"",
+    "audit:perf": "tsx scripts/audit-perf.ts",
     "copywasm": "node -e \"const fs=require('fs'),p=require('path');const files=['sql-wasm.wasm','sql-wasm-browser.wasm'];for(const dir of [p.join('public'),p.join('public','assets')]){fs.mkdirSync(dir,{recursive:true});for(const f of files){fs.copyFileSync(require.resolve('sql.js/dist/'+f),p.join(dir,f));}}console.log('copied',files.join(' + '),'→ public/ + public/assets/')\"",
     "predev": "pnpm copywasm",
     "prebuild": "pnpm copywasm",
