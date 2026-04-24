@@ -18,6 +18,16 @@ export function NameOnboardingModal({ onComplete }: { onComplete: (name: string)
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    // E2e hatch: ?nonameonboard=1 disables the first-launch overlay so
+    // nightly specs that navigate on a fresh browser context (no OPFS
+    // prefs yet) can reach the title UI without having to script past a
+    // full-screen modal on every spec. Production UX is unchanged.
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('nonameonboard') === '1' || params.get('autoplay') === '1') {
+        return;
+      }
+    }
     let cancelled = false;
     (async () => {
       const existing = await prefGetString(PREF_KEYS.PLAYER_NAME);
