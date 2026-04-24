@@ -81,3 +81,4 @@ public/sql-wasm.wasm
 public/sql-wasm-browser.wasm
 public/assets/sql-wasm.wasm
 public/assets/sql-wasm-browser.wasm
+perf-budget.json
