@@ -85,10 +85,16 @@ test.describe('governor playthrough', () => {
     await page.goto('/midway-mayhem/?nonameonboard=1');
     await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 20_000 });
 
-    await page.getByTestId('start-button').click();
-    await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 10_000 });
+    // force: true because the R3F canvas behind the title animates on
+    // every frame — Playwright's default actionability stability check
+    // never decides the button is "stable" and either times out or
+    // silently drops the click. The canvas is visibly underneath
+    // (elementFromPoint confirms start-button is on top), so forcing the
+    // click is safe and reliable here.
+    await page.getByTestId('start-button').click({ force: true });
+    await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 15_000 });
 
-    // PLAY button inside the modal
+    // PLAY button inside the modal (not covered by the animated canvas).
     await page.getByTestId('new-run-play').click();
 
     // Title should be gone
