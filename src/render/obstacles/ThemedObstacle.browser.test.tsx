@@ -18,9 +18,9 @@
  * ThemedCritter) with static inputs so screenshots are deterministic.
  */
 import { render, waitFor } from '@testing-library/react';
-import { commands } from 'vitest/browser';
 import { Suspense } from 'react';
 import { describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { renderAndCapture, Scene, waitFrames } from '@/test/scene';
 import { StaticObstacle, ThemedCritter, ThemedHammer } from './ThemedObstacle';
 

@@ -9,12 +9,12 @@
  */
 import { Canvas, useThree } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
-import { commands } from 'vitest/browser';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { Cockpit } from './Cockpit';
 import type { FormTier } from './useFormFactor';
