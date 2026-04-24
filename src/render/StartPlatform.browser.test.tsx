@@ -25,7 +25,7 @@ import { buildRunPlan } from '@/game/runPlan';
 import { setPlan } from '@/game/runPlanRefs';
 import { initRunRng, trackRng } from '@/game/runRngBus';
 import { PLATFORM_Y, StartPlatform } from '@/render/track/StartPlatform';
-import { renderAndCapture, Scene, waitFrames } from '@/test/scene';
+import { renderAndCapture, renderAndCountTriangles, Scene } from '@/test/scene';
 
 const SEED = 42;
 
@@ -56,13 +56,20 @@ describe('StartPlatform — visual elevation baseline', () => {
     );
 
     await waitFor(() => expect(window.__mmTest).toBeTruthy(), { timeout: 10_000 });
-    await waitFrames(8);
+    // Poll for real geometry — useSampledTrack() is async on the ECS query,
+    // so the platform is empty for the first few frames after mount.
+    await waitFor(
+      () => {
+        const tris = renderAndCountTriangles();
+        if (tris < 50) throw new Error(`platform not yet rendered (${tris} tris)`);
+      },
+      { timeout: 10_000, interval: 50 },
+    );
 
-    const gl = window.__mmTest!.gl;
     // Wire struts + deck + trim blocks + sign should produce a meaningful
     // triangle count. The deck alone is 12 tris, each strut ~16, trim ~many.
     expect(
-      gl.info.render.triangles,
+      renderAndCountTriangles(),
       'expected platform geometry to produce non-trivial triangle count',
     ).toBeGreaterThan(50);
 

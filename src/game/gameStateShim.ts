@@ -77,7 +77,11 @@ function snapshotsDiffer(a: GameStateSnapshot, b: GameStateSnapshot): boolean {
     a.cleanliness !== b.cleanliness ||
     a.lateral !== b.lateral ||
     a.steer !== b.steer ||
-    a.throttle !== b.throttle
+    a.throttle !== b.throttle ||
+    // plan is a module-state reference set by runPlanRefs — its identity
+    // changes once per run start, which is what components like StartPlatform
+    // subscribe to.
+    a.plan !== b.plan
   );
 }
 
