@@ -9,6 +9,15 @@ domain: technical
 
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
+## [0.2.4](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.3...midway-mayhem-v0.2.4) (2026-04-24)
+
+
+### Fixed
+
+* **e2e:** adopt ?nonameonboard=1 in nightly specs + optimize stability-soak ([#292](https://github.com/arcade-cabinet/midway-mayhem/issues/292)) ([3136c93](https://github.com/arcade-cabinet/midway-mayhem/commit/3136c93e6ddd9f18281e2b15091b0ef25fe2d6e9))
+* **e2e:** scale stability-soak fps + distance thresholds for CI swiftshader ([#289](https://github.com/arcade-cabinet/midway-mayhem/issues/289)) ([87fb4e7](https://github.com/arcade-cabinet/midway-mayhem/commit/87fb4e756edfa49d7b9de112b2c0f951f4c97d42))
+* **ui:** NameOnboardingModal respects ?autoplay=1 (unblock nightly specs) ([#290](https://github.com/arcade-cabinet/midway-mayhem/issues/290)) ([e8cdada](https://github.com/arcade-cabinet/midway-mayhem/commit/e8cdada7e2e9eb00c57dac5bdc33219ddf3aec52))
+
 ## [0.2.3](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.2...midway-mayhem-v0.2.3) (2026-04-24)
 
 
