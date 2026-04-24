@@ -1,6 +1,6 @@
 {
   "name": "midway-mayhem",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Midway Mayhem: Clown Car Chaos — cockpit-perspective arcade driver",
   "type": "module",
