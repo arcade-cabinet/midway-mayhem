@@ -1,6 +1,6 @@
 ---
 title: CHANGELOG — Midway Mayhem
-updated: 2026-04-20
+updated: 2026-04-23
 status: current
 domain: technical
 ---
@@ -10,6 +10,69 @@ domain: technical
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
+
+### Added — 2026-04-23 descent landing + audio + polish (PRs 230–275)
+
+**Track + environment**
+- A-DESC-1 shaped descent coil (zone-weighted archetypes, ±0.06 rad clamp, ~37m total descent) (PR 230)
+- A-DESC-2 StartPlatform hung 30m above track with visible wires to dome cap (PR 237)
+- A-DESC-3 FinishBanner 60×60m B&W race-line clamped to dome floor (PR 230)
+- A-DESC-4 cockpit pitch-look-down hook (0.4× track pitch, 2Hz smoothing) (PR 242)
+- A-DESC-5 2000 InstancedMesh crowd silhouettes in dome bleachers (PR 247)
+- A-TRACK-SEAMS bank LERP — closes up to 3.48m torn-slab gaps (PR 230)
+- A-TRACK-PITCH-SMOOTH smoothstep easing on deltaPitch (PR 246)
+- A-TRACK-MAT PolyHaven weathered brown planks PBR (PR 241)
+- A-TRACK-VIS-ARCH 16 per-archetype baselines (8 × 2 angles) (PR 230)
+- A-ZONE-VIS per-zone identity (Midway/Balloon/Ring of Fire/Funhouse) (PR 249)
+- A-DECOR triangle-pennant bunting between rafters + dome cap (PR 258)
+- A-OBS themed Kenney GLB obstacles — zero raw boxes remain (PR 244)
+
+**Cockpit**
+- Blueprint structural-integrity tests (9 data-layer invariants) (PR 230)
+- Per-element visual battery (6 isolated captures) (PR 230)
+- A-pillar vertical fix (cylinder stood up from flat-along-Z) (PR 230)
+- Steering column connects wheel hub ↔ dashCowl mount (PR 267)
+- DashCowl DoubleSide so polka-dot pattern reads from driver POV (PR 267)
+- SeatPiping horizontal across seat back (PR 267)
+
+**Gameplay**
+- B1 6-step tutorial + drop-in intro (PR 251)
+- B3 discrete swipe → lane-change (replaces continuous drag) (PR 238)
+- D4 Watch Ghost replay UI + playback controls (PR 262)
+
+**Audio**
+- C1 music fade-in + sidechain ducking on honk/crash (PR 245)
+- C-DESCENT-AMBIENCE 12-section Tone.Panner3D crowd swell √t (PR 245, PR 269)
+- C2 per-zone SFX palette (4 honk variants + balloonPop/ticketDing/trickWhoosh/plungeSwoosh/crashThud) (PR 269)
+- C4 music stingers on zone transition, 1000m milestone, run clear (PR 269)
+
+**Ship + compliance**
+- F2 procedural app icon + multi-size generator (24 sizes: iOS + Android) (PR 234)
+- F3 5 store screenshots per platform via Playwright governor (PR 257)
+- F5 privacy + terms static pages (COPPA-safe) (PR 240)
+- Docs parity with `mean-streets` (7 files) (PR 236)
+- 83-baseline index at `docs/VISUAL_BASELINES.md` (PR 274)
+
+**Testing + CI**
+- E1 stability soak (@nightly): 5-min autoplay no-fatal (PR 248)
+- E3 Android emulator perf soak (@android-perf): p95 fps ≥ 40 (PR 268)
+- H1 visual matrix × 4 form factors: 32 baselines (PR 260)
+- H3 pixel-exact cockpit diff on deterministic region (PR 259)
+- @mechanics gate (@nightly): distance/fps/combo/zone/HUD alive (PR 272, 275)
+- @journey gate (@nightly): full UI transition path (PR 273, 275)
+- Perf budget CI: gzipped critical < 2MB (current 729KB / 36% of budget) (PR 243, 270)
+
+### Security — 2026-04-23
+
+- `@xmldom/xmldom` pnpm override to ≥0.8.13 closes 3 high-severity XML injection CVEs (PR 239)
+- `googleapis/release-please-action` v4 → v5 (PR 256)
+
+### Fixed — 2026-04-23
+
+- App.tsx split into App + AppInner so WorldProvider wraps all hooks (useTutorialWatcher crashed without useWorld context) (PR 254)
+- `audit:bundle` now delegates to `audit:perf` (the old 3MB uncompressed gate was flagging every PR) (PR 270)
+- Duplicate `Lane` trait from parallel-merge artifact (PR 252)
+- App.browser.test pixel assertion: 9-probe grid instead of single center (PR 267)
 
 ### Added — 2026-04-20 polish + PRQ execution (PRs 208–219)
 
