@@ -19,8 +19,8 @@
  */
 import { expect, test } from '@playwright/test';
 
-test.describe('golden journey — full UI transition path @journey', () => {
-  test('title → NEW RUN → play → game-over overlay', async ({ page }) => {
+test.describe('golden journey — full UI transition path @journey @nightly', () => {
+  test('title → NEW RUN → play → game-over overlay @nightly', async ({ page }) => {
     test.setTimeout(120_000);
 
     // 1. Land at title (no autoplay flag).

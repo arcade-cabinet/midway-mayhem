@@ -47,8 +47,8 @@ async function readDiag(page: import('@playwright/test').Page): Promise<DiagSnap
   return result;
 }
 
-test.describe('mechanics gate — core loop observably alive @mechanics', () => {
-  test('autoplay run produces: distance, score, zone transition, combo tick, fps', async ({
+test.describe('mechanics gate — core loop observably alive @mechanics @nightly', () => {
+  test('autoplay run produces: distance, score, zone transition, combo tick, fps @nightly', async ({
     page,
   }) => {
     test.setTimeout(90_000);
