@@ -6,6 +6,7 @@
  * Writes profile best, lifetime stats, and checks achievements.
  * All errors are routed through errorBus so nothing is silently swallowed.
  */
+import { playClearStinger } from '@/audio/stingers';
 import { reportError } from '@/game/errorBus';
 import { checkRunAchievements } from '@/persistence/achievements';
 import { getStats, recordRun as recordLifetimeRun } from '@/persistence/lifetimeStats';
@@ -28,6 +29,11 @@ export interface RunEndSummary {
  * Called at run-end — does NOT mutate any ECS traits.
  */
 export function persistRunEnd(s: RunEndSummary): void {
+  // C4: fire the run-clear stinger immediately (before async persistence)
+  // so it plays at the moment of game-over, not after DB writes complete.
+  if (!s.plunged) {
+    playClearStinger();
+  }
   const secondsPlayed = s.startedAt > 0 ? (performance.now() - s.startedAt) / 1000 : 0;
   // Ticket economy: balloons popped this run translate 1:1 to profile tickets
   // the player can spend in the shop. Every balloon = 1 ticket, deterministic.

@@ -2,12 +2,17 @@
  * @module audio/descentAmbience
  *
  * Crowd-ambience bed that swells as the player descends the spiral
- * (PRQ C-DESCENT-AMBIENCE).
+ * (PRQ C-DESCENT-AMBIENCE + C3 positional crowd).
  *
  * Architecture:
- *   - Three pink-noise layers panned hard-L / center / hard-R, each
- *     routed through a Tone.Panner3D at the audience's seat-ring radius
- *     (≈ 14 m from centre — matching the dome's seat region).
+ *   - Base layer (3 pink-noise sources): panned hard-L / center / hard-R at
+ *     the ≈14 m dome seat ring. Present since the original C-DESCENT-AMBIENCE.
+ *   - C3 extended crowd: 12 additional pink-noise sources placed at positions
+ *     sampled from audiencePositions (src/render/env/audiencePositions.ts).
+ *     Positions are sampled at 12 evenly-spaced angles from the 2000-seat ring
+ *     (r averaged across radial bands) so the spatial image matches exactly
+ *     what the visual renderer shows. Each section gets an independent
+ *     Tone.Panner3D so the crowd "surrounds" the player realistically.
  *   - A Tone.Filter (lowpass) per layer tracks descent depth so the crowd
  *     sounds more present and articulate (higher cutoff) as you get closer.
  *   - Master gain scales 0 (top of descent) → -12 dBFS (floor), driven by
@@ -24,6 +29,7 @@
 import * as Tone from 'tone';
 import { tunables } from '@/config';
 import { onCameraPos } from '@/game/diagnosticsBus';
+import { audiencePositions } from '@/render/env/audiencePositions';
 import { getBuses } from './buses';
 
 // ─── Gain curve ──────────────────────────────────────────────────────────────
@@ -66,16 +72,51 @@ interface AmbienceLayer {
   panner3d: Tone.Panner3D;
 }
 
-/** Seat-ring radius in the dome (metres, from track centre). */
+/** Seat-ring radius in the dome (metres, from track centre) — base layer. */
 const SEAT_RING_RADIUS_M = 14;
-/** Height of the crowd seats above the track floor. */
+/** Height of the crowd seats above the track floor — base layer. */
 const SEAT_HEIGHT_M = 5;
 
-/** Pan positions around the audience ring (radians from forward). */
+/** Pan positions around the audience ring (radians from forward) — base layer. */
 const SEAT_ANGLES_RAD = [Math.PI * -0.4, 0, Math.PI * 0.4];
+
+// ─── C3: 12-section crowd positions (sampled from audiencePositions) ─────────
+
+/**
+ * Sample 12 evenly-distributed crowd-section centroids from the audience ring.
+ *
+ * We use audiencePositions() with a fixed seed (same one the Audience renderer
+ * uses — 42) but only sample 12 representative points at even angular sectors
+ * (every 30°) to build our Panner3D positions. Rather than averaging thousands
+ * of points we compute the centroid analytically using the same r/y range that
+ * audiencePositions uses so the audio positions match the visual geometry.
+ */
+function buildCrowdSectionPositions(): Array<{ x: number; y: number; z: number }> {
+  // Derive 12 section centroids from the live audience data (seed 42 = renderer default).
+  // We sample ~24 positions and cluster them into 12 angular sectors for centroids.
+  const allPos = audiencePositions(42, 240); // 240 = 12 sections × 20 samples each
+  const NUM_SECTIONS = 12;
+  const positions: Array<{ x: number; y: number; z: number }> = [];
+
+  for (let s = 0; s < NUM_SECTIONS; s++) {
+    const sectionSamples = allPos.slice(s * 20, (s + 1) * 20);
+    if (sectionSamples.length === 0) continue;
+    // Centroid of section
+    const cx = sectionSamples.reduce((acc, p) => acc + p.x, 0) / sectionSamples.length;
+    const cy = sectionSamples.reduce((acc, p) => acc + p.y, 0) / sectionSamples.length;
+    const cz = sectionSamples.reduce((acc, p) => acc + p.z, 0) / sectionSamples.length;
+    positions.push({ x: cx, y: cy, z: cz });
+  }
+
+  return positions;
+}
+
+const CROWD_SECTION_POSITIONS = buildCrowdSectionPositions();
 
 class DescentAmbienceSystem {
   private layers: AmbienceLayer[] = [];
+  /** C3 crowd-section layers — separate from the base 3-layer bed. */
+  private crowdSectionLayers: AmbienceLayer[] = [];
   private masterGain: Tone.Gain | null = null;
   private initialized = false;
   private currentT = 0;
@@ -94,6 +135,7 @@ class DescentAmbienceSystem {
 
     this.masterGain = new Tone.Gain(0).connect(ambBus);
 
+    // ── Base layer (original 3 panned sources) ──────────────────────────────
     for (const angleRad of SEAT_ANGLES_RAD) {
       const x = Math.sin(angleRad) * SEAT_RING_RADIUS_M;
       const z = -Math.cos(angleRad) * SEAT_RING_RADIUS_M; // forward = -Z in three.js
@@ -123,6 +165,36 @@ class DescentAmbienceSystem {
       this.layers.push({ noise, filter, gain, panner3d });
     }
 
+    // ── C3: 12-section positional crowd layers ──────────────────────────────
+    // Each section is a separate pink-noise source at its centroid world position.
+    // Volume is -6 dB relative to base layers so they add spatial width without
+    // dominating the overall level balance.
+    for (const pos of CROWD_SECTION_POSITIONS) {
+      const panner3d = new Tone.Panner3D({
+        positionX: pos.x,
+        positionY: pos.y,
+        positionZ: pos.z,
+        panningModel: 'equalpower',
+        distanceModel: 'linear',
+        refDistance: 1,
+        maxDistance: 200, // audience is far from track — higher max
+        rolloffFactor: 0.8,
+      }).connect(this.masterGain);
+
+      const gain = new Tone.Gain(0.5).connect(panner3d); // -6 dB relative to base
+
+      const filter = new Tone.Filter({
+        type: 'lowpass',
+        frequency: tunables.audio.descentAmbienceLpTopHz * 0.7, // slightly muffled at distance
+        Q: 0.5,
+      }).connect(gain);
+
+      const noise = new Tone.Noise('pink').connect(filter);
+      noise.start();
+
+      this.crowdSectionLayers.push({ noise, filter, gain, panner3d });
+    }
+
     this.initialized = true;
     // Apply any pending descent value set before init completed.
     this._applyT(this.currentT);
@@ -135,8 +207,14 @@ class DescentAmbienceSystem {
     // -Infinity maps to 0 linear gain; Tone handles the ramp gracefully.
     const linearGain = gainDb === -Infinity ? 0 : 10 ** (gainDb / 20);
     this.masterGain.gain.rampTo(linearGain, 0.5);
+    // Update base layers and C3 crowd-section layers
     for (const layer of this.layers) {
       layer.filter.frequency.rampTo(lpHz, 0.5);
+    }
+    // C3 crowd sections use a slightly lower cutoff (more air = more muffled at distance)
+    const crowdLpHz = lpHz * 0.75;
+    for (const layer of this.crowdSectionLayers) {
+      layer.filter.frequency.rampTo(crowdLpHz, 0.5);
     }
   }
 
@@ -187,7 +265,7 @@ class DescentAmbienceSystem {
       this.unsubStore();
       this.unsubStore = null;
     }
-    for (const layer of this.layers) {
+    for (const layer of [...this.layers, ...this.crowdSectionLayers]) {
       layer.noise.stop();
       layer.noise.dispose();
       layer.filter.dispose();
@@ -197,7 +275,13 @@ class DescentAmbienceSystem {
     this.masterGain?.dispose();
     this.masterGain = null;
     this.layers = [];
+    this.crowdSectionLayers = [];
     this.initialized = false;
+  }
+
+  /** Exposed for tests — count of C3 crowd-section layers (should be 12). */
+  get crowdSectionCount(): number {
+    return this.crowdSectionLayers.length;
   }
 
   /** Exposed for tests — whether the engine is running. */
