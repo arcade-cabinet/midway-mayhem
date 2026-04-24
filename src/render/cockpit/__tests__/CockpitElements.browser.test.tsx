@@ -95,8 +95,10 @@ const ELEMENTS: ElementView[] = [
       'flowerPetal6',
       'flowerPetal7',
     ],
-    cameraPos: [0.9, 1.3, 0.5],
-    target: [0, 0.6, -1.5],
+    // Moved camera much closer (~1m) so 0.09m petals are clearly readable.
+    // Old: cameraPos [0.9, 1.3, 0.5], target [0, 0.6, -1.5] — 3.1m to flower → tiny petals.
+    cameraPos: [0, 1.3, -1.5],
+    target: [0, 0.95, -2.6],
   },
   {
     id: 'mirror-dice',
