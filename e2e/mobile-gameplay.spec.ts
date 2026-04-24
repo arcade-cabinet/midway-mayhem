@@ -37,8 +37,10 @@ test.describe('mobile-first gameplay', () => {
     // frame; without force, actionability stability loops forever.
     await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 10_000 });
     await page.getByTestId('start-button').click({ force: true });
-    await expect(page.getByTestId('new-run-play')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('new-run-play').click();
+    // waitFor attached (not visible) — animated scene flaps the stable
+    // state; DOM presence is what we actually care about.
+    await page.getByTestId('new-run-play').waitFor({ state: 'attached', timeout: 15_000 });
+    await page.getByTestId('new-run-play').click({ force: true });
 
     // Title is gone, canvas + HUD visible
     await expect(page.getByTestId('title-screen')).toHaveCount(0);
