@@ -10,12 +10,10 @@ import { initAudioBusSafely } from '@/audio/audioBus';
 import type { Difficulty } from '@/game/difficulty';
 import { DEFAULT_DIFFICULTY, DIFFICULTY_PROFILES } from '@/game/difficulty';
 import { reportError } from '@/game/errorBus';
-import { initTutorial } from '@/game/tutorial';
 import { useFormFactor } from '@/hooks/useFormFactor';
 import { useTitleKeyboard } from '@/hooks/useTitleKeyboard';
 import { initDb } from '@/persistence/db';
 import { getProfile } from '@/persistence/profile';
-import { hydrateTutorialFlags } from '@/persistence/tutorial';
 import { AchievementsPanel } from '@/ui/panels/AchievementsPanel';
 import { CreditsPanel } from '@/ui/panels/CreditsPanel';
 import { HowToPlayPanel } from '@/ui/panels/HowToPlayPanel';
@@ -94,11 +92,6 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
         await initDb();
         const p = await getProfile();
         setTickets(p.tickets);
-        // Hydrate tutorial flags from Preferences then initialise the state machine.
-        // Must run after initDb() since hydrateTutorialFlags reads Preferences which
-        // may depend on the platform being ready.
-        await hydrateTutorialFlags();
-        initTutorial();
       } catch (err) {
         reportError(err, 'TitleScreen.loadTickets');
       }
