@@ -40,6 +40,7 @@ import { RacingLineGhost } from '@/render/cockpit/RacingLineGhost';
 import { DropInIntroCamera } from '@/render/DropInIntro';
 import { BigTopEnvironment, isNightFromUrl } from '@/render/Environment';
 import { Audience } from '@/render/env/Audience';
+import { Bunting } from '@/render/env/Bunting';
 import { ZoneProps } from '@/render/env/ZoneProps';
 import { BalloonLayer } from '@/render/obstacles/BalloonLayer';
 import { BarkerCrowd } from '@/render/obstacles/BarkerCrowd';
@@ -200,160 +201,162 @@ function AppInner() {
   }, []);
 
   return (
-        <div
-          data-testid="mm-app"
-          style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
-        >
-          <ErrorModal />
-          <LiveRegion />
-          <Canvas
-            // preserveDrawingBuffer forces a ReadPixels on every frame which
-            // stalls the GPU pipeline — catastrophic on swiftshader CI
-            // runners (observed: autoplay frame rate dropping to ~1 FPS and
-            // distance never incrementing past 0). PhotoMode + debugCapture
-            // re-render synchronously before calling toDataURL instead of
-            // relying on a preserved buffer, so we don't need this flag in
-            // prod. It IS still needed by the vitest-browser visual-baseline
-            // tests that call `canvas.toDataURL()` after a wait — those tests
-            // set `?preserve=1` on the URL to opt back in.
-            gl={{ antialias: true, preserveDrawingBuffer: preserveDrawingBufferFromUrl() }}
-            frameloop="always"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-          >
-            <color attach="background" args={['#0b0f1a']} />
-            <ambientLight intensity={0.45} color="#ffd6a8" />
-            <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
-            <Suspense fallback={null}>
-              <ZoneEnvironment night={night} />
-              {/* Crowd silhouettes — world-static, outside TrackScroller */}
-              <Audience />
-              <ZoneProps />
-            </Suspense>
-            <TrackScroller>
-              <Track />
-              <TrackContent />
-              <ObstacleSystem />
-              <StartPlatform />
-              <FinishBanner />
-              <BalloonLayer />
-              <MirrorLayer />
-              <FireHoopGate />
-              <BarkerCrowd />
-              <ZoneBanners />
-              <GhostCar />
-              <RacingLineGhost />
-            </TrackScroller>
-            <RaidBridge />
-            <RaidLayer />
-            <HonkContext.Provider value={wrappedHorn}>
-              <Cockpit />
-            </HonkContext.Provider>
-            {/* Step-6 tutorial: bird's-eye coil preview → pulls into cockpit POV.
+    <div
+      data-testid="mm-app"
+      style={{ position: 'fixed', inset: 0, background: '#0b0f1a', overflow: 'hidden' }}
+    >
+      <ErrorModal />
+      <LiveRegion />
+      <Canvas
+        // preserveDrawingBuffer forces a ReadPixels on every frame which
+        // stalls the GPU pipeline — catastrophic on swiftshader CI
+        // runners (observed: autoplay frame rate dropping to ~1 FPS and
+        // distance never incrementing past 0). PhotoMode + debugCapture
+        // re-render synchronously before calling toDataURL instead of
+        // relying on a preserved buffer, so we don't need this flag in
+        // prod. It IS still needed by the vitest-browser visual-baseline
+        // tests that call `canvas.toDataURL()` after a wait — those tests
+        // set `?preserve=1` on the URL to opt back in.
+        gl={{ antialias: true, preserveDrawingBuffer: preserveDrawingBufferFromUrl() }}
+        frameloop="always"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      >
+        <color attach="background" args={['#0b0f1a']} />
+        <ambientLight intensity={0.45} color="#ffd6a8" />
+        <directionalLight position={[50, 100, 40]} intensity={1.3} color="#fff1db" />
+        <Suspense fallback={null}>
+          <ZoneEnvironment night={night} />
+          {/* Crowd silhouettes — world-static, outside TrackScroller */}
+          <Audience />
+          {/* Triangle-pennant bunting strung from dome rafters — world-static */}
+          <Bunting />
+          <ZoneProps />
+        </Suspense>
+        <TrackScroller>
+          <Track />
+          <TrackContent />
+          <ObstacleSystem />
+          <StartPlatform />
+          <FinishBanner />
+          <BalloonLayer />
+          <MirrorLayer />
+          <FireHoopGate />
+          <BarkerCrowd />
+          <ZoneBanners />
+          <GhostCar />
+          <RacingLineGhost />
+        </TrackScroller>
+        <RaidBridge />
+        <RaidLayer />
+        <HonkContext.Provider value={wrappedHorn}>
+          <Cockpit />
+        </HonkContext.Provider>
+        {/* Step-6 tutorial: bird's-eye coil preview → pulls into cockpit POV.
                 Active only while tutorial step 6 is in progress. */}
-            {playing && isTutorialActive() && getTutorialStep() === 6 && (
-              <DropInIntroCamera onComplete={onDropInComplete} />
-            )}
-            {/* Clown explosion on game-over — confetti, hearts, stars, flash.
+        {playing && isTutorialActive() && getTutorialStep() === 6 && (
+          <DropInIntroCamera onComplete={onDropInComplete} />
+        )}
+        {/* Clown explosion on game-over — confetti, hearts, stars, flash.
               Self-triggers from the store's gameOver flag; no prop wiring. */}
-            <ExplosionFX />
-            <SpeedLines />
-            <BoostRush />
-            <PostFX />
-            <GameLoop
-              world={world}
-              active={playing}
-              onPickup={(kind) => {
-                dingRef.current();
-                if (kind === 'balloon') void haptic('light');
-                else if (kind === 'mega') void haptic('heavy');
-                else void haptic('medium');
-              }}
-              onObstacle={(kind) => {
-                thudRef.current();
-                // Route crash through the new 3-bus audioBus so the hard-duck
-                // (PRQ C1) fires and the crash stinger plays through the sfxBus.
-                // heavy = true for everything except the gentle oil-slick graze.
-                audioBus.playCrash(0, kind !== 'oil');
-                // Oil slicks feel wobbly, not crashy; everything else thuds.
-                if (kind === 'oil') void haptic('medium');
-                else void haptic('heavy');
-              }}
-              onEnd={(r) => {
-                setEndReason(r);
-                const score = world.query(Player, Score)[0]?.get(Score);
-                if (score) {
-                  void saveScore({
-                    score: score.value,
-                    balloons: score.balloons,
-                    seed: 42,
-                    timestamp: Date.now(),
-                  });
-                }
-                commitGhost(world);
-              }}
-            />
-            <AudioBridge
-              active={playing}
-              onReady={(fns) => {
-                hornRef.current = fns.honk;
-                dingRef.current = fns.ding;
-                thudRef.current = fns.thud;
-              }}
-            />
-            {/* Autonomous driver — active when ?governor=1 or ?autoplay=1 */}
-            <Governor />
-            {/* Debug frame capture — active in DEV or ?diag=1 */}
-            <DebugCaptureBridge />
-          </Canvas>
-          {titleVisible ? (
-            <TitleScreen
-              onStart={(config?: NewRunConfig) => {
-                // Start the run — sets RunSession.running=true, initializes
-                // the run RNG + optimal path + combo + difficulty profile.
-                const store = useGameStore.getState();
-                if (config) {
-                  store.startRun({
-                    seed: config.seed,
-                    difficulty: config.difficulty,
-                    seedPhrase: config.seedPhrase,
-                    permadeath: config.permadeath,
-                  });
-                } else {
-                  // Autoplay-without-config path (keyboard fallback).
-                  store.startRun({ seed: 42, difficulty: 'plenty' });
-                }
-                setTitleVisible(false);
-              }}
-            />
-          ) : (
-            <>
-              <HUD />
-              <PauseButton />
-              <TouchControls world={world} enabled={playing} onHorn={wrappedHorn} />
-              {/* Tutorial overlay — shown during the first run while the
+        <ExplosionFX />
+        <SpeedLines />
+        <BoostRush />
+        <PostFX />
+        <GameLoop
+          world={world}
+          active={playing}
+          onPickup={(kind) => {
+            dingRef.current();
+            if (kind === 'balloon') void haptic('light');
+            else if (kind === 'mega') void haptic('heavy');
+            else void haptic('medium');
+          }}
+          onObstacle={(kind) => {
+            thudRef.current();
+            // Route crash through the new 3-bus audioBus so the hard-duck
+            // (PRQ C1) fires and the crash stinger plays through the sfxBus.
+            // heavy = true for everything except the gentle oil-slick graze.
+            audioBus.playCrash(0, kind !== 'oil');
+            // Oil slicks feel wobbly, not crashy; everything else thuds.
+            if (kind === 'oil') void haptic('medium');
+            else void haptic('heavy');
+          }}
+          onEnd={(r) => {
+            setEndReason(r);
+            const score = world.query(Player, Score)[0]?.get(Score);
+            if (score) {
+              void saveScore({
+                score: score.value,
+                balloons: score.balloons,
+                seed: 42,
+                timestamp: Date.now(),
+              });
+            }
+            commitGhost(world);
+          }}
+        />
+        <AudioBridge
+          active={playing}
+          onReady={(fns) => {
+            hornRef.current = fns.honk;
+            dingRef.current = fns.ding;
+            thudRef.current = fns.thud;
+          }}
+        />
+        {/* Autonomous driver — active when ?governor=1 or ?autoplay=1 */}
+        <Governor />
+        {/* Debug frame capture — active in DEV or ?diag=1 */}
+        <DebugCaptureBridge />
+      </Canvas>
+      {titleVisible ? (
+        <TitleScreen
+          onStart={(config?: NewRunConfig) => {
+            // Start the run — sets RunSession.running=true, initializes
+            // the run RNG + optimal path + combo + difficulty profile.
+            const store = useGameStore.getState();
+            if (config) {
+              store.startRun({
+                seed: config.seed,
+                difficulty: config.difficulty,
+                seedPhrase: config.seedPhrase,
+                permadeath: config.permadeath,
+              });
+            } else {
+              // Autoplay-without-config path (keyboard fallback).
+              store.startRun({ seed: 42, difficulty: 'plenty' });
+            }
+            setTitleVisible(false);
+          }}
+        />
+      ) : (
+        <>
+          <HUD />
+          <PauseButton />
+          <TouchControls world={world} enabled={playing} onHorn={wrappedHorn} />
+          {/* Tutorial overlay — shown during the first run while the
                   tutorial is active. Hidden after skip or step 6 completion.
                   Renders on top of the HUD (z-index 50, below dialogs). */}
-              {!tutorialSkipped && isTutorialActive() && (
-                <TutorialOverlay
-                  onStepFadeOut={onStepFadeOut}
-                  onSkip={() => setTutorialSkipped(true)}
-                />
-              )}
-            </>
-          )}
-          <PauseOverlay />
-          <AchievementToasts />
-          {endReason !== null ? (
-            <GameOverEnd
-              reason={endReason}
-              onRestart={() => {
-                // Simplest reliable reset: hard reload.
-                resetGameOver();
-                window.location.reload();
-              }}
+          {!tutorialSkipped && isTutorialActive() && (
+            <TutorialOverlay
+              onStepFadeOut={onStepFadeOut}
+              onSkip={() => setTutorialSkipped(true)}
             />
-          ) : null}
-        </div>
+          )}
+        </>
+      )}
+      <PauseOverlay />
+      <AchievementToasts />
+      {endReason !== null ? (
+        <GameOverEnd
+          reason={endReason}
+          onRestart={() => {
+            // Simplest reliable reset: hard reload.
+            resetGameOver();
+            window.location.reload();
+          }}
+        />
+      ) : null}
+    </div>
   );
 }
 
