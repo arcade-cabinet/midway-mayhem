@@ -112,11 +112,11 @@ jobs:
         # and total < 5 120 KB, emits perf-budget.json, and writes a
         # Markdown table to $GITHUB_STEP_SUMMARY.
         run: pnpm audit:bundle
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: perf-budget-report
@@ -147,7 +147,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Download web build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
@@ -179,7 +179,7 @@ jobs:
         working-directory: android
 
       - name: Upload debug APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: midway-mayhem-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
@@ -216,7 +216,7 @@ jobs:
 
       - name: Upload Maestro results + debug APK
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: maestro-android-results
           path: |
@@ -265,7 +265,7 @@ jobs:
           else
             xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm exec playwright test --grep-invert @nightly --update-snapshots=missing
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
@@ -276,7 +276,7 @@ jobs:
       # project relies on to reason about "what did seed X look like at
       # t=Ns"; the HTML report only surfaces screenshots inside the
       # trace viewer, and the JSON diagnostics aren't captured at all.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playthrough-dumps

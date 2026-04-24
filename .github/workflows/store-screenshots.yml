@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload store screenshots artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: store-screenshots-${{ github.run_number }}
           path: resources/store-screenshots/

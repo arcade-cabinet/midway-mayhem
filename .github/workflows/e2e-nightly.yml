@@ -41,12 +41,12 @@ jobs:
         run: |
           pnpm copywasm
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm e2e:nightly
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report-nightly
           path: playwright-report/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playthrough-dumps-nightly
@@ -82,7 +82,7 @@ jobs:
           pnpm copywasm
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" pnpm e2e:stability-soak
       - name: Upload stability-soak failure artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: stability-soak-failure-${{ github.run_id }}
@@ -95,7 +95,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload stability-soak report (always)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report-stability-soak
