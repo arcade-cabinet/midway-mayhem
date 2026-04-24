@@ -9,6 +9,20 @@ domain: technical
 
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
+## [0.2.8](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.7...midway-mayhem-v0.2.8) (2026-04-24)
+
+
+### Fixed
+
+* close every memory/loop/race hazard found in the post-spike audit ([#310](https://github.com/arcade-cabinet/midway-mayhem/issues/310)) ([8f83afe](https://github.com/arcade-cabinet/midway-mayhem/commit/8f83afeb98b6946daf7348f5a3ddd1a143589088))
+* **e2e:** raise nightly spec test.setTimeout for CI swiftshader ([#301](https://github.com/arcade-cabinet/midway-mayhem/issues/301)) ([c56aac4](https://github.com/arcade-cabinet/midway-mayhem/commit/c56aac481b9116be5c770a78a6c132955ddf9445))
+* honk→scare bridge + real-GPU playwright + hand-authored cockpit ([#308](https://github.com/arcade-cabinet/midway-mayhem/issues/308)) ([f425624](https://github.com/arcade-cabinet/midway-mayhem/commit/f425624c87c3a331b3049308b33fa9bfb535232b))
+
+
+### Documentation
+
+* **prd:** memory-spike fix plan (blocks browser tests) ([#309](https://github.com/arcade-cabinet/midway-mayhem/issues/309)) ([4faf2d2](https://github.com/arcade-cabinet/midway-mayhem/commit/4faf2d2bd995d51a2408232b6c0a51911405d2a2))
+
 ## [0.2.7](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.6...midway-mayhem-v0.2.7) (2026-04-24)
 
 
