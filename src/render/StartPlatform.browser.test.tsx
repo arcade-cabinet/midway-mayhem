@@ -15,10 +15,10 @@
  * Screenshot path: .test-screenshots/start-platform/elevated.png
  */
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { spawnPlayer } from '@/ecs/systems/playerMotion';
 import { seedTrack } from '@/ecs/systems/track';
 import { buildRunPlan } from '@/game/runPlan';

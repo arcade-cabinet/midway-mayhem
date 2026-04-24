@@ -29,8 +29,8 @@
  * the responsive scale, HUD layout, and FOV recalculation for each form factor.
  */
 import { cleanup, render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { diag, waitForDistance, waitFrames, waitPastDropIn } from '@/test/integration';
 import { App } from './App';
 

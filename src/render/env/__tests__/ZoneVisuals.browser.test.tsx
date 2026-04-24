@@ -15,12 +15,12 @@
  */
 import { Canvas, useThree } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { useEffect } from 'react';
 import type * as THREE from 'three';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { seedTrack } from '@/ecs/systems/track';
 import { useGameStore } from '@/game/gameState';
 import { BigTopEnvironment } from '@/render/Environment';

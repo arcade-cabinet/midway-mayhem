@@ -13,10 +13,10 @@
  * that render full tracks come LATER.
  */
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { trackArchetypes } from '@/config';
 import { LaneCount, TrackSegment } from '@/ecs/traits';
 import { Track } from '@/render/Track';

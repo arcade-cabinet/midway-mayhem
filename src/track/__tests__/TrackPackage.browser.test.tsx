@@ -20,12 +20,12 @@
 import { OrthographicCamera, PerspectiveCamera } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { useLayoutEffect } from 'react';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { generateTrack, seedTrack } from '@/ecs/systems/track';
 import { Track } from '@/render/Track';
 import { waitFrames } from '@/test/scene';

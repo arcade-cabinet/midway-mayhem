@@ -11,8 +11,8 @@
  * human review and future baseline pinning.
  */
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
 import { describe, expect, it } from 'vitest';
+import { commands } from 'vitest/browser';
 import { renderAndCapture, Scene, waitFrames } from '@/test/scene';
 import { Audience } from './Audience';
 

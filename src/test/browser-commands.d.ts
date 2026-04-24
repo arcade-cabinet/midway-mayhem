@@ -1,7 +1,7 @@
 /**
  * Ambient declarations shared across all vitest-browser tests:
  *
- * 1. Extends `@vitest/browser/context` with our custom `writePngFromDataUrl`
+ * 1. Extends `vitest/browser` with our custom `writePngFromDataUrl`
  *    server command. Implementation: scripts/vitest-write-png-command.ts.
  *    Wiring: vite.config.ts `commands: { writePngFromDataUrl }`.
  *
@@ -11,13 +11,13 @@
  *
  * `export {}` at the bottom turns this file into a module so that
  * `declare module` augmentations MERGE into the existing exports from
- * `@vitest/browser/context` rather than replacing them. The `Window`
+ * `vitest/browser` rather than replacing them. The `Window`
  * augmentation is wrapped in `declare global` so it still affects the
  * global scope when read from a module file.
  */
 
 // BrowserCommands is defined in `vitest/internal/browser` and re-used by
-// `@vitest/browser/context`, so augment the source module.
+// `vitest/browser`, so augment the source module.
 declare module 'vitest/internal/browser' {
   interface BrowserCommands {
     writePngFromDataUrl(dataUrl: string, relPath: string): Promise<{ path: string; bytes: number }>;
