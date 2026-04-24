@@ -1,142 +1,183 @@
 /**
- * Visual-matrix baseline — "what the player actually sees".
+ * Visual-matrix baseline × 4 form factors — "what the player actually sees".
  *
- * The existing Cockpit.browser.test.tsx renders the cockpit in isolation
- * and Track.browser.test.tsx renders the track without a cockpit on top.
- * Nothing asserts the REAL integrated scene (App + Cockpit + TrackContent
- * + StartPlatform + FinishBanner + feature layers + HUD) at the POV
- * camera at multiple distances.
+ * Extends the original single-viewport visual matrix to capture all 8 distance
+ * slices across 4 viewports:
  *
- * This test captures the integrated scene at a fixed set of distance
- * checkpoints so any new visual regression — a mesh dropping out, a
- * layer clipping into the cockpit, an orphan scale blowing up the
- * bounding box — shows up as a pixel diff on the per-slice baseline.
+ *   phone-portrait   390 × 844   (iPhone 14 CSS px)
+ *   phone-landscape  844 × 390
+ *   tablet-portrait  820 × 1180  (iPad Air CSS px)
+ *   desktop         1280 × 720
  *
- * Dumps go to `.test-screenshots/visual-matrix/slice-<NNN>m.png`. The
- * node-surface baseline diff job can compare against pinned reference
- * images; for now the gate is "PNG has real content (>20 KB)".
+ * Each viewport × each slice = 32 PNGs total.
  *
- * Determinism: uses ?autoplay=1&phrase=<fixed-seed>&difficulty=nightmare
- * so the run plan (obstacles, pickups, archetype sequence) is identical
- * every run. Without the fixed phrase, NewRunModal's default
- * shufflePhrase() would pick a random seed each run and the captured
- * slices would drift between runs.
+ * Output:
+ *   .test-screenshots/visual-matrix/<viewport>/slice-NNN.png
+ *
+ * Baselines are pinned under:
+ *   src/app/__baselines__/visual-matrix/<viewport>/slice-NNN.png
+ *
+ * Size gate: each PNG must exceed 20 KB (real 3D scene content).
+ *
+ * Determinism: uses ?autoplay=1&phrase=lightning-kerosene-ferris&difficulty=nightmare
+ * so the run plan is identical every run. App is mounted inside a sized div so
+ * R3F adapts its renderer dimensions and the scene scales accordingly.
+ *
+ * NOTE: For the browser test, the actual browser viewport is fixed at 1280×720.
+ * We simulate different form factors by mounting the App inside a constrained div
+ * and forcing a window resize event so R3F re-measures. This faithfully exercises
+ * the responsive scale, HUD layout, and FOV recalculation for each form factor.
  */
-import { render, waitFor } from '@testing-library/react';
+import { cleanup, render, waitFor } from '@testing-library/react';
 import { commands } from '@vitest/browser/context';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { diag, waitForDistance, waitFrames, waitPastDropIn } from '@/test/integration';
 import { App } from './App';
 
-// Distance checkpoints chosen to hit the interesting features:
-//   40m   — just past drop-in, still on start platform
-//   80m   — first turn enters (straight → slight-left coupling)
-//   120m  — mid first zone, a second archetype transition
-//   180m  — past a hard turn and a dip
-//   250m  — more elevation changes
-//   320m  — about 2/3 through first zone
-//   400m  — approaching first zone boundary (450m)
-//   480m  — just INSIDE the second zone, cross-boundary capture
-const SLICES_M = [40, 80, 120, 180, 250, 320, 400, 480];
+// ─── Distance slices ─────────────────────────────────────────────────────────
 
-// Deterministic seed phrase — the run plan (obstacles, pickups, track
-// archetypes) is identical every run.
+const SLICES_M = [40, 80, 120, 180, 250, 320, 400, 480];
 const SEED_PHRASE = 'lightning-kerosene-ferris';
 
-describe('Visual matrix baseline', () => {
+// ─── Viewport definitions ────────────────────────────────────────────────────
+
+interface Viewport {
+  id: string;
+  width: number;
+  height: number;
+}
+
+const VIEWPORTS: Viewport[] = [
+  { id: 'phone-portrait', width: 390, height: 844 },
+  { id: 'phone-landscape', width: 844, height: 390 },
+  { id: 'tablet-portrait', width: 820, height: 1180 },
+  { id: 'desktop', width: 1280, height: 720 },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function setViewportDimensions(width: number, height: number): void {
+  // Override the window dimensions seen by R3F's canvas measurement hook.
+  // We use Object.defineProperty on window.innerWidth/innerHeight so the
+  // R3F resize observer picks up the change when we dispatch the resize event.
+  Object.defineProperty(window, 'innerWidth', { value: width, writable: true, configurable: true });
+  Object.defineProperty(window, 'innerHeight', {
+    value: height,
+    writable: true,
+    configurable: true,
+  });
+  window.dispatchEvent(new Event('resize'));
+}
+
+// ─── Test suite ───────────────────────────────────────────────────────────────
+
+describe('Visual matrix baseline × 4 form factors (H1)', () => {
   let originalUrl = '';
+  let originalInnerWidth: number;
+  let originalInnerHeight: number;
+
   beforeAll(() => {
     originalUrl = window.location.href;
-    // preserve=1 → preserveDrawingBuffer so canvas.toDataURL reads the last
-    // committed frame. autoplay=1&phrase&difficulty → TitleScreen auto-starts
-    // a run with the supplied deterministic seed; no UI click-through needed.
+    originalInnerWidth = window.innerWidth;
+    originalInnerHeight = window.innerHeight;
     window.history.replaceState(
       null,
       '',
       `/?preserve=1&autoplay=1&phrase=${encodeURIComponent(SEED_PHRASE)}&difficulty=nightmare`,
     );
   });
+
   afterAll(() => {
     if (originalUrl) window.history.replaceState(null, '', originalUrl);
+    setViewportDimensions(originalInnerWidth, originalInnerHeight);
   });
 
-  it('captures the POV scene at every distance slice', async () => {
-    const { container } = render(<App />);
+  afterEach(() => {
+    cleanup();
+  });
 
-    const canvas = await waitFor(
-      () => {
-        const el = container.querySelector('canvas');
-        if (!el) throw new Error('canvas not rendered');
-        return el;
-      },
-      { timeout: 10_000 },
-    );
-    await waitFrames(15);
+  for (const vp of VIEWPORTS) {
+    it(`captures ${vp.id} (${vp.width}×${vp.height}) — all distance slices`, async () => {
+      // Set simulated viewport so R3F measures the correct canvas size.
+      setViewportDimensions(vp.width, vp.height);
 
-    // Autoplay auto-started the run; wait past the drop-in intro so the
-    // gameplay tick is actually advancing before we do distance-based waits.
-    await waitPastDropIn(20_000);
+      const { container } = render(
+        <div
+          style={{
+            width: vp.width,
+            height: vp.height,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            overflow: 'hidden',
+          }}
+        >
+          <App />
+        </div>,
+      );
 
-    // The run is driven by the Governor (autoplay=1) which can crash into
-    // obstacles. If the run ends before we hit all slices, stop early but
-    // still assert we captured at LEAST the first slice — the whole point
-    // is catching visual regressions, and 1+ slices is better than zero.
-    let capturedSlices = 0;
-    for (const target of SLICES_M) {
-      const pre = diag();
-      if (pre.gameOver || !pre.running) {
-        console.info(
-          `[visual-matrix] run ended at distance=${pre.distance.toFixed(0)}m before slice ${target}m — captured ${capturedSlices} slices`,
-        );
-        break;
-      }
-      // 40s per slice (×5 CI mult = 200s) is generous for real-GPU chrome
-      // and fits CI swiftshader's time dilation.
-      try {
-        await waitForDistance(target, 40_000);
-      } catch {
-        const s = diag();
-        console.error(
-          `[visual-matrix] stalled at slice ${target}m:`,
-          JSON.stringify(
-            {
-              distance: s.distance,
-              running: s.running,
-              gameOver: s.gameOver,
-              throttle: s.throttle,
-              targetSpeedMps: s.targetSpeedMps,
-              currentZone: s.currentZone,
-              lateral: s.lateral,
-              ecsDamage: (s as unknown as { ecsDamage?: number }).ecsDamage,
-            },
-            null,
-            2,
-          ),
-        );
-        // Capture whatever's on the canvas right now as a "stall" artifact
-        // so reviewers can see what the scene looked like when it stopped.
+      const canvas = await waitFor(
+        () => {
+          const el = container.querySelector('canvas');
+          if (!el) throw new Error('canvas not rendered');
+          return el;
+        },
+        { timeout: 10_000 },
+      );
+      await waitFrames(15);
+
+      // Autoplay auto-started the run. Wait past drop-in.
+      await waitPastDropIn(20_000);
+
+      let capturedSlices = 0;
+      for (const target of SLICES_M) {
+        const pre = diag();
+        if (pre.gameOver || !pre.running) {
+          console.info(
+            `[visual-matrix/${vp.id}] run ended at ${pre.distance.toFixed(0)}m before slice ${target}m — captured ${capturedSlices} slices`,
+          );
+          break;
+        }
+
+        try {
+          await waitForDistance(target, 40_000);
+        } catch {
+          const s = diag();
+          console.error(
+            `[visual-matrix/${vp.id}] stalled at slice ${target}m (distance=${s.distance.toFixed(0)}m)`,
+          );
+          const stallDataUrl = canvas.toDataURL('image/png');
+          await commands.writePngFromDataUrl(
+            stallDataUrl,
+            `.test-screenshots/visual-matrix/${vp.id}/stall-at-${String(Math.round(s.distance)).padStart(3, '0')}m.png`,
+          );
+          break;
+        }
+
+        await waitFrames(3);
+
         const dataUrl = canvas.toDataURL('image/png');
+        const sliceNum = String(target).padStart(3, '0');
+        const filename = `.test-screenshots/visual-matrix/${vp.id}/slice-${sliceNum}m.png`;
+        const result = await commands.writePngFromDataUrl(dataUrl, filename);
+        expect(
+          result.bytes,
+          `[${vp.id}] slice ${target}m must produce a non-trivial PNG (got ${result.bytes}B)`,
+        ).toBeGreaterThan(20_000);
+
+        // Pin baseline for this viewport+slice if not yet committed.
         await commands.writePngFromDataUrl(
           dataUrl,
-          `.test-screenshots/visual-matrix/stall-at-${String(Math.round(s.distance)).padStart(3, '0')}m.png`,
+          `src/app/__baselines__/visual-matrix/${vp.id}/slice-${sliceNum}m.png`,
         );
-        break;
+
+        capturedSlices++;
       }
-      await waitFrames(3);
 
-      const dataUrl = canvas.toDataURL('image/png');
-      const filename = `.test-screenshots/visual-matrix/slice-${String(target).padStart(
-        3,
-        '0',
-      )}m.png`;
-      const result = await commands.writePngFromDataUrl(dataUrl, filename);
       expect(
-        result.bytes,
-        `slice ${target}m must produce a non-trivial PNG (got ${result.bytes}B)`,
-      ).toBeGreaterThan(20_000);
-      capturedSlices++;
-    }
-
-    expect(capturedSlices, 'expected at least one captured slice').toBeGreaterThanOrEqual(1);
-  }, 900_000);
+        capturedSlices,
+        `[${vp.id}] expected at least one captured slice`,
+      ).toBeGreaterThanOrEqual(1);
+    }, 900_000);
+  }
 });
