@@ -82,3 +82,6 @@ public/sql-wasm-browser.wasm
 public/assets/sql-wasm.wasm
 public/assets/sql-wasm-browser.wasm
 perf-budget.json
+
+__run-snapshots__/
+__cause-effect__/

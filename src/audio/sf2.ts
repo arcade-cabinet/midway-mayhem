@@ -1,8 +1,9 @@
-import { WorkletSynthesizer } from 'spessasynth_lib';
-// Processor worklet script must be registered with the audio context BEFORE
-// constructing a WorkletSynthesizer. Vite rewrites this `?url` import to the
-// emitted asset URL at build time so it works in both dev + production.
-import spessasynthProcessorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
+// spessasynth_lib touches `document` at module eval, so it is imported
+// dynamically inside init() to keep this module safe to load under the
+// Node-environment vitest project (honkBus/tireSqueal tests pull the
+// audio graph transitively via gameState). Keep the type-only import for
+// typing without pulling runtime code.
+import type { WorkletSynthesizer } from 'spessasynth_lib';
 import * as Tone from 'tone';
 import { reportError } from '@/game/errorBus';
 import { getBuses } from './buses';
@@ -67,9 +68,14 @@ class SF2Bridge {
       }
 
       // Spessasynth requires the processor module to be registered on the
-      // audio context BEFORE the WorkletSynthesizer is constructed.
+      // audio context BEFORE the WorkletSynthesizer is constructed. Vite
+      // rewrites the `?url` import to the emitted asset URL at build time.
       try {
-        await ctx.audioWorklet.addModule(spessasynthProcessorUrl);
+        const processorUrlMod = await import(
+          'spessasynth_lib/dist/spessasynth_processor.min.js?url'
+        );
+        const processorUrl: string = processorUrlMod.default;
+        await ctx.audioWorklet.addModule(processorUrl);
       } catch (err) {
         console.warn('[sf2Bridge] addModule failed — SF2 disabled:', err);
         this.disabled = true;
@@ -89,7 +95,8 @@ class SF2Bridge {
       }
       const buffer = await resp.arrayBuffer();
 
-      const synth = new WorkletSynthesizer(ctx);
+      const { WorkletSynthesizer } = await import('spessasynth_lib');
+      const synth: WorkletSynthesizer = new WorkletSynthesizer(ctx);
       await synth.isReady;
       await synth.soundBankManager.addSoundBank(buffer, 'gu-gs');
 
