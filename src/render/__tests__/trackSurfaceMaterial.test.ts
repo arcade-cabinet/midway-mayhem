@@ -18,10 +18,14 @@ describe('buildTrackSurfaceMaterialDescriptor', () => {
     expect(desc.paths.roughness).toMatch(/planks\/roughness\.jpg$/);
   });
 
-  it('all paths start with /textures/track/planks', () => {
+  it('all paths land on textures/track/planks (under the vite base)', () => {
+    // Paths are prefixed with import.meta.env.BASE_URL so preview + prod
+    // (base=/midway-mayhem/) resolve instead of 404-ing. Under vitest the
+    // base is '/', so we accept either absolute prefix.
     const desc = buildTrackSurfaceMaterialDescriptor();
     for (const path of Object.values(desc.paths)) {
-      expect(path).toMatch(/^\/textures\/track\/planks\//);
+      expect(path).toMatch(/\/textures\/track\/planks\//);
+      expect(path.startsWith('/')).toBe(true);
     }
   });
 

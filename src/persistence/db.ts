@@ -32,10 +32,21 @@ import * as schema from './schema';
 // ─── Platform detection ────────────────────────────────────────────────────
 
 function isTestEnv(): boolean {
-  return (
+  if (
     typeof process !== 'undefined' &&
     (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test')
-  );
+  ) {
+    return true;
+  }
+  // Vitest browser mode: process.env is missing in the browser realm but
+  // import.meta.env carries MODE='test' and TEST=true. Without this path the
+  // browser tests route to OPFS and collide on shared file handles across
+  // parallel test files — producing NotFoundError flakes on CI.
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    const env = import.meta.env as Record<string, unknown>;
+    if (env.TEST === true || env.MODE === 'test' || env.VITEST === true) return true;
+  }
+  return false;
 }
 
 function isNativePlatform(): boolean {

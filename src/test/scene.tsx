@@ -45,6 +45,17 @@ function SceneCapture() {
       if (window.__mmTest?.gl === gl) {
         window.__mmTest = undefined;
       }
+      // Chromium caps concurrent WebGL contexts (~16). Without an explicit
+      // forceContextLoss on unmount, long test suites accumulate live
+      // contexts, then the newest canvases get context-lost immediately on
+      // mount and render 0 triangles. Force-losing on unmount keeps the
+      // context budget healthy across a 60+ file browser suite.
+      try {
+        gl.forceContextLoss?.();
+        gl.dispose?.();
+      } catch {
+        // Best-effort — already-disposed or detached context is fine.
+      }
     };
   }, [gl, scene, camera]);
   return null;
@@ -56,6 +67,24 @@ export function renderAndCapture(): string {
   h.gl.render(h.scene, h.camera);
   const canvas = h.gl.domElement;
   return canvas.toDataURL('image/png');
+}
+
+/**
+ * Force a synchronous render and return the latest triangle count. Use this
+ * instead of reading `gl.info.render.triangles` directly — the raw counter
+ * reflects only the LAST renderer.render() call, and if the R3F frameloop
+ * happened to land on an empty frame (camera not ready, useFrame not yet
+ * fired, etc.) you get 0 even though the scene has geometry.
+ *
+ * This helper forces a fresh render right now, so the counter reflects the
+ * actual geometry submitted to GPU with the current camera matrices.
+ */
+export function renderAndCountTriangles(): number {
+  const h = window.__mmTest;
+  if (!h) throw new Error('renderAndCountTriangles: SceneCapture not mounted');
+  h.gl.info.reset();
+  h.gl.render(h.scene, h.camera);
+  return h.gl.info.render.triangles;
 }
 
 interface SceneProps {

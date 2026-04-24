@@ -73,7 +73,9 @@ function percentile(sorted: number[], p: number): number {
 // ── test ──────────────────────────────────────────────────────────────────────
 
 test.describe('E3 Android emulator perf soak @android-perf', () => {
-  test('3-minute fps soak on emulator-5554: p95 >= 40 fps @android-perf', async (_fixtures, testInfo) => {
+  test('3-minute fps soak on emulator-5554: p95 >= 40 fps @android-perf', async ({
+    page: _page,
+  }, testInfo) => {
     // This test manages its own browser connection via CDP — skip the
     // default Playwright project browser setup.
     test.skip(

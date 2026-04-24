@@ -135,8 +135,12 @@ export function readState(w: World): GameStateSnapshot {
       difficulty: DEFAULT_DIFFICULTY,
       seedPhrase: null,
       permadeath: false,
-      plan: null,
-      optimalPath: null,
+      // plan + optimalPath live in runPlanRefs (module state), not ECS. Fall
+      // through to whatever has been set so screens that consume the plan
+      // before a player entity exists (title, pre-drop UI, isolated component
+      // tests) see the real values instead of null.
+      plan: getPlan(),
+      optimalPath: getOptimalPath(),
       cleanliness: 1,
       distance: 0,
       lateral: 0,

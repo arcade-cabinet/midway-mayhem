@@ -36,7 +36,14 @@ export interface TrackSurfaceMaterialDescriptor {
   metalness: number;
 }
 
-const BASE = '/textures/track/planks';
+// Vite's configured `base` — `/midway-mayhem/` on web, `./` under Capacitor,
+// `/` under vitest. Texture paths must be prefixed with it or the preview +
+// prod bundle 404s (served at /midway-mayhem/textures/…, not /textures/…).
+// That surfaced as a hard boot failure: useTexture throws under Suspense,
+// the ReactErrorBoundary reports [mm:halt], and the whole React tree unmounts —
+// the user sees a black canvas and the e2e smoke sees no title + no HUD.
+const BASE_URL = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+const PLANKS = `${BASE_URL}/textures/track/planks`;
 
 /**
  * Returns the material descriptor without loading any textures.
@@ -51,9 +58,9 @@ export function buildTrackSurfaceMaterialDescriptor(
 ): TrackSurfaceMaterialDescriptor {
   return {
     paths: {
-      diffuse: `${BASE}/diffuse.jpg`,
-      normal: `${BASE}/normal.jpg`,
-      roughness: `${BASE}/roughness.jpg`,
+      diffuse: `${PLANKS}/diffuse.jpg`,
+      normal: `${PLANKS}/normal.jpg`,
+      roughness: `${PLANKS}/roughness.jpg`,
     },
     // Planks run length-wise along the track (wrapT).  7 repeats across 12 m
     // width, 12 repeats along the 20 m piece length gives a plank board-width

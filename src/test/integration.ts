@@ -114,17 +114,6 @@ export async function driveInto(root: ParentNode, tier: RegExp = /KAZOO/i): Prom
   await waitPastDropIn();
 }
 
-/** Spin until DropIntro.dropProgress hits 1 so tickGameState advances. */
-export async function waitPastDropIn(timeoutMs = 10_000): Promise<void> {
-  await waitFor(
-    () => {
-      const p = diag().dropProgress;
-      if (p < 1) throw new Error(`[integration] drop-in at ${p.toFixed(2)}, waiting`);
-    },
-    { timeout: timeoutMs, interval: 50 },
-  );
-}
-
 /**
  * CI runs headless Chrome with swiftshader (software WebGL) which is 3-5×
  * slower than real-GPU chrome. Tests that wait for distance to accumulate
@@ -132,6 +121,17 @@ export async function waitPastDropIn(timeoutMs = 10_000): Promise<void> {
  * Vite injects VITE_CI at build time when it's on the environment.
  */
 const CI_TIME_MULTIPLIER = (import.meta.env as Record<string, unknown>).VITE_CI ? 5 : 1;
+
+/** Spin until DropIntro.dropProgress hits 1 so tickGameState advances. */
+export async function waitPastDropIn(timeoutMs = 10_000): Promise<void> {
+  await waitFor(
+    () => {
+      const p = diag().dropProgress;
+      if (p < 1) throw new Error(`[integration] drop-in at ${p.toFixed(2)}, waiting`);
+    },
+    { timeout: timeoutMs * CI_TIME_MULTIPLIER, interval: 50 },
+  );
+}
 
 /** Spin until diag().distance > `metres`, up to `timeoutMs` (scaled on CI). */
 export async function waitForDistance(metres: number, timeoutMs = 20_000): Promise<void> {

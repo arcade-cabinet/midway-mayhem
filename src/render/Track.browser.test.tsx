@@ -19,7 +19,7 @@ import { describe, expect, it } from 'vitest';
 import { seedTrack } from '@/ecs/systems/track';
 import { BigTopEnvironment } from '@/render/Environment';
 import { Track } from '@/render/Track';
-import { renderAndCapture, Scene, waitFrames } from '@/test/scene';
+import { renderAndCapture, renderAndCountTriangles, Scene } from '@/test/scene';
 
 interface View {
   name: string;
@@ -63,10 +63,16 @@ describe('Track (composed, full 80 pieces)', () => {
         );
 
         await waitFor(() => expect(window.__mmTest).toBeTruthy());
-        await waitFrames(8);
-
-        const gl = window.__mmTest!.gl;
-        expect(gl.info.render.triangles).toBeGreaterThan(500);
+        // Track is wrapped in <Suspense>; PBR textures take a variable number
+        // of frames to resolve. Poll until the geometry is actually submitted.
+        await waitFor(
+          () => {
+            const tris = renderAndCountTriangles();
+            if (tris < 500) throw new Error(`track not yet rendered (${tris} tris)`);
+          },
+          { timeout: 10_000, interval: 50 },
+        );
+        expect(renderAndCountTriangles()).toBeGreaterThan(500);
 
         const dataUrl = renderAndCapture();
         const result = await commands.writePngFromDataUrl(
