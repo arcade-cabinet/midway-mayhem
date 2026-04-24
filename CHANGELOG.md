@@ -9,6 +9,14 @@ domain: technical
 
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
+## [0.2.2](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.1...midway-mayhem-v0.2.2) (2026-04-24)
+
+
+### Fixed
+
+* **ci:** bump CI browser test timeout 120s → 240s (Steering overruns) ([#284](https://github.com/arcade-cabinet/midway-mayhem/issues/284)) ([fe20af1](https://github.com/arcade-cabinet/midway-mayhem/commit/fe20af1d6554b327d49376c12a3e28281d865808))
+* **e2e:** add missing pnpm e2e:stability-soak script ([#282](https://github.com/arcade-cabinet/midway-mayhem/issues/282)) ([faab9f7](https://github.com/arcade-cabinet/midway-mayhem/commit/faab9f71709a32d47a494a4c2e928288eef0673d))
+
 ## [0.2.1](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.0...midway-mayhem-v0.2.1) (2026-04-24)
 
 
