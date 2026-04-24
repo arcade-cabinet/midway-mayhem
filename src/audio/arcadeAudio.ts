@@ -136,7 +136,13 @@ export async function startArcadeAudio(): Promise<ArcadeAudioHandle> {
     setMusicPlaying(on) {
       if (on) {
         musicGain.gain.rampTo(0.25, 0.4);
-        if (Tone.Transport.state !== 'started') Tone.Transport.start();
+        // Conductor owns the Tone.Transport lifecycle — calling start/stop
+        // from here too races with conductor.stop() on game-over and
+        // silently drops pending triggerAttackRelease events scheduled on
+        // the other side of the Transport. Resume the context only (safe
+        // and idempotent) and trust the conductor to keep Transport live.
+        const ctx = Tone.getContext();
+        if (ctx.state === 'suspended') ctx.resume();
         if (loop.state !== 'started') loop.start(0);
       } else {
         musicGain.gain.rampTo(0, 0.3);

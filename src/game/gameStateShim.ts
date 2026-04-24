@@ -93,19 +93,47 @@ function getCachedSnapshot(): GameStateSnapshot {
   return _cachedSnapshot;
 }
 
-function subscribeToGameState(listener: () => void): () => void {
-  let rafId = 0;
-  let prev = getCachedSnapshot();
-  function poll() {
-    const next = getCachedSnapshot();
-    if (next !== prev) {
-      prev = next;
-      listener();
-    }
-    rafId = requestAnimationFrame(poll);
+// Shared-RAF fan-out. Every `useGameStore(selector)` call goes through
+// useSyncExternalStore → this subscribe. Previously each subscriber started
+// its own requestAnimationFrame poll, so N components meant N concurrent
+// RAF loops reading the world every frame — a known amplifier of any
+// downstream leak under long-running specs. One loop, N listeners instead.
+const _shimListeners = new Set<() => void>();
+let _shimPrev: GameStateSnapshot | null = null;
+let _shimRafId = 0;
+let _shimRunning = false;
+
+function _shimTick(): void {
+  if (!_shimRunning) return;
+  const next = getCachedSnapshot();
+  if (next !== _shimPrev) {
+    _shimPrev = next;
+    // Snapshot listeners to a local array: a listener may unsubscribe
+    // during notification, which would mutate the Set mid-iteration.
+    const snapshot = Array.from(_shimListeners);
+    for (const l of snapshot) l();
   }
-  rafId = requestAnimationFrame(poll);
-  return () => cancelAnimationFrame(rafId);
+  _shimRafId = requestAnimationFrame(_shimTick);
+}
+
+function subscribeToGameState(listener: () => void): () => void {
+  _shimListeners.add(listener);
+  if (!_shimRunning) {
+    _shimRunning = true;
+    _shimPrev = getCachedSnapshot();
+    // Always defer the first tick so subscribe() returns the unsubscriber
+    // before any listener fires.
+    _shimRafId = requestAnimationFrame(_shimTick);
+  }
+  return () => {
+    _shimListeners.delete(listener);
+    if (_shimListeners.size === 0 && _shimRunning) {
+      _shimRunning = false;
+      cancelAnimationFrame(_shimRafId);
+      _shimRafId = 0;
+      _shimPrev = null;
+    }
+  };
 }
 
 export function useGameStore<T>(selector: (s: GameStateWithActions) => T): T {
@@ -161,27 +189,57 @@ useGameStore.getState = (): GameStateWithActions => {
   };
 };
 
-/** zustand-compat subscribe — poll-based. Used by useGameSystems zone watcher. */
+/**
+ * zustand-compat subscribe — poll-based. Used by useGameSystems zone watcher.
+ *
+ * Shares a single RAF loop across all imperative subscribers for the same
+ * reason as the React shim above. Each listener keeps its own `prev` so it
+ * only fires when its own cared-about fields change.
+ */
+interface ImperativeListener {
+  fn: (state: GameStateWithActions, prev: GameStateWithActions) => void;
+  prev: GameStateWithActions;
+}
+const _imperativeListeners = new Set<ImperativeListener>();
+let _imperativeRafId = 0;
+let _imperativeRunning = false;
+
+function _imperativeTick(): void {
+  if (!_imperativeRunning) return;
+  const next = useGameStore.getState();
+  const snapshot = Array.from(_imperativeListeners);
+  for (const entry of snapshot) {
+    const p = entry.prev;
+    if (
+      next.running !== p.running ||
+      next.gameOver !== p.gameOver ||
+      next.currentZone !== p.currentZone ||
+      next.distance !== p.distance
+    ) {
+      entry.fn(next, p);
+      entry.prev = next;
+    }
+  }
+  _imperativeRafId = requestAnimationFrame(_imperativeTick);
+}
+
 useGameStore.subscribe = (
   listener: (state: GameStateWithActions, prev: GameStateWithActions) => void,
 ): (() => void) => {
-  let prev = useGameStore.getState();
-  let rafId = 0;
-  function poll() {
-    const next = useGameStore.getState();
-    if (
-      next.running !== prev.running ||
-      next.gameOver !== prev.gameOver ||
-      next.currentZone !== prev.currentZone ||
-      next.distance !== prev.distance
-    ) {
-      listener(next, prev);
-      prev = next;
-    }
-    rafId = requestAnimationFrame(poll);
+  const entry: ImperativeListener = { fn: listener, prev: useGameStore.getState() };
+  _imperativeListeners.add(entry);
+  if (!_imperativeRunning) {
+    _imperativeRunning = true;
+    _imperativeRafId = requestAnimationFrame(_imperativeTick);
   }
-  poll();
-  return () => cancelAnimationFrame(rafId);
+  return () => {
+    _imperativeListeners.delete(entry);
+    if (_imperativeListeners.size === 0 && _imperativeRunning) {
+      _imperativeRunning = false;
+      cancelAnimationFrame(_imperativeRafId);
+      _imperativeRafId = 0;
+    }
+  };
 };
 
 /** zustand-compat setState — merges partial updates onto ECS traits. */

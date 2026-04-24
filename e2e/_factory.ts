@@ -74,81 +74,103 @@ export async function runPlaythrough(
   const outDir = join(testInfo.outputDir, 'playthrough', encodeURIComponent(phrase));
   await mkdir(outDir, { recursive: true });
 
+  // Cap the console-error buffer. A misbehaving page can otherwise push
+  // unbounded strings across the playthrough and balloon the worker.
+  const MAX_ERRORS = 200;
+  const MAX_ERROR_LEN = 500;
   const consoleErrors: string[] = [];
-  page.on('pageerror', (e) => consoleErrors.push(String(e)));
-  page.on('console', (m) => {
-    if (m.type() === 'error') consoleErrors.push(m.text());
-  });
-
-  await page.goto(url);
-  await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
+  let consoleErrorsDropped = 0;
+  const pushErr = (s: string): void => {
+    if (consoleErrors.length >= MAX_ERRORS) {
+      consoleErrors.shift();
+      consoleErrorsDropped += 1;
+    }
+    consoleErrors.push(s.slice(0, MAX_ERROR_LEN));
+  };
+  const onPageError = (e: Error): void => pushErr(String(e));
+  const onConsole = (m: { type: () => string; text: () => string }): void => {
+    if (m.type() === 'error') pushErr(m.text());
+  };
+  page.on('pageerror', onPageError);
+  page.on('console', onConsole);
 
   const start = Date.now();
   const frames: FrameDump[] = [];
 
-  for (let i = 0; i < maxFrames; i++) {
-    await page.waitForTimeout(intervalMs);
-    const elapsedMs = Date.now() - start;
+  try {
+    await page.goto(url);
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
 
-    const diag = await page.evaluate(() => {
-      const w = window as { __mm?: { diag?: () => unknown } };
-      try {
-        return (w.__mm?.diag?.() as Record<string, unknown>) ?? null;
-      } catch {
-        return null;
-      }
-    });
+    for (let i = 0; i < maxFrames; i++) {
+      await page.waitForTimeout(intervalMs);
+      const elapsedMs = Date.now() - start;
 
-    const pngName = `frame-${String(i).padStart(2, '0')}.png`;
-    const jsonName = `frame-${String(i).padStart(2, '0')}.json`;
-    const pngPath = join(outDir, pngName);
-    const jsonPath = join(outDir, jsonName);
+      const diag = await page.evaluate(() => {
+        const w = window as { __mm?: { diag?: () => unknown } };
+        try {
+          return (w.__mm?.diag?.() as Record<string, unknown>) ?? null;
+        } catch {
+          return null;
+        }
+      });
 
-    await page.screenshot({ type: 'png', path: pngPath });
-    await writeFile(
-      jsonPath,
-      JSON.stringify({ frame: i, elapsedMs, phrase, difficulty, diag }, null, 2),
-    );
+      const pngName = `frame-${String(i).padStart(2, '0')}.png`;
+      const jsonName = `frame-${String(i).padStart(2, '0')}.json`;
+      const pngPath = join(outDir, pngName);
+      const jsonPath = join(outDir, jsonName);
 
-    frames.push({ frame: i, elapsedMs, diag, screenshotPath: pngPath });
+      await page.screenshot({ type: 'png', path: pngPath });
+      await writeFile(
+        jsonPath,
+        JSON.stringify({ frame: i, elapsedMs, phrase, difficulty, diag }, null, 2),
+      );
 
-    // Early-exit check
-    if (stopWhen) {
-      const matched = await page
-        .getByText(stopWhen)
-        .first()
-        .isVisible()
-        .catch(() => false);
-      if (matched) {
-        break;
+      frames.push({ frame: i, elapsedMs, diag, screenshotPath: pngPath });
+
+      // Early-exit check
+      if (stopWhen) {
+        const matched = await page
+          .getByText(stopWhen)
+          .first()
+          .isVisible()
+          .catch(() => false);
+        if (matched) {
+          break;
+        }
       }
     }
+
+    // Persist the full summary + any fatal console errors.
+    const fatal = filterFatal(consoleErrors);
+    await writeFile(
+      join(outDir, 'summary.json'),
+      JSON.stringify(
+        {
+          phrase,
+          difficulty,
+          intervalMs,
+          frameCount: frames.length,
+          fatalErrors: fatal,
+          consoleErrorsDropped,
+          firstDiag: frames[0]?.diag ?? null,
+          lastDiag: frames[frames.length - 1]?.diag ?? null,
+        },
+        null,
+        2,
+      ),
+    );
+
+    if (fatal.length > 0) {
+      throw new Error(`fatal console errors during playthrough ${phrase}:\n${fatal.join('\n')}`);
+    }
+
+    return frames;
+  } finally {
+    // Always detach listeners so closures (including any retained page
+    // state in their pushErr captures) release when the factory returns.
+    page.off('pageerror', onPageError);
+    page.off('console', onConsole);
   }
-
-  // Persist the full summary + any fatal console errors.
-  const fatal = filterFatal(consoleErrors);
-  await writeFile(
-    join(outDir, 'summary.json'),
-    JSON.stringify(
-      {
-        phrase,
-        difficulty,
-        intervalMs,
-        frameCount: frames.length,
-        fatalErrors: fatal,
-        firstDiag: frames[0]?.diag ?? null,
-        lastDiag: frames[frames.length - 1]?.diag ?? null,
-      },
-      null,
-      2,
-    ),
-  );
-
-  if (fatal.length > 0) {
-    throw new Error(`fatal console errors during playthrough ${phrase}:\n${fatal.join('\n')}`);
-  }
-
-  return frames;
 }
 
 /** Harmless console noise that shouldn't fail tests. */

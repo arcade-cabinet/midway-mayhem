@@ -94,8 +94,16 @@ export function useGameSystems(): void {
       }
     });
 
+    // `alive` owns lifetime. Under React StrictMode the effect mounts,
+    // cleans up, then re-mounts — if the loop held only a rafId, the
+    // cleanup on the first mount would cancel rafId=0 (pre-schedule)
+    // while the running loop kept going with a fresh rafId set just
+    // after cleanup fired. Checking `alive` inside the loop guarantees
+    // even an in-flight invocation stops scheduling.
+    let alive = true;
     let rafId = 0;
     function gimmickLoop() {
+      if (!alive) return;
       const s = useGameStore.getState();
       const now = performance.now();
       if (s.running && balloonSpawner && mirrorDuplicator) {
@@ -110,10 +118,11 @@ export function useGameSystems(): void {
       }
       rafId = requestAnimationFrame(gimmickLoop);
     }
-    gimmickLoop();
+    rafId = requestAnimationFrame(gimmickLoop);
 
     const unsubSqueal = tireSqueal.subscribe();
     return () => {
+      alive = false;
       unsub();
       unsubSqueal();
       cancelAnimationFrame(rafId);

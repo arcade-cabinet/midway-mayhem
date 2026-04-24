@@ -12,6 +12,7 @@
  * NO zustand in this file. The world is the state boundary.
  */
 import type { World } from 'koota';
+import { resetGameOver } from '@/ecs/systems/gameOver';
 import {
   BoostState,
   DropIntro,
@@ -341,6 +342,12 @@ function resetAllTraits(w: World): void {
 
 export function startRun(options?: StartRunOptions, w: World = world): void {
   ensureGameTraits(w);
+  // stepGameOver keeps a module-level `ended` latch so onEnd fires at most
+  // once per run. That latch must reset at run start — otherwise any fresh
+  // run after the first game-over would never fire game-over again, and
+  // the loop would tick forever. This is the ECS-side invariant that
+  // accompanies App.tsx calling endRun() in the game-over handler.
+  resetGameOver();
   const seed = options?.seed ?? Math.floor(Math.random() * 2 ** 31);
   const difficulty = options?.difficulty ?? DEFAULT_DIFFICULTY;
   const profile = DIFFICULTY_PROFILES[difficulty];
