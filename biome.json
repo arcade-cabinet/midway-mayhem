@@ -50,7 +50,8 @@
       "style": {
         "useConst": "error",
         "useImportType": "error",
-        "useNamingConvention": "off"
+        "useNamingConvention": "off",
+        "noNonNullAssertion": "off"
       },
       "correctness": {
         "noUnusedVariables": "error",
