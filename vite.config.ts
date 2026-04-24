@@ -13,8 +13,12 @@ const alias = { '@': path.resolve(__dirname, 'src') };
 // Browser test timeouts. CI swiftshader runs 3-5× slower than real-GPU
 // Chrome, so tests that wait for distance accumulation need a longer
 // budget on CI. Named constants so the threshold is easy to find.
+// 120s is the minimum where Steering integration (boot → drop-in at 10s×5
+// CI multiplier → tick loop → steer settle) can fit — but it overruns by
+// a few seconds under contention from the 20-min snapshot suite. 240s
+// gives a safe margin without inflating local-dev feedback (LOCAL stays 30s).
 const LOCAL_BROWSER_TEST_TIMEOUT_MS = 30_000;
-const CI_BROWSER_TEST_TIMEOUT_MS = 120_000;
+const CI_BROWSER_TEST_TIMEOUT_MS = 240_000;
 
 export default defineConfig({
   base: isCapacitor ? './' : '/midway-mayhem/',
