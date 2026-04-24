@@ -1,6 +1,6 @@
 ---
 title: CHANGELOG — Midway Mayhem
-updated: 2026-04-23
+updated: 2026-04-24
 status: current
 domain: technical
 ---
