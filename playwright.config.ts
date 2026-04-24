@@ -14,6 +14,13 @@ import { defineConfig, devices } from '@playwright/test';
 const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:4173/midway-mayhem/';
 const IS_CI = !!process.env.CI;
 const IS_HEADLESS = process.env.PW_HEADLESS === '1';
+// Traces + videos on every failed test retain large per-worker buffers
+// (traces can be 50-100MB each) and keep them alive until the worker
+// tears down. That amplified every other leak during long specs and was
+// a meaningful contributor to the host-memory spike. Default off; opt
+// into full forensics with PW_DEBUG_TRACES=1 when you need to debug a
+// flaky run.
+const DEBUG_TRACES = process.env.PW_DEBUG_TRACES === '1';
 
 /**
  * GPU-accelerated WebGL args. Using ANGLE/GL in headless mode keeps the
@@ -51,9 +58,9 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     headless: IS_HEADLESS,
-    trace: 'retain-on-failure',
+    trace: DEBUG_TRACES ? 'retain-on-failure' : 'off',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: DEBUG_TRACES ? 'retain-on-failure' : 'off',
     launchOptions: {
       args: GPU_ARGS,
     },

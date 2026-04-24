@@ -105,92 +105,139 @@ async function run() {
   });
   const url = `${baseUrl}?${params.toString()}`;
 
-  const browser = await chromium.launch({
-    channel: 'chrome',
-    args: [
-      '--no-sandbox',
-      '--use-angle=gl',
-      '--enable-webgl',
-      '--ignore-gpu-blocklist',
-      '--mute-audio',
-    ],
-  });
-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-  const page = await context.newPage();
+  // Cleanup plumbing. Any code path that exits this function — clean
+  // completion, thrown error, SIGINT, SIGTERM — funnels through the
+  // finally + the signal handlers. Before this rework the browser and
+  // preview server leaked on Ctrl+C and on any thrown error inside the
+  // frame loop, leaving orphan Chrome processes plus a held preview
+  // port across repeated invocations.
+  type Browser = Awaited<ReturnType<typeof chromium.launch>>;
+  let browser: Browser | null = null;
+  let shuttingDown = false;
+  const shutdown = async (reason: string, exitCode: number): Promise<void> => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`[governor] shutdown: ${reason}`);
+    await browser?.close().catch(() => {});
+    browser = null;
+    server?.proc.kill();
+    server = null;
+    process.exit(exitCode);
+  };
+  const onSigint = (): Promise<void> => shutdown('SIGINT', 130);
+  const onSigterm = (): Promise<void> => shutdown('SIGTERM', 143);
+  process.once('SIGINT', onSigint);
+  process.once('SIGTERM', onSigterm);
 
+  // Cap the console-error buffer. A pathological page (runaway logger,
+  // error loop) was able to push unbounded strings into this array
+  // across a multi-minute run.
+  const MAX_ERRORS = 200;
+  const MAX_ERROR_LEN = 500;
   const consoleErrors: string[] = [];
-  page.on('console', (msg) => {
-    console.log(`[browser:${msg.type()}]`, msg.text());
-    if (msg.type() === 'error') consoleErrors.push(msg.text());
-  });
-  page.on('pageerror', (err) => {
-    console.error('[browser:pageerror]', err.message);
-    consoleErrors.push(String(err));
-  });
+  let consoleErrorsDropped = 0;
+  const pushErr = (s: string): void => {
+    if (consoleErrors.length >= MAX_ERRORS) {
+      consoleErrors.shift();
+      consoleErrorsDropped += 1;
+    }
+    consoleErrors.push(s.slice(0, MAX_ERROR_LEN));
+  };
 
-  console.log(`[governor] navigating to ${url}`);
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('canvas', { timeout: 20_000 });
+  try {
+    browser = await chromium.launch({
+      channel: 'chrome',
+      args: [
+        '--no-sandbox',
+        '--use-angle=gl',
+        '--enable-webgl',
+        '--ignore-gpu-blocklist',
+        '--mute-audio',
+      ],
+    });
+    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const page = await context.newPage();
 
-  const start = Date.now();
-  interface FrameDump {
-    frame: number;
-    elapsedMs: number;
-    diag: Record<string, unknown> | null;
-    screenshotPath: string;
-  }
-  const frames: FrameDump[] = [];
-
-  for (let i = 0; i < opts.maxFrames; i++) {
-    await page.waitForTimeout(opts.intervalMs);
-    const elapsedMs = Date.now() - start;
-
-    const diag = await page.evaluate(() => {
-      const w = window as { __mm?: { diag?: () => unknown } };
-      try {
-        return (w.__mm?.diag?.() as Record<string, unknown>) ?? null;
-      } catch {
-        return null;
-      }
+    page.on('console', (msg) => {
+      console.log(`[browser:${msg.type()}]`, msg.text());
+      if (msg.type() === 'error') pushErr(msg.text());
+    });
+    page.on('pageerror', (err) => {
+      console.error('[browser:pageerror]', err.message);
+      pushErr(String(err));
     });
 
-    const pngName = `frame-${String(i).padStart(2, '0')}.png`;
-    const jsonName = `frame-${String(i).padStart(2, '0')}.json`;
-    const pngPath = resolve(outDir, pngName);
-    const jsonPath = resolve(outDir, jsonName);
-    await page.screenshot({ type: 'png', path: pngPath });
+    console.log(`[governor] navigating to ${url}`);
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('canvas', { timeout: 20_000 });
+
+    const start = Date.now();
+    // Only the first and last diag are kept in memory; every frame still
+    // writes its full JSON + PNG to disk. The old `FrameDump[]` array
+    // retained the entire diag tree per frame — on a long run that was
+    // multi-MB of JSON on top of the disk writes, for no benefit beyond
+    // printing firstDiag/lastDiag into summary.json.
+    let firstDiag: Record<string, unknown> | null = null;
+    let lastDiag: Record<string, unknown> | null = null;
+    let frameCount = 0;
+
+    for (let i = 0; i < opts.maxFrames; i++) {
+      await page.waitForTimeout(opts.intervalMs);
+      const elapsedMs = Date.now() - start;
+
+      const diag = await page.evaluate(() => {
+        const w = window as { __mm?: { diag?: () => unknown } };
+        try {
+          return (w.__mm?.diag?.() as Record<string, unknown>) ?? null;
+        } catch {
+          return null;
+        }
+      });
+
+      const pngName = `frame-${String(i).padStart(2, '0')}.png`;
+      const jsonName = `frame-${String(i).padStart(2, '0')}.json`;
+      const pngPath = resolve(outDir, pngName);
+      const jsonPath = resolve(outDir, jsonName);
+      await page.screenshot({ type: 'png', path: pngPath });
+      await writeFile(
+        jsonPath,
+        JSON.stringify(
+          { frame: i, elapsedMs, phrase: opts.phrase, difficulty: opts.difficulty, diag },
+          null,
+          2,
+        ),
+      );
+      if (firstDiag === null) firstDiag = diag;
+      lastDiag = diag;
+      frameCount = i + 1;
+      console.log(`[governor] frame ${i + 1}/${opts.maxFrames} @ t+${elapsedMs}ms`);
+    }
+
     await writeFile(
-      jsonPath,
+      resolve(outDir, 'summary.json'),
       JSON.stringify(
-        { frame: i, elapsedMs, phrase: opts.phrase, difficulty: opts.difficulty, diag },
+        {
+          phrase: opts.phrase,
+          difficulty: opts.difficulty,
+          intervalMs: opts.intervalMs,
+          frameCount,
+          firstDiag,
+          lastDiag,
+          consoleErrors,
+          consoleErrorsDropped,
+        },
         null,
         2,
       ),
     );
-    frames.push({ frame: i, elapsedMs, diag, screenshotPath: pngPath });
-    console.log(`[governor] frame ${i + 1}/${opts.maxFrames} @ t+${elapsedMs}ms`);
+
+    console.log(`[governor] done — ${frameCount} frames in ${outDir}`);
+  } finally {
+    process.off('SIGINT', onSigint);
+    process.off('SIGTERM', onSigterm);
+    await browser?.close().catch(() => {});
+    server?.proc.kill();
   }
-
-  await writeFile(
-    resolve(outDir, 'summary.json'),
-    JSON.stringify(
-      {
-        phrase: opts.phrase,
-        difficulty: opts.difficulty,
-        intervalMs: opts.intervalMs,
-        frameCount: frames.length,
-        firstDiag: frames[0]?.diag ?? null,
-        lastDiag: frames[frames.length - 1]?.diag ?? null,
-        consoleErrors,
-      },
-      null,
-      2,
-    ),
-  );
-
-  await browser.close();
-  if (server) server.proc.kill();
-  console.log(`[governor] done — ${frames.length} frames in ${outDir}`);
 }
 
 run().catch((err) => {

@@ -140,7 +140,15 @@ function AudioBridge({
   onReady: (fns: { honk: () => void; ding: () => void; thud: () => void }) => void;
 }) {
   const api = useArcadeAudio(world, active);
-  onReady(api);
+  // Fire onReady from an effect, never during render. Under StrictMode
+  // render-phase side effects run twice and can overwrite the parent's
+  // refs with a stale handle before useArcadeAudio settles on the real
+  // one. Keyed on the individual callbacks (which are useCallback-stable
+  // inside useArcadeAudio) rather than `api` itself, which would change
+  // identity every render and refire this effect each frame.
+  useEffect(() => {
+    onReady(api);
+  }, [api.honk, api.ding, api.thud, onReady, api]);
   return null;
 }
 

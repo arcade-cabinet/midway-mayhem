@@ -216,8 +216,14 @@ export async function initDb(): Promise<void> {
   return _initPromise;
 }
 
-/** Flush current sql.js in-memory state to OPFS. */
-export async function persistToOpfs(): Promise<void> {
+// Serialize concurrent persistToOpfs() calls against the same file handle.
+// Two overlapping createWritable() calls on the same FileSystemFileHandle
+// can NoModificationAllowedError or corrupt the DB export. Callers fire
+// this in response to store transitions (game-over, zone change), which
+// can coincide on a single frame — chain them instead of racing.
+let _opfsWriteInFlight: Promise<void> | null = null;
+
+async function _doPersistToOpfs(): Promise<void> {
   if (!_opfsFile || !_sqlJsDb) return;
   const data: Uint8Array = _sqlJsDb.export();
   const writable = await _opfsFile.createWritable();
@@ -227,6 +233,16 @@ export async function persistToOpfs(): Promise<void> {
   copy.set(data);
   await writable.write(copy);
   await writable.close();
+}
+
+/** Flush current sql.js in-memory state to OPFS. Serialized against itself. */
+export function persistToOpfs(): Promise<void> {
+  const chain = (_opfsWriteInFlight ?? Promise.resolve()).then(_doPersistToOpfs);
+  // Keep the chain alive even if a single write rejects — otherwise a
+  // transient error would permanently poison the promise and every
+  // subsequent persist would immediately reject.
+  _opfsWriteInFlight = chain.catch(() => {});
+  return chain;
 }
 
 /**

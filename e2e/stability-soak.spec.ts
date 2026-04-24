@@ -103,204 +103,249 @@ test.describe('E1 stability soak @nightly', () => {
     const startTs = Date.now();
     const errorBusTranscript: ErrorBusEntry[] = [];
 
-    page.on('pageerror', (err) => {
-      errorBusTranscript.push({
+    // Cap each text capture and the total entry count so a runaway logger
+    // cannot balloon the process. A 5-min soak with a misbehaving log can
+    // easily produce > 100k messages; retaining even 500 bytes each is
+    // enough to matter. We keep the most recent entries + a dropped-count.
+    const MAX_ERRORBUS_ENTRIES = 500;
+    const MAX_MSG_LEN = 500;
+    let errorBusDropped = 0;
+    const pushErrorBus = (entry: ErrorBusEntry): void => {
+      if (errorBusTranscript.length >= MAX_ERRORBUS_ENTRIES) {
+        errorBusTranscript.shift();
+        errorBusDropped += 1;
+      }
+      errorBusTranscript.push({ ...entry, text: entry.text.slice(0, MAX_MSG_LEN) });
+    };
+
+    const onPageError = (err: Error): void => {
+      pushErrorBus({
         kind: 'pageerror',
         text: String(err),
         elapsedMs: Date.now() - startTs,
       });
-    });
-
-    page.on('console', (msg) => {
+    };
+    const onConsole = (msg: { type: () => string; text: () => string }): void => {
       if (msg.type() === 'error') {
-        errorBusTranscript.push({
+        pushErrorBus({
           kind: 'console-error',
           text: msg.text(),
           elapsedMs: Date.now() - startTs,
         });
       }
-    });
+    };
+    page.on('pageerror', onPageError);
+    page.on('console', onConsole);
 
-    // ── navigate ────────────────────────────────────────────────────────
-    const params = new URLSearchParams({
-      autoplay: '1',
-      governor: '1',
-      phrase: SOAK_PHRASE,
-      difficulty: SOAK_DIFFICULTY,
-    });
-    const url = `/midway-mayhem/?${params.toString()}`;
+    try {
+      // ── navigate ────────────────────────────────────────────────────────
+      const params = new URLSearchParams({
+        autoplay: '1',
+        governor: '1',
+        phrase: SOAK_PHRASE,
+        difficulty: SOAK_DIFFICULTY,
+      });
+      const url = `/midway-mayhem/?${params.toString()}`;
 
-    await page.goto(url);
+      await page.goto(url);
 
-    // The app MUST mount — fail immediately rather than silently
-    // driving for 5 minutes on a dead page.
-    await expect(page.getByTestId('mm-app')).toBeVisible({
-      timeout: 30_000,
-    });
-
-    // Canvas must be rendering before we start the clock.
-    const canvas = page.locator('canvas').first();
-    await expect(canvas).toBeVisible({ timeout: 30_000 });
-
-    // Hard fail if MAYHEM HALTED appears at boot (before soak begins).
-    await expect(page.getByTestId('error-modal-root')).toHaveCount(0, {
-      timeout: 5_000,
-    });
-
-    // ── heartbeat loop ─────────────────────────────────────────────────
-    interface HeartbeatSample {
-      heartbeat: number;
-      elapsedMs: number;
-      fps: number;
-      distance: number;
-      running: boolean;
-      gameOver: boolean;
-      halted: boolean;
-      screenshotPath: string;
-      diagPath: string;
-    }
-
-    const heartbeats: HeartbeatSample[] = [];
-    const numHeartbeats = Math.floor(SOAK_DURATION_MS / HEARTBEAT_MS);
-
-    for (let i = 0; i < numHeartbeats; i++) {
-      await page.waitForTimeout(HEARTBEAT_MS);
-      const elapsedMs = Date.now() - startTs;
-
-      // ── collect diagnostics ──────────────────────────────────────────
-      const diag = await page.evaluate(() => {
-        const w = window as { __mm?: { diag?: () => unknown } };
-        try {
-          return (w.__mm?.diag?.() as Record<string, unknown>) ?? null;
-        } catch {
-          return null;
-        }
+      // The app MUST mount — fail immediately rather than silently
+      // driving for 5 minutes on a dead page.
+      await expect(page.getByTestId('mm-app')).toBeVisible({
+        timeout: 30_000,
       });
 
-      // ── check for MAYHEM HALTED in DOM ───────────────────────────────
-      const modalVisible = await page
-        .getByTestId('error-modal-root')
-        .isVisible()
-        .catch(() => false);
+      // Canvas must be rendering before we start the clock.
+      const canvas = page.locator('canvas').first();
+      await expect(canvas).toBeVisible({ timeout: 30_000 });
 
-      const fps = typeof diag?.fps === 'number' ? diag.fps : 0;
-      const distance = typeof diag?.distance === 'number' ? diag.distance : 0;
-      const running = typeof diag?.running === 'boolean' ? diag.running : false;
-      const gameOver = typeof diag?.gameOver === 'boolean' ? diag.gameOver : false;
+      // Hard fail if MAYHEM HALTED appears at boot (before soak begins).
+      await expect(page.getByTestId('error-modal-root')).toHaveCount(0, {
+        timeout: 5_000,
+      });
 
-      // ── write frame dump ─────────────────────────────────────────────
-      const padded = String(i).padStart(3, '0');
-      const pngPath = join(outDir, `heartbeat-${padded}.png`);
-      const jsonPath = join(outDir, `heartbeat-${padded}.json`);
+      // ── heartbeat loop ─────────────────────────────────────────────────
+      interface HeartbeatSample {
+        heartbeat: number;
+        elapsedMs: number;
+        fps: number;
+        distance: number;
+        running: boolean;
+        gameOver: boolean;
+        halted: boolean;
+        screenshotPath: string;
+        diagPath: string;
+      }
 
-      await page.screenshot({ type: 'png', path: pngPath });
+      // Keep only summary stats + the LAST heartbeat in memory. Previously
+      // we accumulated every heartbeat (screenshot paths + diag + timestamps)
+      // in a growing array — 30 entries × full diag × 5-min soak under worker
+      // retry turned into a multi-MB leak. Each heartbeat still writes its
+      // full dump to disk, so post-mortem scrubbing isn't affected.
+      let heartbeatCount = 0;
+      let minFpsSeen = Infinity;
+      let maxDistanceSeen = 0;
+      let lastHeartbeat: HeartbeatSample | null = null;
+      const numHeartbeats = Math.floor(SOAK_DURATION_MS / HEARTBEAT_MS);
+
+      for (let i = 0; i < numHeartbeats; i++) {
+        await page.waitForTimeout(HEARTBEAT_MS);
+        const elapsedMs = Date.now() - startTs;
+
+        // ── collect diagnostics ──────────────────────────────────────────
+        const diag = await page.evaluate(() => {
+          const w = window as { __mm?: { diag?: () => unknown } };
+          try {
+            return (w.__mm?.diag?.() as Record<string, unknown>) ?? null;
+          } catch {
+            return null;
+          }
+        });
+
+        // ── check for MAYHEM HALTED in DOM ───────────────────────────────
+        const modalVisible = await page
+          .getByTestId('error-modal-root')
+          .isVisible()
+          .catch(() => false);
+
+        const fps = typeof diag?.fps === 'number' ? diag.fps : 0;
+        const distance = typeof diag?.distance === 'number' ? diag.distance : 0;
+        const running = typeof diag?.running === 'boolean' ? diag.running : false;
+        const gameOver = typeof diag?.gameOver === 'boolean' ? diag.gameOver : false;
+
+        // ── write frame dump ─────────────────────────────────────────────
+        const padded = String(i).padStart(3, '0');
+        const pngPath = join(outDir, `heartbeat-${padded}.png`);
+        const jsonPath = join(outDir, `heartbeat-${padded}.json`);
+
+        await page.screenshot({ type: 'png', path: pngPath });
+        await writeFile(
+          jsonPath,
+          JSON.stringify(
+            {
+              heartbeat: i,
+              elapsedMs,
+              fps,
+              distance,
+              running,
+              gameOver,
+              mayhemHaltedVisible: modalVisible,
+              diag,
+            },
+            null,
+            2,
+          ),
+        );
+
+        lastHeartbeat = {
+          heartbeat: i,
+          elapsedMs,
+          fps,
+          distance,
+          running,
+          gameOver,
+          halted: modalVisible,
+          screenshotPath: pngPath,
+          diagPath: jsonPath,
+        };
+        heartbeatCount += 1;
+        if (fps < minFpsSeen) minFpsSeen = fps;
+        if (distance > maxDistanceSeen) maxDistanceSeen = distance;
+
+        // Attach PNG we just wrote to disk as an HTML-report attachment —
+        // reusing the file skips a second screenshot call (each screenshot
+        // is ~10s on CI swiftshader, and across 30 heartbeats the
+        // redundant second shot was pushing total runtime past 8 minutes).
+        await testInfo.attach(`heartbeat-${padded}.png`, {
+          path: pngPath,
+          contentType: 'image/png',
+        });
+
+        // ── fps alive guard ───────────────────────────────────────────────
+        // Assert at every heartbeat so a zombie-state freeze fails fast
+        // rather than grinding for the remaining 5 minutes.
+        expect(
+          fps,
+          `fps dropped to ${fps.toFixed(1)} at heartbeat ${i} (t=${(elapsedMs / 1000).toFixed(0)}s) — game appears frozen`,
+        ).toBeGreaterThan(MIN_FPS);
+
+        // ── MAYHEM HALTED inline check ───────────────────────────────────
+        expect(
+          modalVisible,
+          `MAYHEM HALTED modal appeared at heartbeat ${i} (t=${(elapsedMs / 1000).toFixed(0)}s)`,
+        ).toBe(false);
+      }
+
+      // ── post-soak: persist error transcript ────────────────────────────
       await writeFile(
-        jsonPath,
+        join(outDir, 'errorBus-transcript.json'),
         JSON.stringify(
           {
-            heartbeat: i,
-            elapsedMs,
-            fps,
-            distance,
-            running,
-            gameOver,
-            mayhemHaltedVisible: modalVisible,
-            diag,
+            phrase: SOAK_PHRASE,
+            difficulty: SOAK_DIFFICULTY,
+            entries: errorBusTranscript,
+            droppedOlderEntries: errorBusDropped,
           },
           null,
           2,
         ),
       );
 
-      heartbeats.push({
-        heartbeat: i,
-        elapsedMs,
-        fps,
-        distance,
-        running,
-        gameOver,
-        halted: modalVisible,
-        screenshotPath: pngPath,
-        diagPath: jsonPath,
-      });
+      await writeFile(
+        join(outDir, 'summary.json'),
+        JSON.stringify(
+          {
+            phrase: SOAK_PHRASE,
+            difficulty: SOAK_DIFFICULTY,
+            soakDurationMs: SOAK_DURATION_MS,
+            heartbeatCount,
+            errorBusEntries: errorBusTranscript.length,
+            errorBusDropped,
+            minFpsSeen: minFpsSeen === Infinity ? null : minFpsSeen,
+            maxDistanceSeen,
+            finalDistance: lastHeartbeat?.distance ?? 0,
+            finalFps: lastHeartbeat?.fps ?? 0,
+            lastHeartbeat,
+          },
+          null,
+          2,
+        ),
+      );
 
-      // Attach PNG we just wrote to disk as an HTML-report attachment —
-      // reusing the file skips a second screenshot call (each screenshot
-      // is ~10s on CI swiftshader, and across 30 heartbeats the
-      // redundant second shot was pushing total runtime past 8 minutes).
-      await testInfo.attach(`heartbeat-${padded}.png`, {
-        path: pngPath,
-        contentType: 'image/png',
-      });
+      // ── final assertions ────────────────────────────────────────────────
 
-      // ── fps alive guard ───────────────────────────────────────────────
-      // Assert at every heartbeat so a zombie-state freeze fails fast
-      // rather than grinding for the remaining 5 minutes.
+      // Filter the same known-harmless noise the factory uses.
+      const fatalErrors = errorBusTranscript.filter(
+        ({ text }) =>
+          !text.includes('React DevTools') &&
+          !text.toLowerCase().includes('download the react devtools') &&
+          !text.includes('TitleScreen.loadTickets') &&
+          !text.includes('OPFS') &&
+          !text.includes('operation failed for an unknown transient reason'),
+      );
+
       expect(
-        fps,
-        `fps dropped to ${fps.toFixed(1)} at heartbeat ${i} (t=${(elapsedMs / 1000).toFixed(0)}s) — game appears frozen`,
-      ).toBeGreaterThan(MIN_FPS);
+        fatalErrors,
+        `errorBus emitted ${fatalErrors.length} fatal error(s) during the 5-minute soak`,
+      ).toHaveLength(0);
 
-      // ── MAYHEM HALTED inline check ───────────────────────────────────
+      // DOM-level check: MAYHEM HALTED must not appear in the final state.
+      await expect(page.getByTestId('error-modal-root')).toHaveCount(0);
+
+      // Sanity: the autopilot must have actually driven the car.
+      const finalDistance = lastHeartbeat?.distance ?? 0;
       expect(
-        modalVisible,
-        `MAYHEM HALTED modal appeared at heartbeat ${i} (t=${(elapsedMs / 1000).toFixed(0)}s)`,
-      ).toBe(false);
+        finalDistance,
+        `car only covered ${finalDistance.toFixed(0)}m in 5 minutes — autopilot may not have started`,
+      ).toBeGreaterThan(MIN_DISTANCE_M);
+    } finally {
+      // Detach listeners + close the page even if an assertion inside the
+      // heartbeat loop threw. Playwright would normally reap on worker
+      // teardown, but retries + long soaks meant the page sometimes held
+      // multiple MB of listener-closure state between retries.
+      page.off('pageerror', onPageError);
+      page.off('console', onConsole);
+      await page.close().catch(() => {});
     }
-
-    // ── post-soak: persist error transcript ────────────────────────────
-    await writeFile(
-      join(outDir, 'errorBus-transcript.json'),
-      JSON.stringify(
-        { phrase: SOAK_PHRASE, difficulty: SOAK_DIFFICULTY, entries: errorBusTranscript },
-        null,
-        2,
-      ),
-    );
-
-    await writeFile(
-      join(outDir, 'summary.json'),
-      JSON.stringify(
-        {
-          phrase: SOAK_PHRASE,
-          difficulty: SOAK_DIFFICULTY,
-          soakDurationMs: SOAK_DURATION_MS,
-          heartbeatCount: heartbeats.length,
-          errorBusEntries: errorBusTranscript.length,
-          finalDistance: heartbeats[heartbeats.length - 1]?.distance ?? 0,
-          finalFps: heartbeats[heartbeats.length - 1]?.fps ?? 0,
-          heartbeats,
-        },
-        null,
-        2,
-      ),
-    );
-
-    // ── final assertions ────────────────────────────────────────────────
-
-    // Filter the same known-harmless noise the factory uses.
-    const fatalErrors = errorBusTranscript.filter(
-      ({ text }) =>
-        !text.includes('React DevTools') &&
-        !text.toLowerCase().includes('download the react devtools') &&
-        !text.includes('TitleScreen.loadTickets') &&
-        !text.includes('OPFS') &&
-        !text.includes('operation failed for an unknown transient reason'),
-    );
-
-    expect(
-      fatalErrors,
-      `errorBus emitted ${fatalErrors.length} fatal error(s) during the 5-minute soak`,
-    ).toHaveLength(0);
-
-    // DOM-level check: MAYHEM HALTED must not appear in the final state.
-    await expect(page.getByTestId('error-modal-root')).toHaveCount(0);
-
-    // Sanity: the autopilot must have actually driven the car.
-    const finalDistance = heartbeats[heartbeats.length - 1]?.distance ?? 0;
-    expect(
-      finalDistance,
-      `car only covered ${finalDistance.toFixed(0)}m in 5 minutes — autopilot may not have started`,
-    ).toBeGreaterThan(MIN_DISTANCE_M);
   });
 });
