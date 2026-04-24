@@ -9,6 +9,13 @@ domain: technical
 
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
+## [0.2.3](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.2...midway-mayhem-v0.2.3) (2026-04-24)
+
+
+### Fixed
+
+* **hud:** ErrorModal returns null when no errors (unblocks nightly e2e) ([#286](https://github.com/arcade-cabinet/midway-mayhem/issues/286)) ([e9ead12](https://github.com/arcade-cabinet/midway-mayhem/commit/e9ead1279686cf99d6be18f52199084004561a1d))
+
 ## [0.2.2](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.1...midway-mayhem-v0.2.2) (2026-04-24)
 
 
