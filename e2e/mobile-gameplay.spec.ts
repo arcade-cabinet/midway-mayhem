@@ -28,6 +28,10 @@ test.describe('mobile-first gameplay', () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-portrait', 'mobile-only');
+    // CI swiftshader: 30s start-button + 60s modal + 30s play-button
+    // waits alone = 120s; the default 120s test cap was exactly at
+    // that floor with zero headroom for actual gameplay assertions.
+    test.setTimeout(300_000);
     await page.goto('/midway-mayhem/?nonameonboard=1');
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 20_000 });
 
@@ -61,7 +65,9 @@ test.describe('mobile-first gameplay', () => {
 
   test('autoplay advances deterministically on mobile @nightly', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-portrait', 'mobile-only');
-    test.setTimeout(90_000);
+    // 20s canvas visibility + 9s sampling + CI swiftshader overhead;
+    // 180s covers slow preview boot on a fresh browser context.
+    test.setTimeout(180_000);
     await page.goto('/midway-mayhem/?autoplay=1&governor=1&phrase=neon-polkadot-jalopy');
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
 
