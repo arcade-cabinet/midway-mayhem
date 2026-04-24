@@ -1,0 +1,138 @@
+name: E3 Android Perf Soak
+
+# Runs the 3-minute Android emulator fps soak (E3 @android-perf tag).
+# Asserts p95 fps >= 40 on an AVD backed by the system-images for API 35.
+#
+# Triggered manually (workflow_dispatch) or weekly on Sunday at 07:00 UTC.
+# Never triggered on pull requests — the emulator boot time makes it
+# unsuitable as a PR gate; it's a regression early-warning system.
+
+on:
+  schedule:
+    # 07:00 UTC every Sunday — once weekly to catch performance regressions
+    # before they accumulate into a release-blocking backlog.
+    - cron: '0 7 * * 0'
+  workflow_dispatch:
+    inputs:
+      avd_name:
+        description: 'AVD name to boot (default: Pixel_8_API_35)'
+        required: false
+        default: 'Pixel_8_API_35'
+
+jobs:
+  android-perf-soak:
+    name: E3 Android Emulator Perf Soak (3-min)
+    runs-on: ubuntu-latest
+    # 3-min soak + build + emulator boot + playwright install + assertions = ~25 min.
+    # 40-min cap gives generous headroom without wasting runner hours.
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Set up JDK 17 (for Android emulator tools)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Android SDK command-line tools
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android emulator system image (API 35, x86_64)
+        run: |
+          sdkmanager --install \
+            "system-images;android-35;google_apis;x86_64" \
+            "platforms;android-35" \
+            "platform-tools" \
+            "emulator"
+
+      - name: Create AVD
+        env:
+          AVD_NAME: ${{ inputs.avd_name || 'Pixel_8_API_35' }}
+        run: |
+          echo "no" | avdmanager create avd \
+            --name "$AVD_NAME" \
+            --package "system-images;android-35;google_apis;x86_64" \
+            --device "pixel_8" \
+            --force
+
+      - name: Start emulator in background
+        env:
+          AVD_NAME: ${{ inputs.avd_name || 'Pixel_8_API_35' }}
+        run: |
+          nohup "$ANDROID_HOME/emulator/emulator" \
+            -avd "$AVD_NAME" \
+            -no-window \
+            -no-audio \
+            -no-snapshot \
+            -gpu swiftshader_indirect \
+            > /tmp/emulator.log 2>&1 &
+          echo "Emulator PID: $!"
+
+      - name: Wait for emulator boot
+        run: |
+          adb wait-for-device
+          # Poll until boot animation is done — typically 60-90s on CI runners.
+          timeout 180 bash -c '
+            until [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" == "1" ]]; do
+              sleep 5
+            done
+          '
+          echo "Emulator booted"
+          adb shell input keyevent 82
+
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Build production preview bundle
+        run: pnpm build
+
+      - name: Start preview server in background
+        run: |
+          pnpm copywasm
+          nohup pnpm preview --port 5174 --strictPort > /tmp/preview.log 2>&1 &
+          timeout 30 bash -c 'until curl -sf http://localhost:5174/midway-mayhem/ > /dev/null; do sleep 2; done'
+          echo "Preview server ready"
+
+      - name: Run E3 Android perf soak
+        env:
+          PW_NIGHTLY: '1'
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
+            pnpm perf:android
+
+      - name: Upload perf-android.json artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-android-${{ github.run_id }}
+          path: |
+            test-results/**/android-perf-soak/perf-android.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-android-perf-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Print emulator log on failure
+        if: failure()
+        run: cat /tmp/emulator.log || true
