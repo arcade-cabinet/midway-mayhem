@@ -40,10 +40,10 @@ describe('Procedural track integration', () => {
     ).toBeGreaterThan(0);
     expect(baseline.currentZone, 'expected to start in midway-strip').toBe('midway-strip');
 
-    // Drive past the first zone boundary (450m). 60s base ×5 CI mult = 300s.
-    // CI run on PR #209 reached 346m in 150s → need more budget for the
-    // full 450m.
-    await waitForDistance(450, 60_000);
+    // Drive past the first zone boundary (450m). 80s base ×5 CI mult = 400s.
+    // Previously tuned at 60s×5=300s but CI runs under heavy snapshot-suite
+    // contention were stalling near 350m and hitting the cap.
+    await waitForDistance(450, 80_000);
 
     const advanced = diag();
     expect(advanced.distance).toBeGreaterThan(450);
@@ -54,7 +54,7 @@ describe('Procedural track integration', () => {
 
     // Composer window should be stable or growing, never shrinking.
     expect(advanced.trackPieces).toBeGreaterThanOrEqual(baseline.trackPieces);
-    // 300s covers CI swiftshader's 5× slowdown on the 450m drive —
-    // locally it completes in ~10s.
-  }, 300_000);
+    // 420s covers CI swiftshader's 5× slowdown on the 450m drive under
+    // snapshot-suite contention; locally it completes in ~10s.
+  }, 420_000);
 });
