@@ -73,8 +73,18 @@ function stringLength(mesh: CockpitMesh): number {
  * Resolves a {@link CockpitMaterial} to R3F material JSX. Polka-dot materials
  * bake a CanvasTexture once per material instance via useMemo so the
  * blueprint can fan out hundreds of meshes without thrashing the GPU.
+ *
+ * @param side - THREE.Side constant (FrontSide by default). Pass DoubleSide
+ *   for open-surface geometry like cylinderSweep that must be visible from
+ *   both inside and outside the mesh.
  */
-function CockpitMaterialNode({ material }: { material: CockpitMaterial }) {
+function CockpitMaterialNode({
+  material,
+  side = THREE.FrontSide,
+}: {
+  material: CockpitMaterial;
+  side?: THREE.Side;
+}) {
   const tex = useMemo(() => {
     if (!material.dotColor) return null;
     return makePolkaDotTexture(material.dotColor, material.baseColor, {
@@ -88,6 +98,7 @@ function CockpitMaterialNode({ material }: { material: CockpitMaterial }) {
         map={tex}
         roughness={material.roughness}
         metalness={material.metalness}
+        side={side}
       />
     );
   }
@@ -96,6 +107,7 @@ function CockpitMaterialNode({ material }: { material: CockpitMaterial }) {
       color={material.baseColor}
       roughness={material.roughness}
       metalness={material.metalness}
+      side={side}
     />
   );
 }
@@ -153,12 +165,19 @@ export function CockpitMeshNode({ name, mesh, material }: CockpitMeshNodeProps) 
       const r = mesh.radius ?? 0.5;
       const len = mesh.widthAlongX ?? mesh.length ?? 1.5;
       const arcRad = ((mesh.arcDeg ?? 360) * Math.PI) / 180;
+      // openEnded=true only emits the outer surface; from the driver's cockpit
+      // POV the inner face is seen → default FrontSide culls it. Force
+      // DoubleSide so both the outer (exterior view) and inner (driver view)
+      // surfaces are rendered.
+      const doubleSideMaterial = (
+        <CockpitMaterialNode material={material} side={THREE.DoubleSide} />
+      );
       return (
         <mesh name={name} position={position} rotation={rotation} scale={scale}>
           <cylinderGeometry
             args={[r, r, len, DEFAULT_SEGMENTS.cylinderRadial, 1, true, 0, arcRad]}
           />
-          {materialNode}
+          {doubleSideMaterial}
         </mesh>
       );
     }
