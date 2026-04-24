@@ -22,11 +22,10 @@ export function NameOnboardingModal({ onComplete }: { onComplete: (name: string)
     // nightly specs that navigate on a fresh browser context (no OPFS
     // prefs yet) can reach the title UI without having to script past a
     // full-screen modal on every spec. Production UX is unchanged.
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('nonameonboard') === '1' || params.get('autoplay') === '1') {
-        return;
-      }
+    // useEffect only runs in the browser, so `window` is always defined here.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('nonameonboard') === '1' || params.get('autoplay') === '1') {
+      return;
     }
     let cancelled = false;
     (async () => {
