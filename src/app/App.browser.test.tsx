@@ -58,6 +58,13 @@ describe('App root-render integration', () => {
     if (!gl) throw new Error('no WebGL context');
     expect(gl.isContextLost()).toBe(false);
 
+    // Let R3F render a few more frames before sampling the drawing buffer.
+    // preserveDrawingBuffer:true guarantees the buffer persists across the
+    // GL swap, but an extra settle budget prevents the intermittent
+    // rgba(0,0,0,0) race that surfaces when the first committed frame has
+    // not yet been composited into the backing store (observed post-#208).
+    await waitFrames(5);
+
     // Read a pixel via the 2D canvas API — going through gl.readPixels
     // after a browser present can read a cleared drawing buffer even with
     // preserveDrawingBuffer:true. toDataURL re-paints the last committed
