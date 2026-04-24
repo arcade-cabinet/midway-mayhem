@@ -17,7 +17,8 @@ import { expect, test } from '@playwright/test';
 test.describe('mobile-first gameplay', () => {
   test('title compact layout + ticket balance render', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-portrait', 'mobile-only');
-    await page.goto('/midway-mayhem/');
+    // ?nonameonboard=1 bypasses the first-launch modal on fresh contexts.
+    await page.goto('/midway-mayhem/?nonameonboard=1');
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('title-ticket-balance')).toBeVisible();
     await expect(page.getByTestId('title-square-logo')).toBeVisible();
@@ -27,7 +28,7 @@ test.describe('mobile-first gameplay', () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile-portrait', 'mobile-only');
-    await page.goto('/midway-mayhem/');
+    await page.goto('/midway-mayhem/?nonameonboard=1');
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 20_000 });
 
     // Both TitleCompactLayout and TitleHeroLayout testId the NEW RUN

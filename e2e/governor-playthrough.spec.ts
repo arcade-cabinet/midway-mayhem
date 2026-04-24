@@ -65,7 +65,10 @@ test.describe('governor playthrough', () => {
     // Cold boot on CI preview server + swiftshader + initial texture load
     // can push first paint past 20s. Extend timeouts per-expect.
     test.setTimeout(90_000);
-    await page.goto('/midway-mayhem/');
+    // ?nonameonboard=1 suppresses the first-launch NameOnboardingModal
+    // (full-screen zIndex:60 overlay) so the start-button is reachable
+    // on a fresh browser context.
+    await page.goto('/midway-mayhem/?nonameonboard=1');
     await expect(page.getByTestId('mm-app')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 30_000 });
     // NEW RUN start button
@@ -79,7 +82,7 @@ test.describe('governor playthrough', () => {
       testInfo.project.name !== 'desktop-chromium',
       'modal flow runs on desktop-chromium only (telemetry nightly)',
     );
-    await page.goto('/midway-mayhem/');
+    await page.goto('/midway-mayhem/?nonameonboard=1');
     await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 20_000 });
 
     await page.getByTestId('start-button').click();

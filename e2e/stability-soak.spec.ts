@@ -78,9 +78,12 @@ test.describe('E1 stability soak @nightly', () => {
       'E1 stability soak runs on desktop-chromium only',
     );
 
-    // 5-min soak + 90s boot allowance + 30s assertions/cleanup = 390s.
-    // Set 480s to give CI swiftshader headroom without timing out.
-    test.setTimeout(480_000);
+    // 5-min soak + boot + per-heartbeat screenshots (slow on swiftshader).
+    // On CI each heartbeat's screenshot can take 10-15s, which across 30
+    // heartbeats adds 5-8 minutes on top of the 5-minute soak itself.
+    // 900s cap keeps us inside the 20-min job timeout with comfortable
+    // headroom; local runs finish in ~6 minutes and never reach this.
+    test.setTimeout(900_000);
 
     // ── output directory ────────────────────────────────────────────────
     const outDir = join(testInfo.outputDir, 'stability-soak');
@@ -216,10 +219,12 @@ test.describe('E1 stability soak @nightly', () => {
         diagPath: jsonPath,
       });
 
-      // Attach screenshot for Playwright HTML report.
-      const shot = await page.screenshot({ type: 'png' });
+      // Attach PNG we just wrote to disk as an HTML-report attachment —
+      // reusing the file skips a second screenshot call (each screenshot
+      // is ~10s on CI swiftshader, and across 30 heartbeats the
+      // redundant second shot was pushing total runtime past 8 minutes).
       await testInfo.attach(`heartbeat-${padded}.png`, {
-        body: shot,
+        path: pngPath,
         contentType: 'image/png',
       });
 
