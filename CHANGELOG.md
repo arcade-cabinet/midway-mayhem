@@ -9,6 +9,14 @@ domain: technical
 
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
+## [0.2.7](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.6...midway-mayhem-v0.2.7) (2026-04-24)
+
+
+### Fixed
+
+* **e2e:** extend CI modal-mount timeouts + shorten soak duration ([#298](https://github.com/arcade-cabinet/midway-mayhem/issues/298)) ([86bdb0b](https://github.com/arcade-cabinet/midway-mayhem/commit/86bdb0b767c55e1e960bd58bb5bdfcaeb475c8b8))
+* **test:** track archetype baselines @ 1280×720 (match browser viewport) ([#299](https://github.com/arcade-cabinet/midway-mayhem/issues/299)) ([ae94e3f](https://github.com/arcade-cabinet/midway-mayhem/commit/ae94e3f532160dd767be3e7efac54f20f72b0d3e))
+
 ## [0.2.6](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.5...midway-mayhem-v0.2.6) (2026-04-24)
 
 
