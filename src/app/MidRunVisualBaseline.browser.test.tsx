@@ -15,7 +15,7 @@
  * visual gate.
  */
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
+import { commands } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
 import { diag, driveInto, waitForDistance, waitFrames } from '@/test/integration';
 import { App } from './App';

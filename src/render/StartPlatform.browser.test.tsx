@@ -15,7 +15,7 @@
  * Screenshot path: .test-screenshots/start-platform/elevated.png
  */
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
+import { commands } from 'vitest/browser';
 import { createWorld } from 'koota';
 import { WorldProvider } from 'koota/react';
 import { describe, expect, it } from 'vitest';

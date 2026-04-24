@@ -15,7 +15,7 @@
 import { PerspectiveCamera } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
 import { render, waitFor } from '@testing-library/react';
-import { commands } from '@vitest/browser/context';
+import { commands } from 'vitest/browser';
 import { useLayoutEffect } from 'react';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
