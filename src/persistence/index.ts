@@ -44,6 +44,7 @@ export {
 export type { ReplayRow, ReplaySample } from './replay';
 export {
   getBestReplayForDate,
+  getRecentRuns,
   listReplaysForDate,
   replaysEqual,
   saveReplay,

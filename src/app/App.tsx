@@ -62,6 +62,7 @@ import { saveScore } from '@/storage/scores';
 import { initDailyRouteFromUrl } from '@/track/dailyRoute';
 import { AchievementToasts } from '@/ui/AchievementToasts';
 import { GameOverOverlay } from '@/ui/GameOverOverlay';
+import { GhostMenu } from '@/ui/ghost/GhostMenu';
 import { ErrorModal } from '@/ui/hud/ErrorModal';
 import { HUD } from '@/ui/hud/HUD';
 import { LiveRegion } from '@/ui/hud/LiveRegion';
@@ -164,6 +165,8 @@ function AppInner() {
   // Tutorial overlay visibility is driven by the tutorial state machine.
   // We use a local state flag so React re-renders when skip is triggered.
   const [tutorialSkipped, setTutorialSkipped] = useState(false);
+  // D4: Ghost replay mode disables player input while a replay is playing.
+  const [inputDisabled, setInputDisabled] = useState(false);
   const playing = !titleVisible && endReason === null;
   const hornRef = useRef<() => void>(() => {});
   const dingRef = useRef<() => void>(() => {});
@@ -185,8 +188,8 @@ function AppInner() {
     onTutorialHonk();
   };
 
-  useKeyboard({ world, enabled: playing, onHorn: wrappedHorn });
-  useMouseSteer({ world, enabled: playing });
+  useKeyboard({ world, enabled: playing && !inputDisabled, onHorn: wrappedHorn });
+  useMouseSteer({ world, enabled: playing && !inputDisabled });
   useGameSystems();
 
   // R3F v9's useMeasure hook on the Canvas wrapper occasionally doesn't
@@ -332,7 +335,7 @@ function AppInner() {
         <>
           <HUD />
           <PauseButton />
-          <TouchControls world={world} enabled={playing} onHorn={wrappedHorn} />
+          <TouchControls world={world} enabled={playing && !inputDisabled} onHorn={wrappedHorn} />
           {/* Tutorial overlay — shown during the first run while the
                   tutorial is active. Hidden after skip or step 6 completion.
                   Renders on top of the HUD (z-index 50, below dialogs). */}
@@ -356,6 +359,13 @@ function AppInner() {
           }}
         />
       ) : null}
+      {/* D4: Ghost replay menu — shown while the game-over overlay is up.
+              Disables player input while a replay is active. */}
+      <GhostMenu
+        visible={endReason !== null}
+        onEnterReplay={() => setInputDisabled(true)}
+        onExitReplay={() => setInputDisabled(false)}
+      />
     </div>
   );
 }
