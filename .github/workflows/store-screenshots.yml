@@ -1,0 +1,71 @@
+name: Store Screenshots
+
+# Regenerates the 10 store-listing PNGs (iOS 6.7" + Android Phone, 5 moments each)
+# via the Playwright Chromium governor on a real-GPU Chrome.
+#
+# Outputs are uploaded as a review artifact — they are NOT auto-committed.
+# Reviewers inspect the artifact before landing screenshots to the repo.
+#
+# Run manually via Actions → "Store Screenshots" → "Run workflow".
+# Also runs weekly on Sunday at 04:00 UTC to keep listings fresh.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every Sunday 04:00 UTC
+    - cron: "0 4 * * 0"
+
+jobs:
+  generate:
+    name: Generate Store Screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Install Chromium (headless) for Playwright.
+      # We don't need the full browser matrix — Chromium is the only renderer
+      # used by the governor script.
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      # xvfb is required for headed Chrome on Linux (real GPU via ANGLE/GL).
+      # The store-screenshot script launches Chrome with --use-angle=gl which
+      # needs a display server even in CI.
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      # copywasm copies sql-wasm.wasm into public/ so the game boots correctly.
+      - name: Copy WASM assets
+        run: pnpm copywasm
+
+      # Build the production bundle, then start the preview server and run
+      # the screenshot script against it (--self-host flag handles both).
+      - name: Generate store screenshots (self-hosted build)
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1440x900x24" \
+            pnpm screenshots:store:self
+
+      - name: Upload store screenshots artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-screenshots-${{ github.run_number }}
+          path: resources/store-screenshots/
+          retention-days: 30
+          if-no-files-found: error

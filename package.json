@@ -37,7 +37,10 @@
     "test:visual:update": "vitest run --project browser --update",
     "playthrough": "tsx scripts/playthrough-governor.ts",
     "playthrough:self": "tsx scripts/playthrough-governor.ts --self-host",
-    "icons": "tsx scripts/generate-icons.ts"
+    "icons": "tsx scripts/generate-icons.ts",
+    "screenshots:store": "tsx scripts/generate-store-screenshots.ts",
+    "screenshots:store:self": "tsx scripts/generate-store-screenshots.ts --self-host",
+    "prescreenshots:store:self": "pnpm copywasm"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.0",
