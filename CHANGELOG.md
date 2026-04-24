@@ -9,6 +9,13 @@ domain: technical
 
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
+## [0.2.5](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.4...midway-mayhem-v0.2.5) (2026-04-24)
+
+
+### Fixed
+
+* **e2e:** force-click start-button in nightly specs (R3F canvas defeats stability check) ([#293](https://github.com/arcade-cabinet/midway-mayhem/issues/293)) ([5b2ee03](https://github.com/arcade-cabinet/midway-mayhem/commit/5b2ee03af41f5e9f3f7e89d1eb30663b2999af87))
+
 ## [0.2.4](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.3...midway-mayhem-v0.2.4) (2026-04-24)
 
 
