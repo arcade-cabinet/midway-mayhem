@@ -11,14 +11,14 @@ export function ErrorModal() {
 
   useEffect(() => subscribeErrors(setErrors), []);
 
+  // When there are no active errors, render nothing at all. Previously we
+  // rendered a zero-size placeholder `<div data-testid="error-modal-root">`
+  // so subscribers could count it, but e2e specs expecting
+  // `toHaveCount(0)` as a "no error modal shown" gate were always
+  // finding the placeholder and failing. With no errors present, the
+  // component simply returns null.
   if (errors.length === 0 || dismissed) {
-    return (
-      <div
-        data-testid="error-modal-root"
-        data-error-count={errors.length}
-        style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
-      />
-    );
+    return null;
   }
 
   const latest = errors[errors.length - 1] as GameError;
