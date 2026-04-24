@@ -21,17 +21,21 @@ import { expect, test } from '@playwright/test';
 
 test.describe('boot smoke — fast merge gate', () => {
   test('autoplay=1 boots into a running game', async ({ page }) => {
-    test.setTimeout(45_000);
+    // CI swiftshader is ~3-5× slower than local GPU chrome. Give the whole
+    // test and every sub-expect enough headroom that the first cold boot on
+    // a freshly-started preview server has time to compile shaders +
+    // resolve textures.
+    test.setTimeout(90_000);
 
     await page.goto('/midway-mayhem/?autoplay=1');
 
     // Canvas mounts.
-    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 30_000 });
 
     // Title screen dismisses (autoplay committed + setTitleVisible(false)).
-    await expect(page.getByTestId('title-screen')).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByTestId('title-screen')).toHaveCount(0, { timeout: 30_000 });
 
     // HUD mounts (App only renders HUD when playing=true).
-    await expect(page.getByTestId('hud-stats')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('hud-stats')).toBeVisible({ timeout: 30_000 });
   });
 });
