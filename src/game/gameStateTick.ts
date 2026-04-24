@@ -8,6 +8,7 @@
  * All state reads/writes use ECS traits on the player entity.
  */
 import type { World } from 'koota';
+import { playMilestoneStinger, playZoneStinger } from '@/audio/stingers';
 import { trackArchetypes, tunables } from '@/config';
 import {
   BoostState,
@@ -109,6 +110,18 @@ export function tickGameState(dt: number, now: number, w: World): void {
   const currentZone: ZoneId =
     (['midway-strip', 'balloon-alley', 'ring-of-fire', 'funhouse-frenzy'] as const)[zIdx] ??
     'midway-strip';
+
+  // C4: Zone transition stinger — fire once when the zone identity changes.
+  if (currentZone !== gs.currentZone) {
+    playZoneStinger(currentZone);
+  }
+
+  // C4: Milestone stinger — fire on every 1000m boundary crossed this frame.
+  const prevMilestone = Math.floor(gs.distance / 1000);
+  const newMilestone = Math.floor(distance / 1000);
+  if (newMilestone > prevMilestone) {
+    playMilestoneStinger();
+  }
 
   // Sanity regen slowly
   const sanity = Math.min(100, gs.sanity + dt * 2);
