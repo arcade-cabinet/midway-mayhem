@@ -51,7 +51,10 @@ test.describe('mechanics gate — core loop observably alive @mechanics @nightly
   test('autoplay run produces: distance, score, zone transition, combo tick, fps @nightly', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    // 20s canvas + 20s hud + 44s sampling = 84s floor under local conditions;
+    // CI swiftshader adds 10–30s of per-check overhead, so 180s gives
+    // comfortable headroom without risking the test hanging forever.
+    test.setTimeout(180_000);
 
     await page.goto(
       '/midway-mayhem/?autoplay=1&governor=1&phrase=lightning-kerosene-ferris&difficulty=plenty',

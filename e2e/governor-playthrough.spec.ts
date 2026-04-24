@@ -16,6 +16,9 @@ test.describe('governor playthrough', () => {
       testInfo.project.name !== 'desktop-chromium',
       'governor playthrough runs on desktop-chromium only (telemetry nightly)',
     );
+    // Screenshots at 0.5s / 2s / 5s + 20s boot waits + screenshot overhead
+    // pushes past 120s on CI swiftshader even before assertions run.
+    test.setTimeout(300_000);
     const consoleErrors: string[] = [];
     page.on('pageerror', (err) => consoleErrors.push(String(err)));
     page.on('console', (msg) => {
@@ -82,8 +85,10 @@ test.describe('governor playthrough', () => {
       testInfo.project.name !== 'desktop-chromium',
       'modal flow runs on desktop-chromium only (telemetry nightly)',
     );
+    // Boot + modal + 60s attach waits on CI swiftshader need >120s default.
+    test.setTimeout(300_000);
     await page.goto('/midway-mayhem/?nonameonboard=1');
-    await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 30_000 });
 
     // force: true because the R3F canvas behind the title animates on
     // every frame — Playwright's default actionability stability check
