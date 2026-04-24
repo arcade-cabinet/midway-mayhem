@@ -32,18 +32,30 @@ const SOAK_DURATION_MS = 300_000;
 /** Heartbeat poll interval in milliseconds. */
 const HEARTBEAT_MS = 10_000;
 
-/** Minimum acceptable fps at each heartbeat. CI runs xvfb + swiftshader
- *  software WebGL, which caps at ~12-18 fps for this scene; locally on
- *  real-GPU Chrome we see 55-60 fps. The "game appears frozen" guard is
- *  really checking "> 0 fps" on CI and "> 20 fps" on developer machines —
- *  both are meaningful proofs-of-life, so we scale the threshold. */
-const MIN_FPS = process.env.CI ? 5 : 20;
+/** Minimum fps on a developer machine with real-GPU Chrome (60 fps typical).
+ *  "Game is alive" in the ideal case. */
+const LOCAL_MIN_FPS = 20;
 
-/** Minimum distance (metres) the car must have covered at end of soak.
- *  CI swiftshader advances ~3-5× slower than local-GPU Chrome, so the
- *  threshold drops proportionally — the goal is to prove the car moved
- *  appreciably, not to enforce a specific speed. */
-const MIN_DISTANCE_M = process.env.CI ? 200 : 1000;
+/** Minimum fps on CI xvfb + swiftshader software WebGL. This scene runs
+ *  at ~12–18 fps on swiftshader (vs 55–60 real-GPU). The guard isn't a
+ *  performance SLO — it's a proof-of-life that catches 0- or 1-fps zombie
+ *  states. 5 is well above the zombie floor and comfortably below the
+ *  swiftshader steady-state, even at the slow end of that range. */
+const CI_MIN_FPS = 5;
+
+/** End-of-soak distance threshold on a developer machine. */
+const LOCAL_MIN_DISTANCE_M = 1000;
+
+/** End-of-soak distance threshold on CI. Swiftshader advances ~3–5× slower;
+ *  200 m keeps headroom if we land at the 5× slow end, while still being
+ *  enough travel to prove the car wasn't stuck. */
+const CI_MIN_DISTANCE_M = 200;
+
+/** Minimum acceptable fps at each heartbeat. */
+const MIN_FPS = process.env.CI ? CI_MIN_FPS : LOCAL_MIN_FPS;
+
+/** Minimum distance (metres) the car must have covered at end of soak. */
+const MIN_DISTANCE_M = process.env.CI ? CI_MIN_DISTANCE_M : LOCAL_MIN_DISTANCE_M;
 
 /** The canonical E1 soak phrase. */
 const SOAK_PHRASE = 'lightning-kerosene-ferris';
