@@ -33,8 +33,10 @@ test.describe('mobile-first gameplay', () => {
 
     // Both TitleCompactLayout and TitleHeroLayout testId the NEW RUN
     // button as 'start-button' — use that directly for reliability.
+    // force: true because the R3F canvas behind the title animates every
+    // frame; without force, actionability stability loops forever.
     await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 10_000 });
-    await page.getByTestId('start-button').click();
+    await page.getByTestId('start-button').click({ force: true });
     await expect(page.getByTestId('new-run-play')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('new-run-play').click();
 

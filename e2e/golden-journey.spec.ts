@@ -36,24 +36,16 @@ test.describe('golden journey — full UI transition path @journey @nightly', ()
     // Title screen must mount.
     await expect(page.getByTestId('title-screen')).toBeVisible({ timeout: 15_000 });
 
-    // 2. Click the NEW RUN button (title screen renders it).
-    const newRunTrigger = page.getByRole('button', { name: /NEW RUN/i }).first();
-    if ((await newRunTrigger.count()) > 0) {
-      await newRunTrigger.click();
-      // Difficulty grid should appear.
-      await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 10_000 });
-    }
+    // 2. Click NEW RUN. Use testid + force:true — the R3F canvas behind
+    // the title animates every frame so Playwright's normal actionability
+    // stability loop never settles. elementFromPoint confirms start-button
+    // is on top, so force-clicking is safe.
+    await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('start-button').click({ force: true });
+    await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 15_000 });
 
-    // 3. Click PLAY (or the explicit difficulty-confirm button). Exit the
-    // modal into gameplay.
-    const playBtn = page.getByRole('button', { name: /^(PLAY|Start|Begin|Drop in)$/i }).first();
-    if ((await playBtn.count()) > 0) {
-      await playBtn.click();
-    } else {
-      // Fallback: older title flow uses a single PLAY that lives outside the modal.
-      const altPlay = page.getByText(/PLAY/i).first();
-      if ((await altPlay.count()) > 0) await altPlay.click();
-    }
+    // 3. Click PLAY inside the modal (not covered by the animated canvas).
+    await page.getByTestId('new-run-play').click();
 
     // Title should dismiss within a few seconds.
     await expect(page.getByTestId('title-screen')).toHaveCount(0, { timeout: 15_000 });
