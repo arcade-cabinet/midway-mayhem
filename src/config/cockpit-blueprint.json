@@ -2,7 +2,7 @@
   "cameraPosition": [0, 1.55, 1.55],
   "cameraTargetForward": [0, 1.55, 0],
   "cameraFov": {
-    "horizontalDeg": 88,
+    "horizontalDeg": 70,
     "near": 0.1,
     "far": 2000
   },
