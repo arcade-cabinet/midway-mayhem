@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { onHonk } from '@/audio/honkBus';
 import { Obstacle } from '@/ecs/traits';
 import { combo } from '@/game/comboSystem';
-import { useGameStore } from '@/game/gameState';
+import { incrementScares, useGameStore } from '@/game/gameState';
 import { eventsRng } from '@/game/runRngBus';
 import { HONK } from '@/utils/constants';
 
@@ -42,7 +42,10 @@ export function ObstacleSystem() {
       }
 
       if (scared > 0) {
-        for (let i = 0; i < scared; i++) combo.registerEvent('scare');
+        for (let i = 0; i < scared; i++) {
+          combo.registerEvent('scare');
+          incrementScares(world);
+        }
         const mult = combo.getMultiplier();
         useGameStore.setState({
           crowdReaction: useGameStore.getState().crowdReaction + scared * 10 * mult,

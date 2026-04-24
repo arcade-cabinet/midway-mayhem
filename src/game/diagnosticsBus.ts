@@ -9,6 +9,7 @@
  * shipped build, reintroduce the URL gate here.
  */
 
+import { honk } from '@/audio/honkBus';
 import { combo } from './comboSystem';
 
 export interface DiagnosticsDump {
@@ -67,7 +68,12 @@ export interface DiagnosticsDump {
   steer: number;
   lateral: number;
   obstacleCount: number;
+  /** Per-kind obstacle counts (unconsumed only) so snapshots tell us what
+   *  the player is actually seeing — critters missing vs spawned etc. */
+  obstacleByKind: Record<string, number>;
   pickupCount: number;
+  /** Per-kind pickup counts (balloons/boost/mega). */
+  pickupByKind: Record<string, number>;
   drawCalls: number;
   trackPieces: number;
   meshesRendered: number;
@@ -90,7 +96,9 @@ const bus = {
   fps: 0,
   frameTimeMs: 0,
   obstacleCount: 0,
+  obstacleByKind: {} as Record<string, number>,
   pickupCount: 0,
+  pickupByKind: {} as Record<string, number>,
   drawCalls: 0,
   trackPieces: 0,
   meshesRendered: 0,
@@ -149,7 +157,9 @@ export function installDiagnosticsBus() {
         steer: s?.steer ?? 0,
         lateral: s?.lateral ?? 0,
         obstacleCount: bus.obstacleCount,
+        obstacleByKind: { ...bus.obstacleByKind },
         pickupCount: bus.pickupCount,
+        pickupByKind: { ...bus.pickupByKind },
         drawCalls: bus.drawCalls,
         trackPieces: bus.trackPieces,
         meshesRendered: bus.meshesRendered,
@@ -199,6 +209,9 @@ export function installDiagnosticsBus() {
     },
     comboEvent(kind: 'scare' | 'pickup' | 'near-miss') {
       combo.registerEvent(kind);
+    },
+    honk() {
+      return honk();
     },
     dumpObstacles(): Array<Record<string, number | string | boolean>> {
       // Walks whatever the wireDiagnosticsHooks getObstacles hook returns.
@@ -261,6 +274,12 @@ export function reportCounts(obstacles: number, pickups: number, drawCalls: numb
   bus.obstacleCount = obstacles;
   bus.pickupCount = pickups;
   bus.drawCalls = drawCalls;
+}
+export function reportObstacleKinds(byKind: Record<string, number>) {
+  bus.obstacleByKind = { ...byKind };
+}
+export function reportPickupKinds(byKind: Record<string, number>) {
+  bus.pickupByKind = { ...byKind };
 }
 type SceneListener = (cameraPos: [number, number, number]) => void;
 const sceneListeners: Set<SceneListener> = new Set();

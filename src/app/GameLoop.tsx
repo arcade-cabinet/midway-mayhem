@@ -28,7 +28,13 @@ import {
 } from '@/ecs/traits';
 import { resetAchievementsRun, stepAchievements } from '@/game/achievementRun';
 import { combo } from '@/game/comboSystem';
-import { reportCounts, reportEcsStats, reportFrame } from '@/game/diagnosticsBus';
+import {
+  reportCounts,
+  reportEcsStats,
+  reportFrame,
+  reportObstacleKinds,
+  reportPickupKinds,
+} from '@/game/diagnosticsBus';
 import {
   applyCrash,
   ensureGameTraits,
@@ -134,9 +140,28 @@ export function GameLoop({ world, active, onPickup, onObstacle, onEnd }: GameLoo
     // meshesRendered, trackPieces) is reported by TrackScroller each frame
     // with the live values — clobbering it here with [0,0,0] stubs made
     // diagnostics useless for debugging the scene. Don't re-report here.
-    const obstacleCount = world.query(Obstacle).length;
-    const pickupCount = world.query(Pickup).length;
+    const obstacleEntities = world.query(Obstacle);
+    const pickupEntities = world.query(Pickup);
+    const obstacleCount = obstacleEntities.length;
+    const pickupCount = pickupEntities.length;
     reportCounts(obstacleCount, pickupCount, state.gl.info.render.calls);
+
+    // Per-kind live counts so snapshot JSON tells us what's spawned — no
+    // more guessing whether critters exist in a given zone.
+    const obByKind: Record<string, number> = {};
+    for (const e of obstacleEntities) {
+      const ob = e.get(Obstacle);
+      if (!ob || ob.consumed) continue;
+      obByKind[ob.kind] = (obByKind[ob.kind] ?? 0) + 1;
+    }
+    reportObstacleKinds(obByKind);
+    const puByKind: Record<string, number> = {};
+    for (const e of pickupEntities) {
+      const pu = e.get(Pickup);
+      if (!pu || pu.consumed) continue;
+      puByKind[pu.kind] = (puByKind[pu.kind] ?? 0) + 1;
+    }
+    reportPickupKinds(puByKind);
 
     // Expose ECS Score.damage + Position for live debugging — the store's
     // `crashes` counter is not wired to Score.damage (see #130), so the

@@ -20,7 +20,9 @@
       "!**/reference",
       "!**/public/sql-wasm.wasm",
       "!**/.capture",
-      "!**/.cr"
+      "!**/.cr",
+      "!**/__run-snapshots__",
+      "!**/__cause-effect__"
     ]
   },
   "formatter": {
