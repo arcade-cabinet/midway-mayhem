@@ -111,7 +111,7 @@ jobs:
         # chunk, classifies critical vs lazy, enforces critical < 2 048 KB
         # and total < 5 120 KB, emits perf-budget.json, and writes a
         # Markdown table to $GITHUB_STEP_SUMMARY.
-        run: pnpm audit:perf
+        run: pnpm audit:bundle
       - uses: actions/upload-artifact@v4
         with:
           name: dist
