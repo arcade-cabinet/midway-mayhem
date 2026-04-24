@@ -32,6 +32,7 @@
     "e2e:nightly": "playwright test --grep @nightly",
     "e2e:update": "playwright test --update-snapshots",
     "e2e:ui": "playwright test --ui",
+    "perf:android": "playwright test --grep @android-perf",
     "test:browser": "vitest run --project browser",
     "test:watch": "vitest",
     "test:visual:update": "vitest run --project browser --update",
