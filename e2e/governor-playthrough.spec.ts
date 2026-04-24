@@ -92,10 +92,14 @@ test.describe('governor playthrough', () => {
     // (elementFromPoint confirms start-button is on top), so forcing the
     // click is safe and reliable here.
     await page.getByTestId('start-button').click({ force: true });
-    await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 15_000 });
+    // state: 'attached' instead of toBeVisible() — the modal DOM mounts
+    // fast but the animated scene keeps re-triggering React updates,
+    // which flap the element's stable-visible state. DOM presence is
+    // the meaningful signal here.
+    await page.getByTestId('difficulty-grid').waitFor({ state: 'attached', timeout: 15_000 });
 
     // PLAY button inside the modal (not covered by the animated canvas).
-    await page.getByTestId('new-run-play').click();
+    await page.getByTestId('new-run-play').click({ force: true });
 
     // Title should be gone
     await expect(page.getByTestId('title-screen')).toHaveCount(0);

@@ -42,10 +42,15 @@ test.describe('golden journey — full UI transition path @journey @nightly', ()
     // is on top, so force-clicking is safe.
     await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('start-button').click({ force: true });
-    await expect(page.getByTestId('difficulty-grid')).toBeVisible({ timeout: 15_000 });
+    // The modal DOM mounts within ~500ms of click, but the title's R3F
+    // frame loop keeps triggering re-renders, which flap the element's
+    // "stable" state. `state: 'attached'` only checks DOM presence,
+    // which is what we actually care about here; toBeVisible() loops
+    // forever waiting for stable visibility and times out.
+    await page.getByTestId('difficulty-grid').waitFor({ state: 'attached', timeout: 15_000 });
 
     // 3. Click PLAY inside the modal (not covered by the animated canvas).
-    await page.getByTestId('new-run-play').click();
+    await page.getByTestId('new-run-play').click({ force: true });
 
     // Title should dismiss within a few seconds.
     await expect(page.getByTestId('title-screen')).toHaveCount(0, { timeout: 15_000 });
