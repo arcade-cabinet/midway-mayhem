@@ -68,14 +68,6 @@ describe('persistence barrel exports', () => {
     expect(persistence.SETTINGS_CHANGED_EVENT).toBeDefined();
   });
 
-  it('re-exports tutorial helpers', () => {
-    expect(typeof persistence.getFirstSeenAt).toBe('function');
-    expect(typeof persistence.hydrateTutorialFlags).toBe('function');
-    expect(typeof persistence.markShown).toBe('function');
-    expect(typeof persistence.resetTutorialForTests).toBe('function');
-    expect(typeof persistence.shouldShow).toBe('function');
-  });
-
   it('re-exports the Drizzle schema (* from ./schema)', () => {
     expect(persistence.profile).toBeDefined();
     expect(persistence.unlocks).toBeDefined();

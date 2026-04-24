@@ -52,11 +52,3 @@ export {
 export * from './schema';
 export type { GameSettings, PreferredControl } from './settings';
 export { getSettings, SETTINGS_CHANGED_EVENT, updateSettings } from './settings';
-export type { TutorialSlug } from './tutorial';
-export {
-  getFirstSeenAt,
-  hydrateTutorialFlags,
-  markShown,
-  resetTutorialForTests,
-  shouldShow,
-} from './tutorial';
