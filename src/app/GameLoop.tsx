@@ -83,9 +83,7 @@ export function GameLoop({ world, active, onPickup, onObstacle, onEnd }: GameLoo
       }
 
       // ── Trick system ─────────────────────────────────────────────────────
-      // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null — initialized on component mount above
       const trickSystem = trickSystemRef.current!;
-      // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null — initialized on component mount above
       const rampDetect = rampDetectRef.current!;
       const gs = useGameStore.getState();
 
