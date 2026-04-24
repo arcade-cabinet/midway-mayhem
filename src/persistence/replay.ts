@@ -96,6 +96,28 @@ export async function getBestReplayForDate(date: string): Promise<ReplayRow | nu
   };
 }
 
+/**
+ * Fetch the N most recent replay rows across all dates, ordered by creation
+ * time descending. Used by GhostMenu (D4) to show the last 5 runs.
+ */
+export async function getRecentRuns(limit = 5): Promise<ReplayRow[]> {
+  const rows = await db()
+    .select()
+    .from(replays)
+    .orderBy(desc(replays.createdAt), desc(replays.id))
+    .limit(limit)
+    .all();
+
+  return rows.map((r) => ({
+    id: r.id,
+    dailyDate: r.dailyDate,
+    distanceCm: r.distanceCm,
+    crowd: r.crowd,
+    trace: JSON.parse(r.inputTraceJson) as ReplaySample[],
+    createdAt: r.createdAt,
+  }));
+}
+
 /** Compare two replays by identity (same id). Used by GhostCar to skip rendering self. */
 export function replaysEqual(a: ReplayRow | null, b: ReplayRow | null): boolean {
   if (a === null && b === null) return true;
