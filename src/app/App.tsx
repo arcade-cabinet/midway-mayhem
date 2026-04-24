@@ -296,6 +296,11 @@ function AppInner() {
               });
             }
             commitGhost(world);
+            // Actually end the run. Without this the ECS gameOver detector
+            // fires once, saves the score, then the game loop keeps ticking
+            // forever because running/gameOver in RunSession never flip —
+            // producing the "car drives past the finish forever" stall.
+            useGameStore.getState().endRun();
           }}
         />
         <AudioBridge
