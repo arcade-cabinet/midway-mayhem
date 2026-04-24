@@ -9,6 +9,13 @@ domain: technical
 
 All notable changes documented per [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). This project follows [Semantic Versioning 2.0.0](https://semver.org/).
 
+## [0.2.6](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.5...midway-mayhem-v0.2.6) (2026-04-24)
+
+
+### Fixed
+
+* **e2e:** waitFor state:'attached' instead of toBeVisible on modal elements ([#296](https://github.com/arcade-cabinet/midway-mayhem/issues/296)) ([7823041](https://github.com/arcade-cabinet/midway-mayhem/commit/7823041d87a63bcd031db216ffaaae3166c1968b))
+
 ## [0.2.5](https://github.com/arcade-cabinet/midway-mayhem/compare/midway-mayhem-v0.2.4...midway-mayhem-v0.2.5) (2026-04-24)
 
 
