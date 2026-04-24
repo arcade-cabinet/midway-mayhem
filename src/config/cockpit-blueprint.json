@@ -148,10 +148,11 @@
     "steeringColumn": {
       "type": "cylinder",
       "radius": 0.035,
-      "length": 0.3,
-      "position": [0.0, 1.088167787843871, -0.2213525491562421],
+      "length": 0.266,
+      "position": [0.0, 1.075, -0.21],
       "rotation": [0.6283185307179586, 0, 0],
-      "materialRef": "chrome"
+      "materialRef": "chrome",
+      "note": "Endpoints: wheel hub [0,1.0,-0.1] and dashCowl mount [0,1.15,-0.32]. Midpoint=(1.075,-0.21), length=||(1.15-1.0,−0.32−(−0.1))||=||(0.15,−0.22)||≈0.266."
     },
     "gaugeFace_LAUGHS": {
       "type": "cylinder",
