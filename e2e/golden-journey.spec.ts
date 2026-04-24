@@ -21,7 +21,9 @@ import { expect, test } from '@playwright/test';
 
 test.describe('golden journey — full UI transition path @journey @nightly', () => {
   test('title → NEW RUN → play → game-over overlay @nightly', async ({ page }) => {
-    test.setTimeout(120_000);
+    // CI swiftshader: 60s modal mount + 30s subsequent waits × 2 branches
+    // = easily 3-4 min for the full journey. 300s keeps comfortable headroom.
+    test.setTimeout(300_000);
 
     // 1. Land at title. `?nonameonboard=1` suppresses the first-launch
     // NameOnboardingModal (full-screen zIndex:60 overlay) which would
@@ -40,14 +42,15 @@ test.describe('golden journey — full UI transition path @journey @nightly', ()
     // the title animates every frame so Playwright's normal actionability
     // stability loop never settles. elementFromPoint confirms start-button
     // is on top, so force-clicking is safe.
-    await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 30_000 });
     await page.getByTestId('start-button').click({ force: true });
-    // The modal DOM mounts within ~500ms of click, but the title's R3F
-    // frame loop keeps triggering re-renders, which flap the element's
-    // "stable" state. `state: 'attached'` only checks DOM presence,
-    // which is what we actually care about here; toBeVisible() loops
-    // forever waiting for stable visibility and times out.
-    await page.getByTestId('difficulty-grid').waitFor({ state: 'attached', timeout: 15_000 });
+    // The modal DOM mounts within ~500ms of click on local real-GPU Chrome
+    // but can take 20-30s on CI swiftshader under load (contention from the
+    // 20-min snapshot suite on the same runner). `state: 'attached'` only
+    // checks DOM presence (what we care about); toBeVisible() would loop
+    // on animated-canvas-induced stability flapping.
+    await page.getByTestId('new-run-modal').waitFor({ state: 'attached', timeout: 60_000 });
+    await page.getByTestId('difficulty-grid').waitFor({ state: 'attached', timeout: 30_000 });
 
     // 3. Click PLAY inside the modal (not covered by the animated canvas).
     await page.getByTestId('new-run-play').click({ force: true });
