@@ -23,8 +23,12 @@ test.describe('golden journey — full UI transition path @journey @nightly', ()
   test('title → NEW RUN → play → game-over overlay @nightly', async ({ page }) => {
     test.setTimeout(120_000);
 
-    // 1. Land at title (no autoplay flag).
-    await page.goto('/midway-mayhem/');
+    // 1. Land at title. `?nonameonboard=1` suppresses the first-launch
+    // NameOnboardingModal (full-screen zIndex:60 overlay) which would
+    // otherwise block every click on a fresh browser context. This spec
+    // exercises the NEW RUN → NewRunModal → PLAY path, not the first-
+    // launch name entry — that has its own dedicated coverage.
+    await page.goto('/midway-mayhem/?nonameonboard=1');
 
     // Canvas must mount.
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
