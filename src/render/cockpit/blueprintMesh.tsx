@@ -74,7 +74,13 @@ function stringLength(mesh: CockpitMesh): number {
  * bake a CanvasTexture once per material instance via useMemo so the
  * blueprint can fan out hundreds of meshes without thrashing the GPU.
  */
-function CockpitMaterialNode({ material }: { material: CockpitMaterial }) {
+function CockpitMaterialNode({
+  material,
+  doubleSided,
+}: {
+  material: CockpitMaterial;
+  doubleSided?: boolean;
+}) {
   const tex = useMemo(() => {
     if (!material.dotColor) return null;
     return makePolkaDotTexture(material.dotColor, material.baseColor, {
@@ -82,12 +88,15 @@ function CockpitMaterialNode({ material }: { material: CockpitMaterial }) {
     });
   }, [material.baseColor, material.dotColor, material.dotsPerSide]);
 
+  const side = doubleSided ? THREE.DoubleSide : THREE.FrontSide;
+
   if (tex) {
     return (
       <meshStandardMaterial
         map={tex}
         roughness={material.roughness}
         metalness={material.metalness}
+        side={side}
       />
     );
   }
@@ -96,6 +105,7 @@ function CockpitMaterialNode({ material }: { material: CockpitMaterial }) {
       color={material.baseColor}
       roughness={material.roughness}
       metalness={material.metalness}
+      side={side}
     />
   );
 }
@@ -115,6 +125,9 @@ export function CockpitMeshNode({ name, mesh, material }: CockpitMeshNodeProps) 
   const rotation = resolveRotation(mesh);
   const scale = resolveScale(mesh);
   const materialNode = <CockpitMaterialNode material={material} />;
+  // cylinderSweep is an open shell — default backface culling would make
+  // the driver-facing concave surface invisible. Render double-sided.
+  const materialNodeDoubleSided = <CockpitMaterialNode material={material} doubleSided />;
 
   switch (mesh.type) {
     case 'sphere': {
@@ -158,7 +171,7 @@ export function CockpitMeshNode({ name, mesh, material }: CockpitMeshNodeProps) 
           <cylinderGeometry
             args={[r, r, len, DEFAULT_SEGMENTS.cylinderRadial, 1, true, 0, arcRad]}
           />
-          {materialNode}
+          {materialNodeDoubleSided}
         </mesh>
       );
     }

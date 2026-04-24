@@ -148,10 +148,11 @@
     "steeringColumn": {
       "type": "cylinder",
       "radius": 0.035,
-      "length": 0.3,
-      "position": [0.0, 1.088167787843871, -0.2213525491562421],
+      "length": 0.27,
+      "position": [0.0, 1.075, -0.21],
       "rotation": [0.6283185307179586, 0, 0],
-      "materialRef": "chrome"
+      "materialRef": "chrome",
+      "note": "Length + position calibrated so the +Y end coincides with the wheel hub (y=1.0, z=-0.1) and the -Y end reaches the dashboard area (y=1.15, z=-0.32). Under X-rotation 0.628 rad, local Y maps to (0, 0.809, -0.588); endpoint offset = ±0.27/2 × (0, 0.809, -0.588) from the center gives the wheel-to-dash vector. Previously length=0.3 at center [0, 1.088, -0.221] left both ends dangling mid-air."
     },
     "gaugeFace_LAUGHS": {
       "type": "cylinder",

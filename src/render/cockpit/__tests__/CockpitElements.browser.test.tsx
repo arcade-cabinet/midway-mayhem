@@ -95,8 +95,8 @@ const ELEMENTS: ElementView[] = [
       'flowerPetal6',
       'flowerPetal7',
     ],
-    cameraPos: [0.9, 1.3, 0.5],
-    target: [0, 0.6, -1.5],
+    cameraPos: [0, 1.3, -1.5],
+    target: [0, 0.95, -2.6],
   },
   {
     id: 'mirror-dice',
