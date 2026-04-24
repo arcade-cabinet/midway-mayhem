@@ -26,8 +26,13 @@ import { expect, test } from '@playwright/test';
 
 // ── constants ──────────────────────────────────────────────────────────────
 
-/** Total soak duration in milliseconds. */
-const SOAK_DURATION_MS = 300_000;
+/** Total soak duration in milliseconds. Locally we run the full 5-min
+ *  soak (with fast real-GPU Chrome); on CI we cut to 2 min because each
+ *  heartbeat cycle takes ~20-30s on swiftshader (screenshot + page.evaluate
+ *  + disk write) and the 5-min soak was overrunning the 15-min test cap.
+ *  The goal is "alive under load for a sustained window" — 2 min is
+ *  plenty to catch regressions without burning 15 min of runner time. */
+const SOAK_DURATION_MS = process.env.CI ? 120_000 : 300_000;
 
 /** Heartbeat poll interval in milliseconds. */
 const HEARTBEAT_MS = 10_000;

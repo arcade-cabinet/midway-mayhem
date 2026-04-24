@@ -93,10 +93,11 @@ test.describe('governor playthrough', () => {
     // click is safe and reliable here.
     await page.getByTestId('start-button').click({ force: true });
     // state: 'attached' instead of toBeVisible() — the modal DOM mounts
-    // fast but the animated scene keeps re-triggering React updates,
-    // which flap the element's stable-visible state. DOM presence is
-    // the meaningful signal here.
-    await page.getByTestId('difficulty-grid').waitFor({ state: 'attached', timeout: 15_000 });
+    // fast on real-GPU Chrome but can take 20-30s on CI swiftshader; the
+    // animated scene also keeps re-triggering React updates which flap
+    // the stable-visible state. DOM presence is the meaningful signal.
+    await page.getByTestId('new-run-modal').waitFor({ state: 'attached', timeout: 60_000 });
+    await page.getByTestId('difficulty-grid').waitFor({ state: 'attached', timeout: 30_000 });
 
     // PLAY button inside the modal (not covered by the animated canvas).
     await page.getByTestId('new-run-play').click({ force: true });

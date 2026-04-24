@@ -35,11 +35,12 @@ test.describe('mobile-first gameplay', () => {
     // button as 'start-button' — use that directly for reliability.
     // force: true because the R3F canvas behind the title animates every
     // frame; without force, actionability stability loops forever.
-    await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('start-button')).toBeVisible({ timeout: 30_000 });
     await page.getByTestId('start-button').click({ force: true });
-    // waitFor attached (not visible) — animated scene flaps the stable
-    // state; DOM presence is what we actually care about.
-    await page.getByTestId('new-run-play').waitFor({ state: 'attached', timeout: 15_000 });
+    // waitFor attached (not visible) — animated scene flaps stable state
+    // and modal mount can take 20-30s under CI swiftshader load.
+    await page.getByTestId('new-run-modal').waitFor({ state: 'attached', timeout: 60_000 });
+    await page.getByTestId('new-run-play').waitFor({ state: 'attached', timeout: 30_000 });
     await page.getByTestId('new-run-play').click({ force: true });
 
     // Title is gone, canvas + HUD visible
