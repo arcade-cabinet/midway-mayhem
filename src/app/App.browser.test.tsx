@@ -75,11 +75,28 @@ describe('App root-render integration', () => {
     const ctx = probe.getContext('2d');
     if (!ctx) throw new Error('no 2d ctx');
     ctx.drawImage(img, 0, 0);
-    const pix = ctx.getImageData(Math.floor(img.width / 2), Math.floor(img.height / 2), 1, 1).data;
-    const sum = pix[0]! + pix[1]! + pix[2]! + pix[3]!;
+    // Sample 9 points (3x3 grid across the canvas). The center can be dark
+    // if the cockpit steering-wheel hub sits exactly there after A-DESC-4's
+    // pitch hook; a single probe is flaky. The PASS condition is "at least
+    // one of 9 probes has non-zero RGB" — that proves the scene rendered
+    // something, not just a transparent buffer.
+    const probes: Array<[number, number]> = [];
+    for (const fx of [0.25, 0.5, 0.75]) {
+      for (const fy of [0.25, 0.5, 0.75]) {
+        probes.push([Math.floor(img.width * fx), Math.floor(img.height * fy)]);
+      }
+    }
+    let maxSum = 0;
+    const samples: string[] = [];
+    for (const [x, y] of probes) {
+      const p = ctx.getImageData(x, y, 1, 1).data;
+      const s = p[0]! + p[1]! + p[2]!;
+      if (s > maxSum) maxSum = s;
+      samples.push(`(${x},${y})=rgb(${p[0]},${p[1]},${p[2]})`);
+    }
     expect(
-      sum,
-      `pixel was rgba(${pix.join(',')}), canvas ${canvas.width}×${canvas.height}`,
+      maxSum,
+      `all 9 probes dark — canvas ${canvas.width}×${canvas.height} — samples: ${samples.join(' ')}`,
     ).toBeGreaterThan(0);
 
     // And the diagnostics bus should report the scene has objects in it —
