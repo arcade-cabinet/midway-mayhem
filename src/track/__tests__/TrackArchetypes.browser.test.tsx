@@ -26,7 +26,11 @@ import { LaneCount, TrackSegment } from '@/ecs/traits';
 import { Track } from '@/render/Track';
 import { waitFrames } from '@/test/scene';
 
-const VIEWPORT = { width: 640, height: 360 };
+// Baselines in src/track/__baselines__/archetypes/ are pinned at
+// 1280×720 (higher DPR captured on the original real-GPU run). Rendering
+// at 640×360 and diffing against 1280×720 throws the dimension-mismatch
+// gate — so we render at 1280×720 too.
+const VIEWPORT = { width: 1280, height: 720 };
 
 /** Build a world containing exactly one track segment for the archetype. */
 function worldWithSingleArchetype(archetypeId: string) {
